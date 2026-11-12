@@ -3,13 +3,13 @@
   "name": "Kanta Seni — Misi Eksplorasi & Jejak Bintang",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/2970/2970785.png",
+      "src": "logo.png",
       "type": "image/png",
       "sizes": "192x192",
       "purpose": "any maskable"
     },
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/2970/2970785.png",
+      "src": "logo.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "any maskable"
