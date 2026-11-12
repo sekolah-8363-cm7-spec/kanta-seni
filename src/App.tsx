@@ -194,7 +194,6 @@ const pickThreeRandomQuestions = (
   const picked: AppreciationQuestion[] = [];
   const usedCategories = new Set<string>();
 
-  // Cuba dapatkan 1 soalan bagi setiap kategori dahulu
   for (const q of shuffled) {
     if (!usedCategories.has(q.category) && picked.length < 3) {
       picked.push(q);
@@ -202,7 +201,6 @@ const pickThreeRandomQuestions = (
     }
   }
 
-  // Lengkapkan sehingga 3 soalan jika perlu
   for (const q of shuffled) {
     if (picked.length >= 3) break;
     if (!picked.some((item) => item.id === q.id)) {
@@ -394,7 +392,7 @@ export default function App() {
     );
   }, [nameUsageHistory]);
 
-  // --- Tarik Data dari Google Sheets ---
+  // --- Tarik Data Karya & Data Staf dari Google Sheets (Selaras dengan Code.gs) ---
   useEffect(() => {
     fetch(SCRIPT_URL)
       .then((res) => res.json())
@@ -403,8 +401,22 @@ export default function App() {
         setLoading(false);
       })
       .catch((error) => {
-        console.error("Ralat memuat turun data:", error);
+        console.error("Ralat memuat turun data karya:", error);
         setLoading(false);
+      });
+
+    fetch(`${SCRIPT_URL}?type=staff`)
+      .then((res) => res.json())
+      .then((staffData) => {
+        if (staffData && Array.isArray(staffData.teachers)) {
+          setTeachersList(staffData.teachers);
+        }
+        if (staffData && staffData.adminCreds && staffData.adminCreds.username) {
+          setAdminCredentials(staffData.adminCreds);
+        }
+      })
+      .catch((error) => {
+        console.error("Ralat memuat turun data guru:", error);
       });
   }, []);
 
@@ -882,26 +894,47 @@ export default function App() {
     setArtworkToDelete(null);
   };
 
-  // --- FUNGSI LOG MASUK STAFF (ADMIN / GURU) ---
-  const handleStaffLogin = (usernameInput: string, passwordInput: string) => {
+  // --- FUNGSI LOG MASUK STAFF (SEMAK TERUS DARI ?type=staff DI GOOGLE SHEETS) ---
+  const handleStaffLogin = async (
+    usernameInput: string,
+    passwordInput: string
+  ) => {
     const cleanUser = usernameInput.trim();
     const cleanPass = passwordInput.trim();
 
+    let latestTeachers = teachersList;
+    let latestAdmin = adminCredentials;
+
+    try {
+      const res = await fetch(`${SCRIPT_URL}?type=staff`);
+      const staffData = await res.json();
+      if (staffData && Array.isArray(staffData.teachers)) {
+        latestTeachers = staffData.teachers;
+        setTeachersList(staffData.teachers);
+      }
+      if (staffData && staffData.adminCreds && staffData.adminCreds.username) {
+        latestAdmin = staffData.adminCreds;
+        setAdminCredentials(staffData.adminCreds);
+      }
+    } catch (err) {
+      console.error("Ralat semak akaun guru dari awan:", err);
+    }
+
     if (
-      cleanUser === adminCredentials.username &&
-      cleanPass === adminCredentials.password
+      cleanUser === latestAdmin.username &&
+      cleanPass === latestAdmin.password
     ) {
       setLoggedInStaff({
         role: "admin",
         name: "Pentadbir Utama (Admin)",
-        username: adminCredentials.username,
+        username: latestAdmin.username,
       });
       setIsStaffLoginModalOpen(false);
       setActiveTab("panel-admin");
       return { success: true };
     }
 
-    const matchedTeacher = teachersList.find(
+    const matchedTeacher = latestTeachers.find(
       (t) =>
         t.username.toLowerCase() === cleanUser.toLowerCase() &&
         t.password === cleanPass
@@ -1771,6 +1804,7 @@ export default function App() {
             setAdminCredentials={setAdminCredentials}
             teachersList={teachersList}
             setTeachersList={setTeachersList}
+            sendToSheet={sendToSheet}
             onDeleteCommentWithPenalty={handleDeleteCommentWithPenalty}
             onRemoveSingleStar={handleRemoveSingleStar}
             onLogout={handleStaffLogout}
@@ -2103,17 +2137,23 @@ function StaffLoginModal({
   onLogin,
 }: {
   onClose: () => void;
-  onLogin: (u: string, p: string) => { success: boolean; message?: string };
+  onLogin: (
+    u: string,
+    p: string
+  ) => Promise<{ success: boolean; message?: string }>;
 }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [isChecking, setIsChecking] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    const res = onLogin(username, password);
+    setIsChecking(true);
+    const res = await onLogin(username, password);
+    setIsChecking(false);
     if (!res.success) {
       setError(res.message || "Log masuk gagal.");
     }
@@ -2212,10 +2252,11 @@ function StaffLoginModal({
             </button>
             <button
               type="submit"
-              className="w-2/3 px-4 py-3 bg-blue-800 hover:bg-blue-900 text-yellow-300 font-black rounded-xl shadow-[0_4px_0_rgb(15,23,42)] hover:translate-y-0.5 transition-all flex items-center justify-center gap-2"
+              disabled={isChecking}
+              className="w-2/3 px-4 py-3 bg-blue-800 hover:bg-blue-900 disabled:opacity-60 text-yellow-300 font-black rounded-xl shadow-[0_4px_0_rgb(15,23,42)] hover:translate-y-0.5 transition-all flex items-center justify-center gap-2"
             >
               <KeyRound className="w-4 h-4" />
-              Log Masuk
+              {isChecking ? "Menyemak..." : "Log Masuk"}
             </button>
           </div>
         </form>
@@ -2233,6 +2274,7 @@ function StaffDashboardPanel({
   setAdminCredentials,
   teachersList,
   setTeachersList,
+  sendToSheet,
   onDeleteCommentWithPenalty,
   onRemoveSingleStar,
   onLogout,
@@ -2326,18 +2368,29 @@ function StaffDashboardPanel({
       classAssigned: teacherClass,
     };
 
-    setTeachersList((prev: any) => [...prev, newTeacher]);
+    const updatedTeachers = [...teachersList, newTeacher];
+    setTeachersList(updatedTeachers);
+    sendToSheet("syncStaff", {
+      teachers: updatedTeachers,
+      adminCreds: adminCredentials,
+    });
+
     setTeacherName("");
     setTeacherUser("");
     setTeacherPass("");
     onShowNotice(
-      `Akaun Guru Mentor (${newTeacher.fullName}) berjaya didaftarkan!`
+      `Akaun Guru Mentor (${newTeacher.fullName}) berjaya didaftarkan & diselaraskan ke semua peranti!`
     );
   };
 
   const handleDeleteTeacher = (id: string) => {
     if (!isAdmin) return;
-    setTeachersList((prev: any) => prev.filter((t: any) => t.id !== id));
+    const updatedTeachers = teachersList.filter((t: any) => t.id !== id);
+    setTeachersList(updatedTeachers);
+    sendToSheet("syncStaff", {
+      teachers: updatedTeachers,
+      adminCreds: adminCredentials,
+    });
     onShowNotice("Akaun guru telah dipadam.");
   };
 
@@ -2345,9 +2398,14 @@ function StaffDashboardPanel({
     e.preventDefault();
     if (!isAdmin) return;
     if (!newAdminUser.trim() || !newAdminPass.trim()) return;
-    setAdminCredentials({
+    const updatedCreds = {
       username: newAdminUser.trim(),
       password: newAdminPass.trim(),
+    };
+    setAdminCredentials(updatedCreds);
+    sendToSheet("syncStaff", {
+      teachers: teachersList,
+      adminCreds: updatedCreds,
     });
     onShowNotice("Tetapan Username & Password Admin berjaya dikemas kini!");
   };
@@ -2931,8 +2989,9 @@ function StaffDashboardPanel({
               Daftar Akaun Guru (Mentor Galeri)
             </h3>
             <p className="text-sm text-slate-500 mt-1">
-              Guru yang didaftarkan hanya diberi akses memadam komen/bintang
-              murid dan mencetak senarai nama sahaja.
+              Guru yang didaftarkan akan diselaraskan secara automatik ke
+              semua telefon/peranti lain dan diberi akses memadam komen/bintang
+              murid serta mencetak senarai nama.
             </p>
           </div>
 
@@ -3794,7 +3853,8 @@ function ArtworkLightboxModal({
           <X className="w-5 h-5" />
         </button>
 
-        <div className="md:w-3/5 bg-slate-900 relative flex flex-col items-center justify-center min-h-[300px] md:min-h-[500px] overflow-hidden">
+        {/* BAHAGIAN GAMBAR KARYA */}
+        <div className="md:w-3/5 bg-slate-900 relative flex flex-col items-center justify-center min-h-[220px] md:min-h-[500px] max-h-[38vh] md:max-h-[92vh] shrink-0 overflow-hidden">
           <div className="w-full h-full overflow-auto flex items-center justify-center p-4">
             <img
               src={
@@ -3806,11 +3866,11 @@ function ArtworkLightboxModal({
                 transform: `scale(${zoom})`,
                 transformOrigin: "center center",
               }}
-              className="max-h-[65vh] w-auto object-contain transition-transform duration-200 rounded-lg select-none"
+              className="max-h-[32vh] md:max-h-[65vh] w-auto object-contain transition-transform duration-200 rounded-lg select-none"
             />
           </div>
 
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-slate-800/90 border border-slate-700 px-3 py-1.5 rounded-full flex items-center gap-2 shadow-xl z-10">
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-slate-800/90 border border-slate-700 px-3 py-1.5 rounded-full flex items-center gap-2 shadow-xl z-10">
             <button
               onClick={handleZoomOut}
               disabled={zoom <= 0.75}
@@ -3841,9 +3901,10 @@ function ArtworkLightboxModal({
           </div>
         </div>
 
-        <div className="md:w-2/5 flex flex-col max-h-[50vh] md:max-h-[92vh] bg-white">
-          <div className="p-6 border-b border-slate-100">
-            <div className="flex items-center gap-2 mb-3">
+        {/* BAHAGIAN MAKLUMAT, SOALAN & KOMEN (BOLEH SKROL PENUH KE BAWAH) */}
+        <div className="md:w-2/5 flex-1 min-h-0 flex flex-col overflow-hidden bg-white">
+          <div className="p-4 md:p-5 border-b border-slate-100 shrink-0">
+            <div className="flex items-center gap-2 mb-2">
               <span className="bg-yellow-400 text-blue-900 text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">
                 {artwork.className}
               </span>
@@ -3852,15 +3913,15 @@ function ArtworkLightboxModal({
               </span>
             </div>
 
-            <h3 className="text-2xl font-black text-slate-800 mb-1 leading-snug">
+            <h3 className="text-xl md:text-2xl font-black text-slate-800 mb-1 leading-snug">
               {artwork.title}
             </h3>
-            <div className="flex items-center text-slate-500 font-semibold text-sm mb-4">
+            <div className="flex items-center text-slate-500 font-semibold text-sm mb-3">
               <User className="w-4 h-4 mr-1.5 text-blue-600" />
               <span>{artwork.studentName}</span>
             </div>
 
-            <div className="flex items-center space-x-4 pt-3 border-t border-slate-100">
+            <div className="flex items-center space-x-4 pt-2.5 border-t border-slate-100">
               <button
                 onClick={handleLikeClick}
                 className={`flex items-center space-x-1.5 font-bold transition-colors ${
@@ -3885,7 +3946,8 @@ function ArtworkLightboxModal({
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-5 bg-slate-50 space-y-3">
+          {/* KAWASAN SKROL PENUH UNTUK KOTAK SOALAN & SENARAI KOMEN */}
+          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-4 md:p-5 bg-slate-50 space-y-3">
             <div className="flex items-center justify-between">
               <div className="text-xs font-bold text-blue-800 flex items-center uppercase tracking-wider">
                 <Star className="w-3 h-3 mr-1 fill-current text-yellow-400" />
@@ -3907,6 +3969,24 @@ function ArtworkLightboxModal({
                 </button>
               )}
             </div>
+
+            {/* KOTAK 3 SOALAN RAWAK PELBAGAI PILIHAN BERURUTAN (DALAM RUANG SKROL PENUH) */}
+            {activePassport && isQuizOpen && (
+              <PassportQuizBox
+                stage={criticStage}
+                questions={quizQuestions}
+                currentIndex={currentQuestionIdx}
+                answers={quizAnswers}
+                onSelectAnswer={handleSelectQuizAnswer}
+                onChangeStep={setCurrentQuestionIdx}
+                onRefreshQuestions={handleRefreshQuiz}
+                onClose={() => {
+                  setIsQuizOpen(false);
+                  setQuizAnswers({});
+                  setCurrentQuestionIdx(0);
+                }}
+              />
+            )}
 
             {commentsList.length === 0 ? (
               <p className="text-sm text-slate-400 italic text-center py-6">
@@ -3948,25 +4028,7 @@ function ArtworkLightboxModal({
             )}
           </div>
 
-          <div className="p-4 bg-white border-t border-slate-200">
-            {/* KOTAK 3 SOALAN RAWAK PELBAGAI PILIHAN BERURUTAN */}
-            {activePassport && isQuizOpen && (
-              <PassportQuizBox
-                stage={criticStage}
-                questions={quizQuestions}
-                currentIndex={currentQuestionIdx}
-                answers={quizAnswers}
-                onSelectAnswer={handleSelectQuizAnswer}
-                onChangeStep={setCurrentQuestionIdx}
-                onRefreshQuestions={handleRefreshQuiz}
-                onClose={() => {
-                  setIsQuizOpen(false);
-                  setQuizAnswers({});
-                  setCurrentQuestionIdx(0);
-                }}
-              />
-            )}
-
+          <div className="p-3.5 md:p-4 bg-white border-t border-slate-200 shrink-0">
             <form
               onSubmit={handleCommentSubmit}
               className="flex items-center relative gap-2"
