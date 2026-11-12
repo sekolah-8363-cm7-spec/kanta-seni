@@ -1,0 +1,23 @@
+{
+  "short_name": "Kanta Seni",
+  "name": "Kanta Seni — Misi Eksplorasi & Jejak Bintang",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2970/2970785.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2970/2970785.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#f0f9ff",
+  "theme_color": "#1d4ed8",
+  "display": "standalone",
+  "orientation": "portrait"
+}
