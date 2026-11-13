@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   Compass,
   Star,
@@ -8,7 +8,6 @@ import {
   User,
   Send,
   X,
-  Map,
   Filter,
   AlertTriangle,
   ZoomIn,
@@ -38,11 +37,55 @@ import {
   HelpCircle,
   RefreshCw,
   ChevronRight,
+  Link2,
+  Upload,
+  Pencil,
+  Calendar,
+  Move,
 } from "lucide-react";
 
 // --- URL Google Apps Script Anda ---
 const SCRIPT_URL =
   "https://script.google.com/macros/s/AKfycbyFr90-D1q5IcmIi-tI60BCSZ1gk7nySgSXPN44WBcoDVp0RK2BBhvWaLoLe5k1p_Z1/exec";
+
+// --- Senarai Bulan Rasmi ---
+const MONTH_OPTIONS = [
+  { value: "Semua", label: "Semua Bulan" },
+  { value: "1", label: "Januari" },
+  { value: "2", label: "Februari" },
+  { value: "3", label: "Mac" },
+  { value: "4", label: "April" },
+  { value: "5", label: "Mei" },
+  { value: "6", label: "Jun" },
+  { value: "7", label: "Julai" },
+  { value: "8", label: "Ogos" },
+  { value: "9", label: "September" },
+  { value: "10", label: "Oktober" },
+  { value: "11", label: "November" },
+  { value: "12", label: "Disember" },
+];
+
+// --- Helper: Tukar pautan Google Drive biasa kepada pautan paparan gambar terus ---
+const formatDirectImageUrl = (rawUrl: string): string => {
+  const url = rawUrl.trim();
+  if (!url) return "";
+
+  const driveFileMatch = url.match(
+    /drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/
+  );
+  if (driveFileMatch && driveFileMatch[1]) {
+    return `https://lh3.googleusercontent.com/d/${driveFileMatch[1]}=s1600`;
+  }
+
+  const driveIdMatch = url.match(
+    /drive\.google\.com\/(?:open|uc)\?.*id=([a-zA-Z0-9_-]+)/
+  );
+  if (driveIdMatch && driveIdMatch[1]) {
+    return `https://lh3.googleusercontent.com/d/${driveIdMatch[1]}=s1600`;
+  }
+
+  return url;
+};
 
 // --- BANK SOALAN APRESIASI PSV (TAHAP 1 & TAHAP 2) ---
 interface AppreciationQuestion {
@@ -181,7 +224,6 @@ const getStageFromClass = (className?: string): "tahap1" | "tahap2" => {
   return "tahap2";
 };
 
-// Pilih 3 soalan rawak berbeza mengikut tahap (mengutamakan kepelbagaian kategori Unsur Seni, Hal Benda, Mesej Karya)
 const pickThreeRandomQuestions = (
   stage: "tahap1" | "tahap2"
 ): AppreciationQuestion[] => {
@@ -250,13 +292,23 @@ const getArtworkYear = (createdAt: any) => {
     : dateObj.getFullYear().toString();
 };
 
+// --- Helper: Dapatkan Bulan (1-12) daripada Timestamp ---
+const getArtworkMonth = (createdAt: any): string => {
+  if (!createdAt) return (new Date().getMonth() + 1).toString();
+  const dateObj = new Date(Number(createdAt) || createdAt);
+  return isNaN(dateObj.getMonth())
+    ? (new Date().getMonth() + 1).toString()
+    : (dateObj.getMonth() + 1).toString();
+};
+
 export default function App() {
   const [artworks, setArtworks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [editingArtwork, setEditingArtwork] = useState<any>(null);
   const [activeTab, setActiveTab] = useState("laman-utama");
 
-  // --- State Pengesahan Padam Karya ---
+  // --- State Pengesahan Padam Karya (Hanya untuk Admin & Guru) ---
   const [artworkToDelete, setArtworkToDelete] = useState<any>(null);
 
   // --- State Pop-up & Zoom Karya ---
@@ -264,6 +316,7 @@ export default function App() {
 
   // --- State Penapis (Filter) Galeri ---
   const [selectedYear, setSelectedYear] = useState("Semua");
+  const [selectedMonth, setSelectedMonth] = useState("Semua");
   const [selectedClass, setSelectedClass] = useState("Semua");
 
   // --- State Penapis Graf Pengkritik ---
@@ -392,7 +445,7 @@ export default function App() {
     );
   }, [nameUsageHistory]);
 
-  // --- Tarik Data Karya & Data Staf dari Google Sheets (Selaras dengan Code.gs) ---
+  // --- Tarik Data Karya & Data Staf dari Google Sheets ---
   useEffect(() => {
     fetch(SCRIPT_URL)
       .then((res) => res.json())
@@ -411,7 +464,11 @@ export default function App() {
         if (staffData && Array.isArray(staffData.teachers)) {
           setTeachersList(staffData.teachers);
         }
-        if (staffData && staffData.adminCreds && staffData.adminCreds.username) {
+        if (
+          staffData &&
+          staffData.adminCreds &&
+          staffData.adminCreds.username
+        ) {
           setAdminCredentials(staffData.adminCreds);
         }
       })
@@ -696,7 +753,7 @@ export default function App() {
     return true;
   };
 
-  // --- Actions ---
+  // --- Actions: Tambah & Edit Karya ---
   const handleAddArtwork = (newArtwork: any) => {
     const createdArt = {
       id: Date.now().toString(),
@@ -708,6 +765,49 @@ export default function App() {
     setArtworks((prev) => [createdArt, ...prev]);
     setIsAddModalOpen(false);
     sendToSheet("add", createdArt);
+    setPassportNotice(
+      `Karya "${createdArt.title}" oleh ${createdArt.studentName} berjaya dipamerkan!`
+    );
+    setTimeout(() => setPassportNotice(null), 4000);
+  };
+
+  const handleEditArtwork = (updatedData: {
+    title: string;
+    studentName: string;
+    className: string;
+    imageUrl: string;
+  }) => {
+    if (!editingArtwork || !loggedInStaff) return;
+
+    const updatedArt = {
+      ...editingArtwork,
+      title: updatedData.title.trim(),
+      studentName: updatedData.studentName.trim(),
+      className: updatedData.className,
+      imageUrl: updatedData.imageUrl,
+    };
+
+    setArtworks((prev) =>
+      prev.map((art) => (art.id === updatedArt.id ? updatedArt : art))
+    );
+
+    if (selectedArtwork && selectedArtwork.id === updatedArt.id) {
+      setSelectedArtwork(updatedArt);
+    }
+
+    sendToSheet("edit", {
+      id: updatedArt.id,
+      title: updatedArt.title,
+      studentName: updatedArt.studentName,
+      className: updatedArt.className,
+      imageUrl: updatedArt.imageUrl,
+    });
+
+    setEditingArtwork(null);
+    setPassportNotice(
+      `Maklumat karya "${updatedArt.title}" berjaya dikemas kini!`
+    );
+    setTimeout(() => setPassportNotice(null), 4500);
   };
 
   const toggleLike = (artworkId: string, currentLikes: string[]) => {
@@ -740,7 +840,6 @@ export default function App() {
     );
   };
 
-  // Menyokong 3 kaedah komen: ulasan bebas, jawapan 3 soalan rawak berurutan, atau kedua-duanya sekali
   const addComment = (
     artworkId: string,
     commentText: string,
@@ -884,17 +983,20 @@ export default function App() {
   };
 
   const confirmDeleteArtwork = () => {
-    if (!artworkToDelete) return;
+    if (!artworkToDelete || !loggedInStaff) return;
     const targetId = artworkToDelete.id;
+    const deletedTitle = artworkToDelete.title;
     setArtworks((prev) => prev.filter((art) => art.id !== targetId));
     sendToSheet("delete", { id: targetId });
     if (selectedArtwork && selectedArtwork.id === targetId) {
       setSelectedArtwork(null);
     }
     setArtworkToDelete(null);
+    setPassportNotice(`Karya "${deletedTitle}" telah berjaya dipadam.`);
+    setTimeout(() => setPassportNotice(null), 4000);
   };
 
-  // --- FUNGSI LOG MASUK STAFF (SEMAK TERUS DARI ?type=staff DI GOOGLE SHEETS) ---
+  // --- FUNGSI LOG MASUK STAFF ---
   const handleStaffLogin = async (
     usernameInput: string,
     passwordInput: string
@@ -958,6 +1060,8 @@ export default function App() {
 
   const handleStaffLogout = () => {
     setLoggedInStaff(null);
+    setArtworkToDelete(null);
+    setEditingArtwork(null);
     if (activeTab === "panel-admin") {
       setActiveTab("laman-utama");
     }
@@ -981,13 +1085,19 @@ export default function App() {
     "Tahun 6",
   ];
 
+  // --- PENAPISAN KARYA MENGIKUT TAHUN, BULAN & KELAS ---
   const filteredArtworks = artworks.filter((art) => {
     const artYear = getArtworkYear(art.createdAt);
+    const artMonth = getArtworkMonth(art.createdAt);
     const matchYear = selectedYear === "Semua" || artYear === selectedYear;
+    const matchMonth = selectedMonth === "Semua" || artMonth === selectedMonth;
     const matchClass =
       selectedClass === "Semua" || art.className === selectedClass;
-    return matchYear && matchClass;
+    return matchYear && matchMonth && matchClass;
   });
+
+  const selectedMonthLabel =
+    MONTH_OPTIONS.find((m) => m.value === selectedMonth)?.label || "";
 
   const activeUserKey = activePassport
     ? `passport-${normalizeName(activePassport.fullName)}`
@@ -1418,8 +1528,8 @@ export default function App() {
                   Jelajah Galeri Maya
                 </h3>
                 <p className="text-slate-500 font-medium mt-1">
-                  Klik pada gambar karya untuk melihat dengan lebih besar dan
-                  zoom.
+                  Klik pada gambar karya untuk besarkan, zoom dan gerakkan ke
+                  setiap sudut.
                 </p>
               </div>
               <div className="self-start md:self-auto text-sm font-bold text-blue-600 bg-blue-100 px-4 py-2 rounded-lg">
@@ -1427,28 +1537,68 @@ export default function App() {
               </div>
             </div>
 
-            {/* --- BAR PENAPIS (FILTER) --- */}
-            <div className="bg-white p-4 md:p-5 rounded-2xl shadow-sm border-2 border-blue-100 mb-8 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center text-blue-900 font-bold text-sm shrink-0">
-                  <Filter className="w-4 h-4 mr-1.5 text-blue-600" />
-                  Sesi / Tahun:
+            {/* --- BAR PENAPIS (FILTER): TAHUN, BULAN (JANUARI - DISEMBER) & KELAS --- */}
+            <div className="bg-white p-4 md:p-5 rounded-2xl shadow-sm border-2 border-blue-100 mb-8 space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div className="flex flex-wrap items-center gap-4">
+                  {/* Penapis Sesi / Tahun */}
+                  <div className="flex items-center gap-2.5">
+                    <div className="flex items-center text-blue-900 font-bold text-sm shrink-0">
+                      <Filter className="w-4 h-4 mr-1.5 text-blue-600" />
+                      Sesi / Tahun:
+                    </div>
+                    <select
+                      value={selectedYear}
+                      onChange={(e) => setSelectedYear(e.target.value)}
+                      className="bg-sky-50 border-2 border-blue-200 text-blue-900 font-bold text-sm rounded-xl px-3.5 py-2 focus:outline-none focus:border-blue-500 cursor-pointer transition-colors"
+                    >
+                      <option value="Semua">Semua Tahun</option>
+                      {availableYears.map((year) => (
+                        <option key={year} value={year}>
+                          Tahun {year}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Penapis Bulan (Januari - Disember) */}
+                  <div className="flex items-center gap-2.5">
+                    <div className="flex items-center text-blue-900 font-bold text-sm shrink-0">
+                      <Calendar className="w-4 h-4 mr-1.5 text-blue-600" />
+                      Bulan:
+                    </div>
+                    <select
+                      value={selectedMonth}
+                      onChange={(e) => setSelectedMonth(e.target.value)}
+                      className="bg-sky-50 border-2 border-blue-200 text-blue-900 font-bold text-sm rounded-xl px-3.5 py-2 focus:outline-none focus:border-blue-500 cursor-pointer transition-colors"
+                    >
+                      {MONTH_OPTIONS.map((m) => (
+                        <option key={m.value} value={m.value}>
+                          {m.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
-                <select
-                  value={selectedYear}
-                  onChange={(e) => setSelectedYear(e.target.value)}
-                  className="bg-sky-50 border-2 border-blue-200 text-blue-900 font-bold text-sm rounded-xl px-4 py-2 focus:outline-none focus:border-blue-500 cursor-pointer transition-colors"
-                >
-                  <option value="Semua">Semua Tahun</option>
-                  {availableYears.map((year) => (
-                    <option key={year} value={year}>
-                      Tahun {year}
-                    </option>
-                  ))}
-                </select>
+
+                {(selectedYear !== "Semua" ||
+                  selectedMonth !== "Semua" ||
+                  selectedClass !== "Semua") && (
+                  <button
+                    onClick={() => {
+                      setSelectedYear("Semua");
+                      setSelectedMonth("Semua");
+                      setSelectedClass("Semua");
+                    }}
+                    className="text-xs font-extrabold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-full transition-colors"
+                  >
+                    Set Semula Tapisan
+                  </button>
+                )}
               </div>
 
-              <div className="flex items-center gap-2 flex-wrap">
+              {/* Penapis Kelas */}
+              <div className="flex items-center gap-2 flex-wrap pt-3 border-t border-slate-100">
                 <span className="text-blue-900 font-bold text-sm mr-1">
                   Kelas:
                 </span>
@@ -1492,6 +1642,10 @@ export default function App() {
                 <p className="text-slate-500 mb-6 text-sm">
                   Tiada rekod karya bagi{" "}
                   {selectedClass !== "Semua" ? selectedClass : "semua kelas"} (
+                  {selectedMonth !== "Semua"
+                    ? `Bulan ${selectedMonthLabel}`
+                    : "semua bulan"}
+                  ,{" "}
                   {selectedYear !== "Semua"
                     ? `Tahun ${selectedYear}`
                     : "semua tahun"}
@@ -1500,6 +1654,7 @@ export default function App() {
                 <button
                   onClick={() => {
                     setSelectedYear("Semua");
+                    setSelectedMonth("Semua");
                     setSelectedClass("Semua");
                   }}
                   className="bg-yellow-400 hover:bg-yellow-300 text-blue-900 font-bold py-2.5 px-6 rounded-full shadow-sm hover:scale-105 active:scale-95 transition-all text-sm"
@@ -1530,6 +1685,7 @@ export default function App() {
                     onDeleteComment={(commentObj: any) =>
                       handleDeleteCommentWithPenalty(artwork.id, commentObj)
                     }
+                    onRequestEdit={() => setEditingArtwork(artwork)}
                     onRequestDelete={() => setArtworkToDelete(artwork)}
                     onOpenPreview={() => setSelectedArtwork(artwork)}
                   />
@@ -1907,13 +2063,24 @@ export default function App() {
 
       {/* ADD ARTWORK MODAL */}
       {isAddModalOpen && (
-        <AddArtworkForm
+        <ArtworkFormModal
+          mode="add"
           onClose={() => setIsAddModalOpen(false)}
           onSubmit={handleAddArtwork}
         />
       )}
 
-      {/* MODAL POP-UP & ZOOM KARYA */}
+      {/* EDIT ARTWORK MODAL (KHUSUS GURU & ADMIN YANG SUDAH LOG MASUK) */}
+      {editingArtwork && loggedInStaff && (
+        <ArtworkFormModal
+          mode="edit"
+          initialData={editingArtwork}
+          onClose={() => setEditingArtwork(null)}
+          onSubmit={handleEditArtwork}
+        />
+      )}
+
+      {/* MODAL POP-UP & ZOOM + DRAG KARYA */}
       {selectedArtwork && (
         <ArtworkLightboxModal
           artwork={selectedArtwork}
@@ -1936,11 +2103,13 @@ export default function App() {
           onDeleteComment={(commentObj: any) =>
             handleDeleteCommentWithPenalty(selectedArtwork.id, commentObj)
           }
+          onRequestEdit={() => setEditingArtwork(selectedArtwork)}
+          onRequestDelete={() => setArtworkToDelete(selectedArtwork)}
         />
       )}
 
-      {/* MODAL PENGESAHAN PADAM KARYA */}
-      {artworkToDelete && (
+      {/* MODAL PENGESAHAN PADAM KARYA (HANYA ADMIN & GURU) */}
+      {artworkToDelete && loggedInStaff && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl border-4 border-red-400 p-6 text-center animate-modal-enter">
             <div className="bg-red-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-red-600 animate-bounce">
@@ -1983,7 +2152,6 @@ export default function App() {
 
 // --- SUB-COMPONENTS ---
 
-// Komponen Kotak 3 Soalan Apresiasi Rawak Berurutan (Khas untuk Pemegang Pasport)
 function PassportQuizBox({
   stage,
   questions,
@@ -2039,7 +2207,6 @@ function PassportQuizBox({
         </div>
       </div>
 
-      {/* PENUNJUK PROGRES 3 SOALAN (S1 -> S2 -> S3) */}
       <div className="flex items-center gap-1.5 mb-2.5">
         {questions.map((q, idx) => {
           const isDone = Boolean(answers[idx]);
@@ -2455,7 +2622,7 @@ function StaffDashboardPanel({
         </button>
       </div>
 
-      {/* MENU TAB KAWALAN (DISESUAIKAN MENGIKUT PERANAN ADMIN VS GURU) */}
+      {/* MENU TAB KAWALAN */}
       <div className="flex flex-wrap gap-2 bg-white p-2 rounded-2xl shadow-sm border-2 border-blue-100 no-print">
         <button
           onClick={() => setSubTab("moderasi")}
@@ -2686,7 +2853,6 @@ function StaffDashboardPanel({
             </button>
           </div>
 
-          {/* BAR BUTANG TAPISAN SESI / TAHUN & KELAS UNTUK CETAKAN */}
           <div className="bg-sky-50/80 p-4 md:p-5 rounded-2xl border-2 border-blue-200 space-y-4 no-print">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2 flex-wrap">
@@ -2743,7 +2909,6 @@ function StaffDashboardPanel({
             </div>
           </div>
 
-          {/* KAWASAN SLIP CETAKAN BERTEMAKAN KANTA SENI */}
           <div
             id="printable-lists-area"
             className="rounded-3xl border-4 border-blue-900 overflow-hidden bg-white shadow-sm"
@@ -2989,9 +3154,9 @@ function StaffDashboardPanel({
               Daftar Akaun Guru (Mentor Galeri)
             </h3>
             <p className="text-sm text-slate-500 mt-1">
-              Guru yang didaftarkan akan diselaraskan secara automatik ke
-              semua telefon/peranti lain dan diberi akses memadam komen/bintang
-              murid serta mencetak senarai nama.
+              Guru yang didaftarkan akan diselaraskan secara automatik ke semua
+              telefon/peranti lain dan diberi akses menyunting/memadam karya
+              serta mencetak senarai nama.
             </p>
           </div>
 
@@ -3436,6 +3601,7 @@ function ArtworkCard({
   onLike,
   onComment,
   onDeleteComment,
+  onRequestEdit,
   onRequestDelete,
   onOpenPreview,
   index = 0,
@@ -3444,7 +3610,6 @@ function ArtworkCard({
   const [showComments, setShowComments] = useState(false);
   const [starBurst, setStarBurst] = useState(false);
 
-  // State 3 Soalan Apresiasi Rawak Berurutan (untuk pemegang Pasport)
   const criticStage = getStageFromClass(activePassport?.className);
   const [isQuizOpen, setIsQuizOpen] = useState(false);
   const [quizQuestions, setQuizQuestions] = useState<AppreciationQuestion[]>(
@@ -3531,20 +3696,35 @@ function ArtworkCard({
       className="break-inside-avoid bg-white rounded-3xl shadow-lg border border-slate-100 overflow-hidden transform transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl group relative animate-pop-up"
       style={{ animationDelay: `${Math.min(index * 0.06, 0.5)}s` }}
     >
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          onRequestDelete();
-        }}
-        title="Padam Karya"
-        className="absolute top-3 right-3 bg-red-500 text-white p-2 rounded-full opacity-90 md:opacity-0 group-hover:opacity-100 transition-all duration-200 z-10 hover:bg-red-600 hover:scale-110 shadow-md"
-      >
-        <X className="w-4 h-4" />
-      </button>
+      {/* BUTANG EDIT & PADAM HANYA DIPAPARKAN KEPADA GURU & ADMIN YANG SUDAH LOG MASUK */}
+      {isStaffLoggedIn && (
+        <div className="absolute top-3 right-3 flex items-center gap-1.5 z-10">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onRequestEdit();
+            }}
+            title="Edit Maklumat Karya (Guru / Admin)"
+            className="bg-blue-700 hover:bg-blue-800 text-yellow-300 p-2 rounded-full transition-all duration-200 hover:scale-110 shadow-md border border-white/60"
+          >
+            <Pencil className="w-4 h-4" />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onRequestDelete();
+            }}
+            title="Padam Karya (Guru / Admin)"
+            className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-full transition-all duration-200 hover:scale-110 shadow-md border border-white/60"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       <div
         onClick={onOpenPreview}
-        title="Klik untuk besarkan & zoom karya"
+        title="Klik untuk besarkan, zoom & seret karya"
         className="relative overflow-hidden bg-slate-100 rounded-t-3xl border-b-4 border-blue-400 cursor-zoom-in group/img"
       >
         <img
@@ -3676,7 +3856,6 @@ function ArtworkCard({
             )}
           </div>
 
-          {/* KOTAK 3 SOALAN RAWAK PELBAGAI PILIHAN BERURUTAN */}
           {activePassport && isQuizOpen && (
             <PassportQuizBox
               stage={criticStage}
@@ -3740,6 +3919,7 @@ function ArtworkCard({
   );
 }
 
+// --- MODAL POP-UP & ZOOM + DRAG / PAN GAMBAR KARYA (KUNCI SKROL BELAKANG) ---
 function ArtworkLightboxModal({
   artwork,
   artworkYear,
@@ -3750,12 +3930,18 @@ function ArtworkLightboxModal({
   onLike,
   onComment,
   onDeleteComment,
+  onRequestEdit,
+  onRequestDelete,
 }: any) {
   const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartRef = useRef({ x: 0, y: 0 });
+  const viewportRef = useRef<HTMLDivElement>(null);
+
   const [commentText, setCommentText] = useState("");
   const [starBurst, setStarBurst] = useState(false);
 
-  // State 3 Soalan Apresiasi Rawak Berurutan (untuk pemegang Pasport)
   const criticStage = getStageFromClass(activePassport?.className);
   const [isQuizOpen, setIsQuizOpen] = useState(false);
   const [quizQuestions, setQuizQuestions] = useState<AppreciationQuestion[]>(
@@ -3764,15 +3950,113 @@ function ArtworkLightboxModal({
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
   const [quizAnswers, setQuizAnswers] = useState<Record<number, string>>({});
 
+  // Kunci skrol halaman latar belakang semasa pop-up terbuka
+  useEffect(() => {
+    const prevBodyOverflow = document.body.style.overflow;
+    const prevHtmlOverflow = document.documentElement.style.overflow;
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = prevBodyOverflow;
+      document.documentElement.style.overflow = prevHtmlOverflow;
+    };
+  }, []);
+
   const likesCount = artwork.likes ? artwork.likes.length : 0;
   const hasLiked = artwork.likes
     ? artwork.likes.includes(activeUserKey)
     : false;
   const commentsList = artwork.comments || [];
 
-  const handleZoomIn = () => setZoom((prev) => Math.min(prev + 0.35, 3));
-  const handleZoomOut = () => setZoom((prev) => Math.max(prev - 0.35, 0.75));
-  const handleResetZoom = () => setZoom(1);
+  const handleZoomIn = () => {
+    setZoom((prev) => Math.min(prev + 0.4, 3.5));
+  };
+
+  const handleZoomOut = () => {
+    setZoom((prev) => {
+      const next = Math.max(prev - 0.4, 1);
+      if (next <= 1) {
+        setPan({ x: 0, y: 0 });
+      }
+      return next;
+    });
+  };
+
+  const handleResetZoom = () => {
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
+  };
+
+  // --- Mula Drag / Pan dengan Tetikus (Mouse) ---
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (zoom <= 1) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+    dragStartRef.current = {
+      x: e.clientX - pan.x,
+      y: e.clientY - pan.y,
+    };
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || zoom <= 1) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setPan({
+      x: e.clientX - dragStartRef.current.x,
+      y: e.clientY - dragStartRef.current.y,
+    });
+  };
+
+  const handleMouseUpOrLeave = () => {
+    if (isDragging) {
+      setIsDragging(false);
+    }
+  };
+
+  // --- Mula Drag / Pan dengan Sentuhan Jari (Touch Mobile/Tablet) ---
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (zoom <= 1 || e.touches.length !== 1) return;
+    e.stopPropagation();
+    const touch = e.touches[0];
+    setIsDragging(true);
+    dragStartRef.current = {
+      x: touch.clientX - pan.x,
+      y: touch.clientY - pan.y,
+    };
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging || zoom <= 1 || e.touches.length !== 1) return;
+    e.stopPropagation();
+    const touch = e.touches[0];
+    setPan({
+      x: touch.clientX - dragStartRef.current.x,
+      y: touch.clientY - dragStartRef.current.y,
+    });
+  };
+
+  const handleTouchEnd = () => {
+    if (isDragging) {
+      setIsDragging(false);
+    }
+  };
+
+  // --- Zoom guna roda tetikus terus pada ruang gambar ---
+  const handleWheelOnImage = (e: React.WheelEvent) => {
+    e.stopPropagation();
+    if (e.deltaY < 0) {
+      setZoom((prev) => Math.min(prev + 0.25, 3.5));
+    } else {
+      setZoom((prev) => {
+        const next = Math.max(prev - 0.25, 1);
+        if (next <= 1) setPan({ x: 0, y: 0 });
+        return next;
+      });
+    }
+  };
 
   const handleLikeClick = () => {
     setStarBurst(true);
@@ -3839,41 +4123,99 @@ function ArtworkLightboxModal({
   return (
     <div
       onClick={onClose}
-      className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-50 p-3 md:p-6"
+      className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-50 p-3 md:p-6 overflow-hidden overscroll-none"
     >
       <div
         onClick={(e) => e.stopPropagation()}
         className="bg-white rounded-3xl w-full max-w-5xl max-h-[92vh] overflow-hidden shadow-2xl border-4 border-yellow-400 flex flex-col md:flex-row relative animate-modal-enter"
       >
-        <button
-          onClick={onClose}
-          className="absolute top-3 right-3 z-20 bg-slate-800/80 hover:bg-slate-900 hover:scale-110 text-white p-2 rounded-full shadow-lg transition-all"
-          title="Tutup"
-        >
-          <X className="w-5 h-5" />
-        </button>
+        {/* BUTANG KAWALAN ATAS KANAN: EDIT & PADAM (JIKA GURU/ADMIN) + TUTUP */}
+        <div className="absolute top-3 right-3 z-20 flex items-center gap-2">
+          {isStaffLoggedIn && (
+            <>
+              <button
+                onClick={onRequestEdit}
+                className="bg-blue-700 hover:bg-blue-800 hover:scale-110 text-yellow-300 p-2 rounded-full shadow-lg transition-all border border-white/50"
+                title="Edit Maklumat Karya"
+              >
+                <Pencil className="w-4 h-4" />
+              </button>
+              <button
+                onClick={onRequestDelete}
+                className="bg-red-500 hover:bg-red-600 hover:scale-110 text-white p-2 rounded-full shadow-lg transition-all border border-white/50"
+                title="Padam Karya"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </>
+          )}
+          <button
+            onClick={onClose}
+            className="bg-slate-800/80 hover:bg-slate-900 hover:scale-110 text-white p-2 rounded-full shadow-lg transition-all"
+            title="Tutup"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
 
-        {/* BAHAGIAN GAMBAR KARYA */}
-        <div className="md:w-3/5 bg-slate-900 relative flex flex-col items-center justify-center min-h-[220px] md:min-h-[500px] max-h-[38vh] md:max-h-[92vh] shrink-0 overflow-hidden">
-          <div className="w-full h-full overflow-auto flex items-center justify-center p-4">
+        {/* BAHAGIAN GAMBAR KARYA (SOKONG ZOOM & DRAG KE SETIAP SUDUT) */}
+        <div
+          ref={viewportRef}
+          onWheel={handleWheelOnImage}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUpOrLeave}
+          onMouseLeave={handleMouseUpOrLeave}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          className={`md:w-3/5 bg-slate-900 relative flex flex-col items-center justify-center min-h-[250px] md:min-h-[500px] max-h-[44vh] md:max-h-[92vh] shrink-0 overflow-hidden select-none touch-none ${
+            zoom > 1
+              ? isDragging
+                ? "cursor-grabbing"
+                : "cursor-grab"
+              : "cursor-zoom-in"
+          }`}
+        >
+          {/* Petunjuk Seret Gambar apabila di-Zoom */}
+          {zoom > 1 && (
+            <div className="absolute top-3 left-3 bg-blue-900/85 text-yellow-300 border border-yellow-400/50 px-3 py-1 rounded-full text-[11px] font-bold flex items-center gap-1.5 z-10 pointer-events-none shadow-md">
+              <Move className="w-3.5 h-3.5" />
+              <span>Seret (Drag) gambar untuk lihat sudut lain</span>
+            </div>
+          )}
+
+          <div
+            onClick={() => {
+              if (zoom === 1) setZoom(1.8);
+            }}
+            style={{
+              transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`,
+              transformOrigin: "center center",
+              transition: isDragging ? "none" : "transform 0.18s ease-out",
+            }}
+            className="w-full h-full flex items-center justify-center p-4 will-change-transform"
+          >
             <img
               src={
                 artwork.imageUrl ||
                 "https://placehold.co/600x400/e2e8f0/475569?text=Tiada+Gambar"
               }
               alt={artwork.title}
-              style={{
-                transform: `scale(${zoom})`,
-                transformOrigin: "center center",
-              }}
-              className="max-h-[32vh] md:max-h-[65vh] w-auto object-contain transition-transform duration-200 rounded-lg select-none"
+              draggable={false}
+              className="max-w-full max-h-[38vh] md:max-h-[76vh] object-contain rounded-lg select-none pointer-events-none shadow-xl"
             />
           </div>
 
-          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-slate-800/90 border border-slate-700 px-3 py-1.5 rounded-full flex items-center gap-2 shadow-xl z-10">
+          <div
+            onMouseDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+            className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-slate-800/90 border border-slate-700 px-3 py-1.5 rounded-full flex items-center gap-2 shadow-xl z-10"
+          >
             <button
+              type="button"
               onClick={handleZoomOut}
-              disabled={zoom <= 0.75}
+              disabled={zoom <= 1}
               className="p-1.5 text-white hover:text-yellow-400 disabled:opacity-40 transition-colors"
               title="Kecilkan (Zoom Out)"
             >
@@ -3883,8 +4225,9 @@ function ArtworkLightboxModal({
               {Math.round(zoom * 100)}%
             </span>
             <button
+              type="button"
               onClick={handleZoomIn}
-              disabled={zoom >= 3}
+              disabled={zoom >= 3.5}
               className="p-1.5 text-white hover:text-yellow-400 disabled:opacity-40 transition-colors"
               title="Besarkan (Zoom In)"
             >
@@ -3892,18 +4235,19 @@ function ArtworkLightboxModal({
             </button>
             <div className="w-px h-4 bg-slate-600 mx-0.5"></div>
             <button
+              type="button"
               onClick={handleResetZoom}
               className="p-1.5 text-white hover:text-yellow-400 transition-colors"
-              title="Saiz Asal"
+              title="Set Semula Saiz & Posisi Tengah"
             >
               <RotateCcw className="w-4 h-4" />
             </button>
           </div>
         </div>
 
-        {/* BAHAGIAN MAKLUMAT, SOALAN & KOMEN (BOLEH SKROL PENUH KE BAWAH) */}
+        {/* BAHAGIAN MAKLUMAT, SOALAN & KOMEN */}
         <div className="md:w-2/5 flex-1 min-h-0 flex flex-col overflow-hidden bg-white">
-          <div className="p-4 md:p-5 border-b border-slate-100 shrink-0">
+          <div className="p-4 md:p-5 border-b border-slate-100 shrink-0 pr-24 md:pr-28">
             <div className="flex items-center gap-2 mb-2">
               <span className="bg-yellow-400 text-blue-900 text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">
                 {artwork.className}
@@ -3946,7 +4290,6 @@ function ArtworkLightboxModal({
             </div>
           </div>
 
-          {/* KAWASAN SKROL PENUH UNTUK KOTAK SOALAN & SENARAI KOMEN */}
           <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-4 md:p-5 bg-slate-50 space-y-3">
             <div className="flex items-center justify-between">
               <div className="text-xs font-bold text-blue-800 flex items-center uppercase tracking-wider">
@@ -3970,7 +4313,6 @@ function ArtworkLightboxModal({
               )}
             </div>
 
-            {/* KOTAK 3 SOALAN RAWAK PELBAGAI PILIHAN BERURUTAN (DALAM RUANG SKROL PENUH) */}
             {activePassport && isQuizOpen && (
               <PassportQuizBox
                 stage={criticStage}
@@ -4078,13 +4420,42 @@ function ArtworkLightboxModal({
   );
 }
 
-function AddArtworkForm({ onClose, onSubmit }: any) {
+// --- BORANG TAMBAH & EDIT KARYA ---
+function ArtworkFormModal({
+  mode = "add",
+  initialData,
+  onClose,
+  onSubmit,
+}: {
+  mode?: "add" | "edit";
+  initialData?: any;
+  onClose: () => void;
+  onSubmit: (data: {
+    title: string;
+    studentName: string;
+    className: string;
+    imageUrl: string;
+  }) => void;
+}) {
+  const isEdit = mode === "edit" && !!initialData;
+  const initialImgUrl = isEdit ? initialData.imageUrl || "" : "";
+  const isInitialHttpLink =
+    initialImgUrl.startsWith("http://") || initialImgUrl.startsWith("https://");
+
   const [formData, setFormData] = useState({
-    title: "",
-    studentName: "",
-    className: "Tahun 1",
-    imageUrl: "",
+    title: isEdit ? initialData.title || "" : "",
+    studentName: isEdit ? initialData.studentName || "" : "",
+    className: isEdit ? initialData.className || "Tahun 1" : "Tahun 1",
+    imageUrl: initialImgUrl,
   });
+  const [imageSourceMode, setImageSourceMode] = useState<"upload" | "link">(
+    isInitialHttpLink ? "link" : "upload"
+  );
+  const [rawLinkInput, setRawLinkInput] = useState(
+    isInitialHttpLink ? initialImgUrl : ""
+  );
+  const [isProcessingImage, setIsProcessingImage] = useState(false);
+  const [previewError, setPreviewError] = useState(false);
 
   const classes = [
     "Tahun 1",
@@ -4097,6 +4468,7 @@ function AddArtworkForm({ onClose, onSubmit }: any) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.imageUrl) return;
     onSubmit(formData);
   };
 
@@ -4109,49 +4481,87 @@ function AddArtworkForm({ onClose, onSubmit }: any) {
     const file = e.target.files[0];
     if (!file) return;
 
+    setIsProcessingImage(true);
+    setPreviewError(false);
+
     const reader = new FileReader();
     reader.onload = (event: any) => {
       const img = new Image();
       img.onload = () => {
         const canvas = document.createElement("canvas");
-        const MAX_WIDTH = 350;
-        const MAX_HEIGHT = 350;
+        const MAX_DIMENSION = 1280;
         let width = img.width;
         let height = img.height;
 
         if (width > height) {
-          if (width > MAX_WIDTH) {
-            height *= MAX_WIDTH / width;
-            width = MAX_WIDTH;
+          if (width > MAX_DIMENSION) {
+            height = Math.round((height * MAX_DIMENSION) / width);
+            width = MAX_DIMENSION;
           }
         } else {
-          if (height > MAX_HEIGHT) {
-            width *= MAX_HEIGHT / height;
-            height = MAX_HEIGHT;
+          if (height > MAX_DIMENSION) {
+            width = Math.round((width * MAX_DIMENSION) / height);
+            height = MAX_DIMENSION;
           }
         }
 
         canvas.width = width;
         canvas.height = height;
         const ctx = canvas.getContext("2d");
-        ctx?.drawImage(img, 0, 0, width, height);
+        if (ctx) {
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = "high";
+          ctx.drawImage(img, 0, 0, width, height);
+        }
 
-        const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.4);
+        let quality = 0.82;
+        let compressedDataUrl = canvas.toDataURL("image/jpeg", quality);
+        while (compressedDataUrl.length > 48000 && quality > 0.45) {
+          quality -= 0.08;
+          compressedDataUrl = canvas.toDataURL("image/jpeg", quality);
+        }
+
         setFormData((prev) => ({ ...prev, imageUrl: compressedDataUrl }));
+        setIsProcessingImage(false);
+      };
+      img.onerror = () => {
+        setIsProcessingImage(false);
+        setPreviewError(true);
       };
       img.src = event.target.result;
     };
     reader.readAsDataURL(file);
   };
 
+  const handleLinkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setRawLinkInput(val);
+    setPreviewError(false);
+    const formatted = formatDirectImageUrl(val);
+    setFormData((prev) => ({ ...prev, imageUrl: formatted }));
+  };
+
   return (
     <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-[2rem] w-full max-w-md overflow-hidden shadow-2xl border-4 border-yellow-400 animate-modal-enter">
-        <div className="bg-blue-600 p-6 flex justify-between items-center text-white relative overflow-hidden">
+      <div className="bg-white rounded-[2rem] w-full max-w-md max-h-[92vh] overflow-y-auto shadow-2xl border-4 border-yellow-400 animate-modal-enter">
+        <div
+          className={`${
+            isEdit ? "bg-blue-900" : "bg-blue-600"
+          } p-6 flex justify-between items-center text-white relative overflow-hidden sticky top-0 z-10`}
+        >
           <Star className="absolute top-2 right-10 w-16 h-16 text-blue-500 opacity-30 animate-float-slow" />
           <h3 className="text-2xl font-black flex items-center relative z-10">
-            <ImageIcon className="mr-2 text-yellow-400" />
-            Tambah Karya
+            {isEdit ? (
+              <>
+                <Pencil className="mr-2 text-yellow-400 w-6 h-6" />
+                Edit Maklumat Karya
+              </>
+            ) : (
+              <>
+                <ImageIcon className="mr-2 text-yellow-400" />
+                Tambah Karya
+              </>
+            )}
           </h3>
           <button
             onClick={onClose}
@@ -4162,6 +4572,13 @@ function AddArtworkForm({ onClose, onSubmit }: any) {
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
+          {isEdit && (
+            <div className="bg-amber-50 border-l-4 border-yellow-400 text-amber-900 p-3 rounded-r-xl text-xs font-bold">
+              Mod Suntingan Guru / Admin: Betulkan sebarang kesilapan ejaan
+              tajuk, nama murid, kelas, atau gambar di bawah.
+            </div>
+          )}
+
           <div>
             <label className="block text-sm font-bold text-slate-700 mb-1">
               Tajuk Karya
@@ -4212,45 +4629,135 @@ function AddArtworkForm({ onClose, onSubmit }: any) {
 
           <div>
             <label className="block text-sm font-bold text-slate-700 mb-2">
-              Muat Naik Gambar Karya
+              Gambar Karya (Pilih Salah Satu Kaedah)
             </label>
-            <div className="flex flex-col sm:flex-row items-center gap-4">
-              <label className="flex-1 w-full cursor-pointer bg-blue-50 border-2 border-dashed border-blue-300 hover:bg-blue-100 hover:border-blue-400 transition-colors rounded-xl p-4 text-center text-blue-700 font-medium relative overflow-hidden group">
-                <div className="flex flex-col items-center justify-center space-y-2">
-                  <ImageIcon className="w-8 h-8 text-blue-500 group-hover:scale-110 transition-transform" />
-                  <span className="text-sm">Klik untuk Pilih Gambar</span>
-                </div>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                  required={!formData.imageUrl}
-                />
-              </label>
 
-              {formData.imageUrl ? (
-                <div className="w-32 h-32 rounded-xl overflow-hidden border-4 border-yellow-400 shrink-0 shadow-md relative animate-pop-up">
-                  <img
-                    src={formData.imageUrl}
-                    alt="Preview"
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute bottom-0 inset-x-0 bg-black/50 text-white text-[10px] text-center py-1 font-bold">
-                    BERJAYA
-                  </div>
-                </div>
-              ) : (
-                <div className="w-32 h-32 rounded-xl bg-slate-100 border-2 border-slate-200 shrink-0 flex items-center justify-center text-slate-400">
-                  <span className="text-xs font-bold px-2 text-center">
-                    Tiada Gambar
-                  </span>
-                </div>
-              )}
+            <div className="grid grid-cols-2 gap-2 bg-slate-100 p-1.5 rounded-2xl mb-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setImageSourceMode("upload");
+                  setPreviewError(false);
+                }}
+                className={`py-2 px-3 rounded-xl text-xs font-extrabold flex items-center justify-center gap-1.5 transition-all ${
+                  imageSourceMode === "upload"
+                    ? "bg-blue-600 text-white shadow-sm"
+                    : "text-slate-600 hover:text-blue-800"
+                }`}
+              >
+                <Upload className="w-4 h-4" />
+                Muat Naik Gambar
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setImageSourceMode("link");
+                  setPreviewError(false);
+                }}
+                className={`py-2 px-3 rounded-xl text-xs font-extrabold flex items-center justify-center gap-1.5 transition-all ${
+                  imageSourceMode === "link"
+                    ? "bg-blue-600 text-white shadow-sm"
+                    : "text-slate-600 hover:text-blue-800"
+                }`}
+              >
+                <Link2 className="w-4 h-4" />
+                Link Gambar (URL)
+              </button>
             </div>
+
+            {imageSourceMode === "upload" ? (
+              <div className="flex flex-col sm:flex-row items-center gap-4">
+                <label className="flex-1 w-full cursor-pointer bg-blue-50 border-2 border-dashed border-blue-300 hover:bg-blue-100 hover:border-blue-400 transition-colors rounded-xl p-4 text-center text-blue-700 font-medium relative overflow-hidden group">
+                  <div className="flex flex-col items-center justify-center space-y-2">
+                    <ImageIcon className="w-8 h-8 text-blue-500 group-hover:scale-110 transition-transform" />
+                    <span className="text-sm font-bold">
+                      {isProcessingImage
+                        ? "Memproses Gambar HD..."
+                        : isEdit
+                        ? "Tukar Fail Gambar (Pilihan)"
+                        : "Klik untuk Pilih Gambar"}
+                    </span>
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    required={!formData.imageUrl}
+                  />
+                </label>
+
+                {formData.imageUrl ? (
+                  <div className="w-32 h-32 rounded-xl overflow-hidden border-4 border-yellow-400 shrink-0 shadow-md relative animate-pop-up">
+                    <img
+                      src={formData.imageUrl}
+                      alt="Preview"
+                      onError={() => setPreviewError(true)}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute bottom-0 inset-x-0 bg-green-600/90 text-white text-[10px] text-center py-1 font-bold">
+                      SEDIA (HD)
+                    </div>
+                  </div>
+                ) : (
+                  <div className="w-32 h-32 rounded-xl bg-slate-100 border-2 border-slate-200 shrink-0 flex items-center justify-center text-slate-400">
+                    <span className="text-xs font-bold px-2 text-center">
+                      Tiada Gambar
+                    </span>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-3 bg-blue-50/60 p-4 rounded-2xl border-2 border-blue-100">
+                <div>
+                  <label className="block text-xs font-extrabold text-blue-900 mb-1">
+                    Tampal Pautan (Link) Gambar Karya:
+                  </label>
+                  <input
+                    type="url"
+                    value={rawLinkInput}
+                    onChange={handleLinkChange}
+                    required={!formData.imageUrl}
+                    placeholder="https://... (Google Drive / Pautan Imej)"
+                    className="w-full bg-white border-2 border-blue-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-blue-500 font-medium"
+                  />
+                  <p className="text-[11px] text-slate-500 mt-1.5 leading-snug">
+                    Sokong pautan terus gambar (`.jpg`, `.png`, `.webp`) atau
+                    pautan perkongsian <strong>Google Drive</strong> (pastikan
+                    tetapan Drive ialah <em>Anyone with the link</em>).
+                  </p>
+                </div>
+
+                {formData.imageUrl && (
+                  <div className="flex items-center gap-3 bg-white p-2.5 rounded-xl border border-blue-200">
+                    <img
+                      src={formData.imageUrl}
+                      alt="Pratonton Link"
+                      onError={() => setPreviewError(true)}
+                      onLoad={() => setPreviewError(false)}
+                      className="w-20 h-20 rounded-lg object-cover border-2 border-yellow-400 shrink-0 bg-slate-100"
+                    />
+                    <div className="text-xs">
+                      {previewError ? (
+                        <span className="text-red-600 font-bold">
+                          Gambar tidak dapat dimuatkan. Pastikan link boleh
+                          diakses secara umum (Public).
+                        </span>
+                      ) : (
+                        <span className="text-green-700 font-bold">
+                          Pratonton gambar berjaya dimuatkan dengan jelas!
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             <p className="text-xs text-slate-500 mt-2 flex items-center">
-              <Compass className="w-3 h-3 mr-1" />
-              Gambar akan dikecilkan saiznya secara automatik.
+              <Compass className="w-3 h-3 mr-1 shrink-0" />
+              Gambar dioptimumkan ke kualiti HD agar kekal jelas apabila
+              di-zoom.
             </p>
           </div>
 
@@ -4264,9 +4771,10 @@ function AddArtworkForm({ onClose, onSubmit }: any) {
             </button>
             <button
               type="submit"
-              className="flex-2 w-2/3 px-4 py-3 bg-yellow-400 hover:bg-yellow-300 text-blue-900 font-black rounded-xl shadow-[0_4px_0_rgb(180,83,9)] hover:translate-y-1 hover:shadow-[0_2px_0_rgb(180,83,9)] transition-all"
+              disabled={isProcessingImage || !formData.imageUrl}
+              className="flex-2 w-2/3 px-4 py-3 bg-yellow-400 hover:bg-yellow-300 disabled:opacity-50 disabled:cursor-not-allowed text-blue-900 font-black rounded-xl shadow-[0_4px_0_rgb(180,83,9)] hover:translate-y-1 hover:shadow-[0_2px_0_rgb(180,83,9)] transition-all"
             >
-              Pamerkan Karya!
+              {isEdit ? "Simpan Perubahan" : "Pamerkan Karya!"}
             </button>
           </div>
         </form>
