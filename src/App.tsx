@@ -46,6 +46,8 @@ import {
   VolumeX,
   DoorOpen,
   MoreHorizontal,
+  CloudCheck,
+  Loader2,
 } from "lucide-react";
 
 // --- URL Google Apps Script Anda ---
@@ -68,7 +70,7 @@ class SoundFX {
         }
       }
       if (this.ctx && this.ctx.state === "suspended") {
-        this.ctx.resume();
+        this.ctx.resume().catch(() => {});
       }
       return this.ctx;
     } catch {
@@ -126,10 +128,14 @@ class SoundFX {
   }
 
   static welcome() {
-    this.playTone(523.25, 0.18, "triangle", 0, 0.12);
-    this.playTone(659.25, 0.18, "triangle", 0.11, 0.12);
-    this.playTone(783.99, 0.18, "triangle", 0.22, 0.12);
-    this.playTone(1046.5, 0.4, "sine", 0.33, 0.14);
+    this.playTone(523.25, 0.18, "triangle", 0, 0.13);
+    this.playTone(659.25, 0.18, "triangle", 0.11, 0.13);
+    this.playTone(783.99, 0.18, "triangle", 0.22, 0.13);
+    this.playTone(1046.5, 0.42, "sine", 0.33, 0.15);
+  }
+
+  static isAudioRunning(): boolean {
+    return Boolean(this.ctx && this.ctx.state === "running");
   }
 
   static alert() {
@@ -495,6 +501,13 @@ export default function App() {
   const [editingArtwork, setEditingArtwork] = useState<any>(null);
   const [activeTab, setActiveTab] = useState("laman-utama");
 
+  // --- Status Segerak Awan (Cloud Sync Status) ---
+  const [syncState, setSyncState] = useState<"idle" | "saving" | "saved">(
+    "idle"
+  );
+  const pendingWritesRef = useRef(0);
+  const hasPlayedStartupWelcomeRef = useRef(false);
+
   // --- Kawalan Bunyi (Sound Effects) ---
   const [soundEnabled, setSoundEnabled] = useState<boolean>(() => {
     const saved = localStorage.getItem("kantaseni_sound_enabled");
@@ -506,34 +519,50 @@ export default function App() {
     localStorage.setItem("kantaseni_sound_enabled", String(soundEnabled));
   }, [soundEnabled]);
 
+  // --- BUNYI SAMBUTAN LAMAN UTAMA SELEPAS SKRIN LOADING SELESAI ---
   useEffect(() => {
-    let welcomed = false;
-    const triggerWelcomeSound = () => {
-      if (!welcomed) {
-        welcomed = true;
-        SoundFX.welcome();
-        window.removeEventListener("pointerdown", triggerWelcomeSound);
-        window.removeEventListener("keydown", triggerWelcomeSound);
-      }
-    };
-    window.addEventListener("pointerdown", triggerWelcomeSound);
-    window.addEventListener("keydown", triggerWelcomeSound);
-    return () => {
-      window.removeEventListener("pointerdown", triggerWelcomeSound);
-      window.removeEventListener("keydown", triggerWelcomeSound);
-    };
-  }, []);
+    if (loading || hasPlayedStartupWelcomeRef.current) return;
 
-  // --- Pengesahan Keluar Website / Tutup Aplikasi ---
+    const unlockAndPlayWelcome = () => {
+      if (hasPlayedStartupWelcomeRef.current) return;
+      hasPlayedStartupWelcomeRef.current = true;
+      SoundFX.welcome();
+      window.removeEventListener("pointerdown", unlockAndPlayWelcome);
+      window.removeEventListener("keydown", unlockAndPlayWelcome);
+      window.removeEventListener("touchstart", unlockAndPlayWelcome);
+    };
+
+    const initTimer = setTimeout(() => {
+      SoundFX.welcome();
+      if (SoundFX.isAudioRunning()) {
+        hasPlayedStartupWelcomeRef.current = true;
+      } else {
+        window.addEventListener("pointerdown", unlockAndPlayWelcome);
+        window.addEventListener("keydown", unlockAndPlayWelcome);
+        window.addEventListener("touchstart", unlockAndPlayWelcome);
+      }
+    }, 180);
+
+    return () => {
+      clearTimeout(initTimer);
+      window.removeEventListener("pointerdown", unlockAndPlayWelcome);
+      window.removeEventListener("keydown", unlockAndPlayWelcome);
+      window.removeEventListener("touchstart", unlockAndPlayWelcome);
+    };
+  }, [loading]);
+
+  // --- Modal Pengesahan Keluar Tersuai ---
   const [isExitConfirmModalOpen, setIsExitConfirmModalOpen] = useState(false);
 
+  // Hanya beri amaran pelayar JIKA ada proses penghantaran data ke Google Sheets belum selesai
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      SoundFX.exitPrompt();
-      e.preventDefault();
-      e.returnValue =
-        "Adakah anda pasti mahu keluar daripada aplikasi Kanta Seni?";
-      return e.returnValue;
+      if (pendingWritesRef.current > 0) {
+        e.preventDefault();
+        e.returnValue =
+          "Data sedang dihantar ke pangkalan data. Sila tunggu beberapa saat.";
+        return e.returnValue;
+      }
     };
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
@@ -675,12 +704,127 @@ export default function App() {
     string | null
   >(null);
 
+  // --- KAWALAN BUTANG BACK (TELEFON / TABLET / LAPTOP) DENGAN AMARAN KELUAR ---
+  const uiStateRef = useRef({
+    activeTab,
+    selectedArtwork,
+    isAddModalOpen,
+    editingArtwork,
+    isPassportModalOpen,
+    isStaffLoginModalOpen,
+    artworkToDelete,
+    starListModalData,
+    isExitConfirmModalOpen,
+  });
+
+  useEffect(() => {
+    uiStateRef.current = {
+      activeTab,
+      selectedArtwork,
+      isAddModalOpen,
+      editingArtwork,
+      isPassportModalOpen,
+      isStaffLoginModalOpen,
+      artworkToDelete,
+      starListModalData,
+      isExitConfirmModalOpen,
+    };
+  }, [
+    activeTab,
+    selectedArtwork,
+    isAddModalOpen,
+    editingArtwork,
+    isPassportModalOpen,
+    isStaffLoginModalOpen,
+    artworkToDelete,
+    starListModalData,
+    isExitConfirmModalOpen,
+  ]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    // Pasang penanda sejarah (history state) supaya butang Back dapat dipintas
+    window.history.pushState(
+      { kantaSeniGuard: true },
+      "",
+      window.location.href
+    );
+
+    const handlePopState = () => {
+      const state = uiStateRef.current;
+
+      // Kekalkan sentinel sejarah supaya pengguna tidak terus terkeluar dari aplikasi
+      window.history.pushState(
+        { kantaSeniGuard: true },
+        "",
+        window.location.href
+      );
+
+      // 1. Jika ada modal sedang terbuka, tutup modal dahulu dengan kemas
+      if (state.isExitConfirmModalOpen) {
+        SoundFX.click();
+        setIsExitConfirmModalOpen(false);
+        return;
+      }
+      if (state.starListModalData) {
+        SoundFX.click();
+        setStarListModalData(null);
+        return;
+      }
+      if (state.artworkToDelete) {
+        SoundFX.click();
+        setArtworkToDelete(null);
+        return;
+      }
+      if (state.editingArtwork) {
+        SoundFX.click();
+        setEditingArtwork(null);
+        return;
+      }
+      if (state.isAddModalOpen) {
+        SoundFX.click();
+        setIsAddModalOpen(false);
+        return;
+      }
+      if (state.isPassportModalOpen) {
+        SoundFX.click();
+        setIsPassportModalOpen(false);
+        setPendingActionArtworkId(null);
+        return;
+      }
+      if (state.isStaffLoginModalOpen) {
+        SoundFX.click();
+        setIsStaffLoginModalOpen(false);
+        return;
+      }
+      if (state.selectedArtwork) {
+        SoundFX.click();
+        setSelectedArtwork(null);
+        return;
+      }
+
+      // 2. Jika sedang berada di tab Galeri / Sudut Apresiasi / Admin, kembali ke Laman Utama
+      if (state.activeTab !== "laman-utama") {
+        SoundFX.click();
+        setActiveTab("laman-utama");
+        return;
+      }
+
+      // 3. Jika sudah di Laman Utama dan tiada modal terbuka, paparkan amaran pengesahan keluar!
+      SoundFX.exitPrompt();
+      setIsExitConfirmModalOpen(true);
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
   const [activePassport, setActivePassport] = useState<any>(() => {
     try {
       const saved = localStorage.getItem("kantaseni_active_passport");
       if (!saved) return null;
       const parsed = JSON.parse(saved);
-      // Jika baki sudah 0/3 (habis), pulangkan ke mod mula (null)
       if (parsed && parsed.usedCount >= 3) {
         localStorage.removeItem("kantaseni_active_passport");
         return null;
@@ -748,7 +892,11 @@ export default function App() {
         if (staffData && Array.isArray(staffData.teachers)) {
           setTeachersList(staffData.teachers);
         }
-        if (staffData && staffData.adminCreds && staffData.adminCreds.username) {
+        if (
+          staffData &&
+          staffData.adminCreds &&
+          staffData.adminCreds.username
+        ) {
           setAdminCredentials(staffData.adminCreds);
         }
       })
@@ -757,14 +905,29 @@ export default function App() {
       });
   }, []);
 
-  const sendToSheet = (action: string, payload: any) => {
-    fetch(`${SCRIPT_URL}?action=${action}`, {
-      method: "POST",
-      body: JSON.stringify(payload),
-      headers: {
-        "Content-Type": "text/plain;charset=utf-8",
-      },
-    }).catch((err) => console.error("Ralat menghantar data:", err));
+  // --- Penghantaran Data ke Google Sheets dengan Penjejak Status Segerak ---
+  const sendToSheet = async (action: string, payload: any) => {
+    pendingWritesRef.current += 1;
+    setSyncState("saving");
+    try {
+      await fetch(`${SCRIPT_URL}?action=${action}`, {
+        method: "POST",
+        body: JSON.stringify(payload),
+        headers: {
+          "Content-Type": "text/plain;charset=utf-8",
+        },
+      });
+    } catch (err) {
+      console.error("Ralat menghantar data:", err);
+    } finally {
+      pendingWritesRef.current = Math.max(0, pendingWritesRef.current - 1);
+      if (pendingWritesRef.current === 0) {
+        setSyncState("saved");
+        setTimeout(() => {
+          setSyncState((prev) => (prev === "saved" ? "idle" : prev));
+        }, 3000);
+      }
+    }
   };
 
   const normalizeName = (name: string) =>
@@ -956,7 +1119,9 @@ export default function App() {
     setIsPassportModalOpen(false);
     SoundFX.success();
 
-    const vipTag = vipStatus ? ` [VIP ${formData.className.toUpperCase()}]` : "";
+    const vipTag = vipStatus
+      ? ` [VIP ${formData.className.toUpperCase()}]`
+      : "";
 
     if (pendingActionArtworkId) {
       const targetArt = artworks.find((a) => a.id === pendingActionArtworkId);
@@ -1039,7 +1204,6 @@ export default function App() {
     const updatedUsedCount = sessionInteracted.size;
     const norm = normalizeName(activePassport.fullName);
 
-    // Apabila mencapai 3/3 karya dan kuota habis, terus kembalikan ke mod mula (tiada paparan baki)
     if (updatedUsedCount >= 3) {
       setPassportSessionsCount((prev) => ({
         ...prev,
@@ -1111,18 +1275,17 @@ export default function App() {
     }
 
     sendToSheet("edit", {
-      id: updatedArt.id,
+      id: String(updatedArt.id).trim(),
       title: updatedArt.title,
       studentName: updatedArt.studentName,
       className: updatedArt.className,
       imageUrl: updatedArt.imageUrl,
     });
-    sendToSheet("update", updatedArt);
 
     setEditingArtwork(null);
     SoundFX.success();
     showTimedNotice(
-      `Maklumat & gambar karya "${updatedArt.title}" berjaya dikemas kini!`
+      `Maklumat & gambar karya "${updatedArt.title}" berjaya dikemas kini ke pangkalan data!`
     );
   };
 
@@ -1150,7 +1313,6 @@ export default function App() {
       return;
     }
 
-    // Simpan kategori VIP jika pengguna ialah Guru / PIBG
     if (activePassport.className) {
       setCriticCategoryRegistry((prev) => ({
         ...prev,
@@ -1166,10 +1328,13 @@ export default function App() {
 
     setArtworks((prev) =>
       prev.map((art) => {
-        if (art.id === artworkId) {
+        if (String(art.id) === String(artworkId)) {
           const updated = { ...art, likes: newLikes };
           sendToSheet("update", updated);
-          if (selectedArtwork && selectedArtwork.id === artworkId) {
+          if (
+            selectedArtwork &&
+            String(selectedArtwork.id) === String(artworkId)
+          ) {
             setSelectedArtwork(updated);
           }
           return updated;
@@ -1246,13 +1411,16 @@ export default function App() {
 
     setArtworks((prev) =>
       prev.map((art) => {
-        if (art.id === artworkId) {
+        if (String(art.id) === String(artworkId)) {
           const updated = {
             ...art,
             comments: [...currentComments, newComment],
           };
           sendToSheet("update", updated);
-          if (selectedArtwork && selectedArtwork.id === artworkId) {
+          if (
+            selectedArtwork &&
+            String(selectedArtwork.id) === String(artworkId)
+          ) {
             setSelectedArtwork(updated);
           }
           return updated;
@@ -1269,7 +1437,7 @@ export default function App() {
   ) => {
     setArtworks((prev) =>
       prev.map((art) => {
-        if (art.id === artworkId) {
+        if (String(art.id) === String(artworkId)) {
           const updatedComments = (art.comments || []).filter(
             (c: any) => c.id !== commentObj.id
           );
@@ -1302,7 +1470,10 @@ export default function App() {
             likes: updatedLikes,
           };
           sendToSheet("update", updated);
-          if (selectedArtwork && selectedArtwork.id === artworkId) {
+          if (
+            selectedArtwork &&
+            String(selectedArtwork.id) === String(artworkId)
+          ) {
             setSelectedArtwork(updated);
           }
 
@@ -1327,13 +1498,16 @@ export default function App() {
   ) => {
     setArtworks((prev) =>
       prev.map((art) => {
-        if (art.id === artworkId) {
+        if (String(art.id) === String(artworkId)) {
           const updatedLikes = (art.likes || []).filter(
             (k: string) => k !== starKeyToRemove
           );
           const updated = { ...art, likes: updatedLikes };
           sendToSheet("update", updated);
-          if (selectedArtwork && selectedArtwork.id === artworkId) {
+          if (
+            selectedArtwork &&
+            String(selectedArtwork.id) === String(artworkId)
+          ) {
             setSelectedArtwork(updated);
           }
           SoundFX.alert();
@@ -1347,11 +1521,13 @@ export default function App() {
 
   const confirmDeleteArtwork = () => {
     if (!artworkToDelete || !loggedInStaff) return;
-    const targetId = artworkToDelete.id;
+    const targetId = String(artworkToDelete.id).trim();
     const deletedTitle = artworkToDelete.title;
-    setArtworks((prev) => prev.filter((art) => art.id !== targetId));
+    setArtworks((prev) =>
+      prev.filter((art) => String(art.id).trim() !== targetId)
+    );
     sendToSheet("delete", { id: targetId });
-    if (selectedArtwork && selectedArtwork.id === targetId) {
+    if (selectedArtwork && String(selectedArtwork.id).trim() === targetId) {
       setSelectedArtwork(null);
     }
     setArtworkToDelete(null);
@@ -1597,6 +1773,20 @@ export default function App() {
             </div>
 
             <div className="flex items-center space-x-2 md:space-x-2.5">
+              {/* PENUNJUK STATUS SEGERAK PANGKALAN DATA (CLOUD SYNC) */}
+              {syncState === "saving" && (
+                <div className="flex items-center gap-1.5 bg-blue-50 border border-blue-200 text-blue-700 px-2.5 py-1 rounded-full text-[11px] font-bold animate-pulse">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span className="hidden sm:inline">Menyimpan...</span>
+                </div>
+              )}
+              {syncState === "saved" && (
+                <div className="flex items-center gap-1 bg-emerald-50 border border-emerald-200 text-emerald-700 px-2.5 py-1 rounded-full text-[11px] font-bold">
+                  <CloudCheck className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Tersimpan</span>
+                </div>
+              )}
+
               {/* BUTANG TOGGLE BUNYI (SOUND FX) */}
               <button
                 onClick={() => {
@@ -2452,10 +2642,7 @@ export default function App() {
                               <div className="font-extrabold text-slate-800 text-sm md:text-base flex items-center gap-1.5 flex-wrap">
                                 <span>{critic.displayName}</span>
                                 {critic.isVip && (
-                                  <span className="inline-flex items-center gap-1 bg-slate-900 text-yellow-300 border border-yellow-400 text-[10px] font-black px-2 py-0.5 rounded-full">
-                                    <Crown className="w-2.5 h-2.5 fill-current" />
-                                    VIP
-                                  </span>
+                                  <Crown className="w-4 h-4 text-amber-500 fill-current shrink-0" />
                                 )}
                                 {index === 0 && (
                                   <Crown className="w-4 h-4 text-yellow-500 fill-current animate-crown" />
@@ -2683,7 +2870,7 @@ export default function App() {
         />
       )}
 
-      {/* MODAL SENARAI PEMBERI BINTANG GAYA FACEBOOK (z-[65]) */}
+      {/* MODAL SENARAI PEMBERI BINTANG GAYA FACEBOOK (IKON CROWN SAHAJA UNTUK VIP) (z-[65]) */}
       {starListModalData && (
         <div
           onClick={() => {
@@ -2748,9 +2935,7 @@ export default function App() {
                         <div className="font-bold text-slate-800 text-sm flex items-center gap-1.5">
                           <span>{g.name}</span>
                           {g.isVip && (
-                            <span className="bg-slate-900 text-yellow-300 border border-yellow-400 text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase">
-                              VIP {g.roleLabel ? `• ${g.roleLabel}` : ""}
-                            </span>
+                            <Crown className="w-4 h-4 text-amber-500 fill-current shrink-0" />
                           )}
                         </div>
                       </div>
@@ -2887,7 +3072,6 @@ function StarGiversAvatars({
 }) {
   if (!givers || givers.length === 0) return null;
 
-  // Paparkan maksimum 3 avatar, jika lebih daripada 3 tunjuk simbol dot (...) gaya Facebook
   const visibleGivers = givers.slice(0, 3);
   const hasMoreThanThree = givers.length > 3;
 
@@ -2899,7 +3083,7 @@ function StarGiversAvatars({
         onOpenStarList(givers);
       }}
       title={`Klik untuk lihat senarai penuh pemberi bintang (${givers
-        .map((g) => (g.isVip ? `${g.name} (VIP)` : g.name))
+        .map((g) => g.name)
         .join(", ")})`}
       className="flex items-center -space-x-2 hover:scale-105 active:scale-95 transition-transform pl-1"
     >
@@ -3961,9 +4145,9 @@ function StaffDashboardPanel({
               Daftar Akaun Guru (Mentor Galeri)
             </h3>
             <p className="text-sm text-slate-500 mt-1">
-              Guru yang didaftarkan akan diselaraskan secara automatik ke
-              semua telefon/peranti lain dan diberi akses menyunting/memadam
-              karya serta mencetak senarai nama.
+              Guru yang didaftarkan akan diselaraskan secara automatik ke semua
+              telefon/peranti lain dan diberi akses menyunting/memadam karya
+              serta mencetak senarai nama.
             </p>
           </div>
 
@@ -4351,8 +4535,8 @@ function PassportRegistrationModal({
 
             {hasPendingArtwork ? (
               <div className="text-xs text-blue-900 font-bold bg-amber-50 px-3 py-2.5 rounded-xl border border-yellow-400">
-                Selepas selesai daftar, anda akan terus dibawa kembali ke
-                karya yang dipilih tadi!
+                Selepas selesai daftar, anda akan terus dibawa kembali ke karya
+                yang dipilih tadi!
               </div>
             ) : (
               <div className="text-xs text-red-600 font-bold bg-red-50 px-3 py-2 rounded-lg border border-red-100">
@@ -4755,10 +4939,7 @@ function ArtworkCard({
                               : ""}
                           </span>
                           {commentIsVip && (
-                            <span className="inline-flex items-center gap-0.5 bg-slate-900 text-yellow-300 border border-yellow-400 text-[9px] font-black px-1.5 py-0.2 rounded-full">
-                              <Crown className="w-2.5 h-2.5 fill-current" />
-                              VIP
-                            </span>
+                            <Crown className="w-3.5 h-3.5 text-amber-500 fill-current shrink-0" />
                           )}
                         </div>
                       </div>
@@ -5321,10 +5502,7 @@ function ArtworkLightboxModal({
                               : ""}
                           </span>
                           {commentIsVip && (
-                            <span className="inline-flex items-center gap-0.5 bg-slate-900 text-yellow-300 border border-yellow-400 text-[9px] font-black px-1.5 py-0.2 rounded-full">
-                              <Crown className="w-2.5 h-2.5 fill-current" />
-                              VIP
-                            </span>
+                            <Crown className="w-3.5 h-3.5 text-amber-500 fill-current shrink-0" />
                           )}
                         </div>
                       </div>
@@ -5564,8 +5742,8 @@ function ArtworkFormModal({
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           {isEdit && (
             <div className="bg-amber-50 border-l-4 border-yellow-400 text-amber-900 p-3 rounded-r-xl text-xs font-bold">
-              Mod Suntingan Guru / Admin: Anda boleh menukar tajuk, nama
-              murid, kelas, atau memuat naik gambar / pautan baharu.
+              Mod Suntingan Guru / Admin: Anda boleh menukar tajuk, nama murid,
+              kelas, atau memuat naik gambar / pautan baharu.
             </div>
           )}
 
