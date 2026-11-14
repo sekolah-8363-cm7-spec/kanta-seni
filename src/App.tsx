@@ -42,11 +42,106 @@ import {
   Pencil,
   Calendar,
   Move,
+  Volume2,
+  VolumeX,
+  DoorOpen,
+  MoreHorizontal,
 } from "lucide-react";
 
 // --- URL Google Apps Script Anda ---
 const SCRIPT_URL =
   "https://script.google.com/macros/s/AKfycbyFr90-D1q5IcmIi-tI60BCSZ1gk7nySgSXPN44WBcoDVp0RK2BBhvWaLoLe5k1p_Z1/exec";
+
+// --- SISTEM KESAN BUNYI INTERAKTIF (WEB AUDIO API) ---
+class SoundFX {
+  private static ctx: AudioContext | null = null;
+  public static enabled = true;
+
+  private static getContext(): AudioContext | null {
+    if (!this.enabled || typeof window === "undefined") return null;
+    try {
+      if (!this.ctx) {
+        const AudioCtx =
+          window.AudioContext || (window as any).webkitAudioContext;
+        if (AudioCtx) {
+          this.ctx = new AudioCtx();
+        }
+      }
+      if (this.ctx && this.ctx.state === "suspended") {
+        this.ctx.resume();
+      }
+      return this.ctx;
+    } catch {
+      return null;
+    }
+  }
+
+  private static playTone(
+    freq: number,
+    duration: number,
+    type: OscillatorType = "sine",
+    delay = 0,
+    gainVal = 0.12
+  ) {
+    const ctx = this.getContext();
+    if (!ctx) return;
+
+    const now = ctx.currentTime + delay;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, now);
+
+    gain.gain.setValueAtTime(0.001, now);
+    gain.gain.exponentialRampToValueAtTime(gainVal, now + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(now);
+    osc.stop(now + duration + 0.02);
+  }
+
+  static click() {
+    this.playTone(620, 0.07, "sine", 0, 0.08);
+  }
+
+  static star() {
+    this.playTone(587.33, 0.16, "triangle", 0, 0.14);
+    this.playTone(880, 0.22, "triangle", 0.08, 0.14);
+    this.playTone(1174.66, 0.3, "sine", 0.16, 0.12);
+  }
+
+  static success() {
+    this.playTone(523.25, 0.15, "sine", 0, 0.13);
+    this.playTone(659.25, 0.15, "sine", 0.09, 0.13);
+    this.playTone(783.99, 0.28, "sine", 0.18, 0.15);
+  }
+
+  static comment() {
+    this.playTone(440, 0.1, "sine", 0, 0.1);
+    this.playTone(660, 0.18, "sine", 0.07, 0.12);
+  }
+
+  static welcome() {
+    this.playTone(523.25, 0.18, "triangle", 0, 0.12);
+    this.playTone(659.25, 0.18, "triangle", 0.11, 0.12);
+    this.playTone(783.99, 0.18, "triangle", 0.22, 0.12);
+    this.playTone(1046.5, 0.4, "sine", 0.33, 0.14);
+  }
+
+  static alert() {
+    this.playTone(330, 0.16, "sawtooth", 0, 0.08);
+    this.playTone(261.63, 0.22, "sawtooth", 0.12, 0.08);
+  }
+
+  static exitPrompt() {
+    this.playTone(493.88, 0.18, "sine", 0, 0.12);
+    this.playTone(392.0, 0.28, "sine", 0.14, 0.12);
+  }
+}
 
 // --- Senarai Bulan Rasmi ---
 const MONTH_OPTIONS = [
@@ -64,6 +159,37 @@ const MONTH_OPTIONS = [
   { value: "11", label: "November" },
   { value: "12", label: "Disember" },
 ];
+
+// --- Helper: Semak Status VIP (Guru atau PIBG) ---
+const isVipCategory = (className?: string): boolean => {
+  if (!className) return false;
+  const clean = className.trim().toLowerCase();
+  return clean === "guru" || clean === "pibg";
+};
+
+// --- Palet Warna Avatar Pelbagai ---
+const AVATAR_COLOR_PALETTE = [
+  "from-rose-500 to-pink-600 text-white",
+  "from-emerald-500 to-teal-600 text-white",
+  "from-violet-600 to-indigo-700 text-white",
+  "from-amber-500 to-orange-600 text-white",
+  "from-cyan-500 to-blue-600 text-white",
+  "from-fuchsia-500 to-purple-600 text-white",
+  "from-lime-600 to-green-700 text-white",
+  "from-sky-500 to-indigo-600 text-white",
+];
+
+const getAvatarColorClass = (name: string, isVip: boolean): string => {
+  if (isVip) {
+    return "from-amber-300 via-yellow-400 to-amber-600 text-slate-950 ring-2 ring-yellow-300";
+  }
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const index = Math.abs(hash) % AVATAR_COLOR_PALETTE.length;
+  return AVATAR_COLOR_PALETTE[index];
+};
 
 // --- Helper: Tukar pautan Google Drive biasa kepada pautan paparan gambar terus ---
 const formatDirectImageUrl = (rawUrl: string): string => {
@@ -301,6 +427,67 @@ const getArtworkMonth = (createdAt: any): string => {
     : (dateObj.getMonth() + 1).toString();
 };
 
+const toTitleCase = (str: string) =>
+  str.replace(
+    /\w\S*/g,
+    (txt) => txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase()
+  );
+
+export interface StarGiverItem {
+  key: string;
+  name: string;
+  initial: string;
+  isVip: boolean;
+  roleLabel?: string;
+}
+
+// --- Helper: Ekstrak Senarai Nama & Status VIP Pemberi Bintang ---
+const parseStarGivers = (
+  likes: string[],
+  comments: any[] = [],
+  vipRegistry: Record<string, string> = {}
+): StarGiverItem[] => {
+  if (!Array.isArray(likes)) return [];
+  return likes.map((likeKey, idx) => {
+    if (typeof likeKey === "string" && likeKey.startsWith("passport-")) {
+      const rawName = likeKey.replace("passport-", "").trim();
+      const norm = rawName.toLowerCase().replace(/\s+/g, " ");
+
+      const matchedComment = Array.isArray(comments)
+        ? comments.find(
+            (c) =>
+              c.authorName &&
+              c.authorName.trim().toLowerCase().replace(/\s+/g, " ") === norm
+          )
+        : null;
+
+      const displayName = matchedComment
+        ? matchedComment.authorName.trim()
+        : toTitleCase(rawName);
+      const initial = (displayName.charAt(0) || "P").toUpperCase();
+
+      const detectedClass =
+        matchedComment?.authorClass || vipRegistry[norm] || "";
+      const isVip =
+        Boolean(matchedComment?.isVip) || isVipCategory(detectedClass);
+
+      return {
+        key: likeKey,
+        name: displayName,
+        initial,
+        isVip,
+        roleLabel: isVip ? detectedClass || "VIP" : undefined,
+      };
+    }
+    return {
+      key: `${likeKey}-${idx}`,
+      name: "Penjelajah Seni",
+      initial: "P",
+      isVip: false,
+    };
+  });
+};
+
 export default function App() {
   const [artworks, setArtworks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -308,11 +495,61 @@ export default function App() {
   const [editingArtwork, setEditingArtwork] = useState<any>(null);
   const [activeTab, setActiveTab] = useState("laman-utama");
 
+  // --- Kawalan Bunyi (Sound Effects) ---
+  const [soundEnabled, setSoundEnabled] = useState<boolean>(() => {
+    const saved = localStorage.getItem("kantaseni_sound_enabled");
+    return saved !== "false";
+  });
+
+  useEffect(() => {
+    SoundFX.enabled = soundEnabled;
+    localStorage.setItem("kantaseni_sound_enabled", String(soundEnabled));
+  }, [soundEnabled]);
+
+  useEffect(() => {
+    let welcomed = false;
+    const triggerWelcomeSound = () => {
+      if (!welcomed) {
+        welcomed = true;
+        SoundFX.welcome();
+        window.removeEventListener("pointerdown", triggerWelcomeSound);
+        window.removeEventListener("keydown", triggerWelcomeSound);
+      }
+    };
+    window.addEventListener("pointerdown", triggerWelcomeSound);
+    window.addEventListener("keydown", triggerWelcomeSound);
+    return () => {
+      window.removeEventListener("pointerdown", triggerWelcomeSound);
+      window.removeEventListener("keydown", triggerWelcomeSound);
+    };
+  }, []);
+
+  // --- Pengesahan Keluar Website / Tutup Aplikasi ---
+  const [isExitConfirmModalOpen, setIsExitConfirmModalOpen] = useState(false);
+
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      SoundFX.exitPrompt();
+      e.preventDefault();
+      e.returnValue =
+        "Adakah anda pasti mahu keluar daripada aplikasi Kanta Seni?";
+      return e.returnValue;
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, []);
+
   // --- State Pengesahan Padam Karya (Hanya untuk Admin & Guru) ---
   const [artworkToDelete, setArtworkToDelete] = useState<any>(null);
 
   // --- State Pop-up & Zoom Karya ---
   const [selectedArtwork, setSelectedArtwork] = useState<any>(null);
+
+  // --- State Pop-up Senarai Pemberi Bintang (Gaya Facebook) ---
+  const [starListModalData, setStarListModalData] = useState<{
+    title: string;
+    givers: StarGiverItem[];
+  } | null>(null);
 
   // --- State Penapis (Filter) Galeri ---
   const [selectedYear, setSelectedYear] = useState("Semua");
@@ -395,23 +632,70 @@ export default function App() {
     }
   }, [loggedInStaff]);
 
-  // --- State Pasport Pengkritik ---
+  // --- State Notifikasi Auto-Tutup 5 Saat ---
+  const [noticeObj, setNoticeObj] = useState<{
+    id: number;
+    message: string;
+  } | null>(null);
+
+  const showTimedNotice = (message: string) => {
+    setNoticeObj({ id: Date.now(), message });
+  };
+
+  useEffect(() => {
+    if (!noticeObj) return;
+    const timer = setTimeout(() => {
+      setNoticeObj(null);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [noticeObj]);
+
+  // --- Rekod Kategori/VIP Setiap Pengguna Berdaftar ---
+  const [criticCategoryRegistry, setCriticCategoryRegistry] = useState<
+    Record<string, string>
+  >(() => {
+    try {
+      const saved = localStorage.getItem("kantaseni_critic_categories");
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem(
+      "kantaseni_critic_categories",
+      JSON.stringify(criticCategoryRegistry)
+    );
+  }, [criticCategoryRegistry]);
+
+  // --- State Pasport Pengkritik & Aliran Auto-Kembali ke Karya ---
   const [isPassportModalOpen, setIsPassportModalOpen] = useState(false);
-  const [passportNotice, setPassportNotice] = useState<string | null>(null);
+  const [pendingActionArtworkId, setPendingActionArtworkId] = useState<
+    string | null
+  >(null);
+
   const [activePassport, setActivePassport] = useState<any>(() => {
     try {
       const saved = localStorage.getItem("kantaseni_active_passport");
-      return saved ? JSON.parse(saved) : null;
+      if (!saved) return null;
+      const parsed = JSON.parse(saved);
+      // Jika baki sudah 0/3 (habis), pulangkan ke mod mula (null)
+      if (parsed && parsed.usedCount >= 3) {
+        localStorage.removeItem("kantaseni_active_passport");
+        return null;
+      }
+      return parsed;
     } catch {
       return null;
     }
   });
 
-  const [nameUsageHistory, setNameUsageHistory] = useState<
+  const [passportSessionsCount, setPassportSessionsCount] = useState<
     Record<string, number>
   >(() => {
     try {
-      const saved = localStorage.getItem("kantaseni_passport_usage");
+      const saved = localStorage.getItem("kantaseni_passport_sessions");
       return saved ? JSON.parse(saved) : {};
     } catch {
       return {};
@@ -428,7 +712,7 @@ export default function App() {
   });
 
   useEffect(() => {
-    if (activePassport) {
+    if (activePassport && activePassport.usedCount < 3) {
       localStorage.setItem(
         "kantaseni_active_passport",
         JSON.stringify(activePassport)
@@ -440,10 +724,10 @@ export default function App() {
 
   useEffect(() => {
     localStorage.setItem(
-      "kantaseni_passport_usage",
-      JSON.stringify(nameUsageHistory)
+      "kantaseni_passport_sessions",
+      JSON.stringify(passportSessionsCount)
     );
-  }, [nameUsageHistory]);
+  }, [passportSessionsCount]);
 
   // --- Tarik Data Karya & Data Staf dari Google Sheets ---
   useEffect(() => {
@@ -464,11 +748,7 @@ export default function App() {
         if (staffData && Array.isArray(staffData.teachers)) {
           setTeachersList(staffData.teachers);
         }
-        if (
-          staffData &&
-          staffData.adminCreds &&
-          staffData.adminCreds.username
-        ) {
+        if (staffData && staffData.adminCreds && staffData.adminCreds.username) {
           setAdminCredentials(staffData.adminCreds);
         }
       })
@@ -490,40 +770,44 @@ export default function App() {
   const normalizeName = (name: string) =>
     name.trim().toLowerCase().replace(/\s+/g, " ");
 
-  const toTitleCase = (str: string) =>
-    str.replace(
-      /\w\S*/g,
-      (txt) => txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase()
-    );
-
-  // --- SEMAKAN MERENTAS PERANTI (GLOBAL DARI GOOGLE SHEETS) ---
-  const getGlobalUsageByName = (fullName: string) => {
+  // --- SEMAKAN REKOD GLOBAL NAMA ---
+  const getGlobalHistoryByName = (fullName: string) => {
     const norm = normalizeName(fullName);
-    if (!norm) return { totalUsed: 0, interactedIds: [] as string[] };
+    if (!norm) {
+      return {
+        starredArtworkIds: [] as string[],
+        commentedArtworkIds: [] as string[],
+        totalSessionsCompleted: 0,
+      };
+    }
 
     const targetUserKey = `passport-${norm}`;
-    const interactedArtIds = new Set<string>();
+    const starredSet = new Set<string>();
+    const commentedSet = new Set<string>();
 
     artworks.forEach((art) => {
-      const hasLiked =
-        Array.isArray(art.likes) && art.likes.includes(targetUserKey);
-      const hasCommented =
+      if (Array.isArray(art.likes) && art.likes.includes(targetUserKey)) {
+        starredSet.add(art.id);
+      }
+      if (
         Array.isArray(art.comments) &&
         art.comments.some(
           (c: any) => c.authorName && normalizeName(c.authorName) === norm
-        );
-
-      if (hasLiked || hasCommented) {
-        interactedArtIds.add(art.id);
+        )
+      ) {
+        commentedSet.add(art.id);
       }
     });
 
-    const recordedLocal = nameUsageHistory[norm] || 0;
-    const totalUsed = Math.max(recordedLocal, interactedArtIds.size);
+    const recordedSessions = passportSessionsCount[norm] || 0;
+    const inferredSessions = Math.floor(
+      Math.max(starredSet.size, commentedSet.size) / 3
+    );
 
     return {
-      totalUsed,
-      interactedIds: Array.from(interactedArtIds),
+      starredArtworkIds: Array.from(starredSet),
+      commentedArtworkIds: Array.from(commentedSet),
+      totalSessionsCompleted: Math.max(recordedSessions, inferredSessions),
     };
   };
 
@@ -535,6 +819,7 @@ export default function App() {
         normName: string;
         displayName: string;
         className: string;
+        isVip: boolean;
         commentsCount: number;
         likesCount: number;
         artworksReviewed: Set<string>;
@@ -552,11 +837,14 @@ export default function App() {
           const commentYear = c.timestamp
             ? getArtworkYear(c.timestamp)
             : artYear;
+          const detectedClass =
+            c.authorClass || criticCategoryRegistry[norm] || "-";
           if (!criticMap[norm]) {
             criticMap[norm] = {
               normName: norm,
               displayName: c.authorName.trim(),
-              className: c.authorClass || "-",
+              className: detectedClass,
+              isVip: Boolean(c.isVip) || isVipCategory(detectedClass),
               commentsCount: 0,
               likesCount: 0,
               artworksReviewed: new Set(),
@@ -567,6 +855,8 @@ export default function App() {
           criticMap[norm].yearsActive.add(commentYear);
           if (c.authorClass && criticMap[norm].className === "-") {
             criticMap[norm].className = c.authorClass;
+            criticMap[norm].isVip =
+              Boolean(c.isVip) || isVipCategory(c.authorClass);
           }
           criticMap[norm].artworksReviewed.add(art.id);
         });
@@ -577,11 +867,13 @@ export default function App() {
           if (typeof likeKey === "string" && likeKey.startsWith("passport-")) {
             const norm = normalizeName(likeKey.replace("passport-", ""));
             if (!norm) return;
+            const detectedClass = criticCategoryRegistry[norm] || "-";
             if (!criticMap[norm]) {
               criticMap[norm] = {
                 normName: norm,
                 displayName: toTitleCase(norm),
-                className: "-",
+                className: detectedClass,
+                isVip: isVipCategory(detectedClass),
                 commentsCount: 0,
                 likesCount: 0,
                 artworksReviewed: new Set(),
@@ -602,7 +894,7 @@ export default function App() {
       uniqueArtworksCount: item.artworksReviewed.size,
       totalPoints: item.commentsCount + item.likesCount,
     }));
-  }, [artworks]);
+  }, [artworks, criticCategoryRegistry]);
 
   // --- PENGIRAAN DATA GRAF PENGKRITIK AKTIF ---
   const activeCriticsLeaderboard = useMemo(() => {
@@ -627,126 +919,142 @@ export default function App() {
   const maxCriticScore =
     activeCriticsLeaderboard.length > 0 ? activeCriticsLeaderboard[0].score : 1;
 
-  // --- Segerakkan Pasport Aktif dengan Data Terkini dari Google Sheets ---
-  useEffect(() => {
-    if (!loading && activePassport && artworks.length > 0) {
-      const { totalUsed, interactedIds } = getGlobalUsageByName(
-        activePassport.fullName
-      );
-      if (totalUsed >= 3) {
-        setActivePassport(null);
-      } else if (totalUsed > activePassport.usedCount) {
-        setActivePassport((prev: any) =>
-          prev
-            ? {
-                ...prev,
-                usedCount: totalUsed,
-                maxAllowed: 3,
-                interactedArtworkIds: Array.from(
-                  new Set([...prev.interactedArtworkIds, ...interactedIds])
-                ),
-              }
-            : null
-        );
-      }
-    }
-  }, [loading, artworks]);
-
+  // --- PENDAFTARAN PASPORT (TERMASUK TEMA VIP UNTUK GURU & PIBG) ---
   const handleRegisterPassport = (formData: {
     fullName: string;
     className: string;
     email: string;
   }) => {
-    const { totalUsed, interactedIds } = getGlobalUsageByName(
-      formData.fullName
-    );
+    const cleanName = formData.fullName.trim();
+    const norm = normalizeName(cleanName);
+    const { totalSessionsCompleted } = getGlobalHistoryByName(cleanName);
+    const vipStatus = isVipCategory(formData.className);
 
-    if (totalUsed >= 3) {
-      return {
-        success: false,
-        message: `Maaf, nama "${formData.fullName.trim()}" telah digunakan dan mencapai had maksimum 3 karya (rekod disahkan daripada sistem).`,
-      };
-    }
+    const sessionNumber = totalSessionsCompleted + 1;
+    const isRenewal = totalSessionsCompleted > 0;
 
-    const remainingQuota = 3 - totalUsed;
-    const isReturningUser = totalUsed > 0;
+    setCriticCategoryRegistry((prev) => ({
+      ...prev,
+      [norm]: formData.className,
+    }));
 
-    const syncedPassport = {
-      fullName: formData.fullName.trim(),
+    const newPassport = {
+      sessionId: `${norm}-${Date.now()}`,
+      sessionNumber,
+      fullName: cleanName,
       className: formData.className,
+      isVip: vipStatus,
       email: formData.email.trim(),
-      usedCount: totalUsed,
+      usedCount: 0,
       maxAllowed: 3,
-      interactedArtworkIds: interactedIds,
+      sessionInteractedArtworkIds: [] as string[],
+      sessionCommentedArtworkIds: [] as string[],
       issuedAt: Date.now(),
     };
 
-    setActivePassport(syncedPassport);
+    setActivePassport(newPassport);
     setIsPassportModalOpen(false);
+    SoundFX.success();
 
-    if (isReturningUser) {
-      setPassportNotice(
-        `Selamat kembali, ${syncedPassport.fullName}! Rekod lama anda ditemui. Baki kuota anda ialah ${remainingQuota}/3 karya.`
-      );
+    const vipTag = vipStatus ? ` [VIP ${formData.className.toUpperCase()}]` : "";
+
+    if (pendingActionArtworkId) {
+      const targetArt = artworks.find((a) => a.id === pendingActionArtworkId);
+      if (targetArt) {
+        setSelectedArtwork(targetArt);
+        showTimedNotice(
+          `Pasport${vipTag} #${sessionNumber} aktif untuk ${cleanName}! Teruskan memberi bintang atau komen pada karya "${targetArt.title}".`
+        );
+      } else {
+        showTimedNotice(
+          isRenewal
+            ? `Pasport Baharu${vipTag} (#${sessionNumber}) diaktifkan untuk ${cleanName}! Kuota baharu 3/3 karya sedia digunakan.`
+            : `Pasport${vipTag} berjaya dijana untuk ${cleanName}!`
+        );
+      }
+      setPendingActionArtworkId(null);
     } else {
-      setPassportNotice(
-        `Pasport berjaya dijana untuk ${syncedPassport.fullName}! Anda mempunyai ${remainingQuota}/3 kuota apresiasi.`
+      showTimedNotice(
+        isRenewal
+          ? `Pasport Baharu${vipTag} (#${sessionNumber}) diaktifkan untuk ${cleanName}! Kuota baharu 3/3 karya sedia digunakan.`
+          : `Pasport${vipTag} berjaya dijana untuk ${cleanName}!`
       );
     }
 
-    setTimeout(() => setPassportNotice(null), 6000);
-    return { success: true, isReturningUser, remainingQuota };
+    return {
+      success: true,
+      isRenewal,
+      isVip: vipStatus,
+      sessionNumber,
+      remainingQuota: 3,
+    };
   };
 
-  const consumePassportQuota = (artworkId: string): boolean => {
+  // --- PENGGUNAAN KUOTA PASPORT SEMASA (3 KARYA SETIAP PASPORT; AUTO-TUTUP BILA HABIS) ---
+  const recordPassportUsageForArtwork = (
+    artworkId: string,
+    actionType: "star" | "comment"
+  ): boolean => {
     if (!activePassport) {
-      setPassportNotice(
-        "Sila daftar 'Dapatkan Passport Saya!' di Sudut Apresiasi terlebih dahulu sebelum memberi bintang atau komen."
+      SoundFX.alert();
+      setPendingActionArtworkId(artworkId);
+      showTimedNotice(
+        "Sila daftar Pasport Pengkritik terlebih dahulu sebelum memberi bintang atau komen."
       );
-      setActiveTab("sudut-apresiasi");
       setIsPassportModalOpen(true);
       return false;
     }
 
-    const { interactedIds } = getGlobalUsageByName(activePassport.fullName);
-    const allInteracted = new Set([
-      ...activePassport.interactedArtworkIds,
-      ...interactedIds,
-    ]);
+    const sessionInteracted = new Set<string>(
+      activePassport.sessionInteractedArtworkIds || []
+    );
+    const sessionCommented = new Set<string>(
+      activePassport.sessionCommentedArtworkIds || []
+    );
 
-    if (allInteracted.has(artworkId)) {
-      return true;
-    }
-
-    if (allInteracted.size >= 3) {
-      setActivePassport(null);
-      setPassportNotice("Kuota 3 penggunaan Pasport anda telah tamat!");
-      setActiveTab("sudut-apresiasi");
+    if (actionType === "comment" && sessionCommented.has(artworkId)) {
+      SoundFX.alert();
+      showTimedNotice(
+        "Anda sudah mengulas karya ini dalam pasport semasa (had 1 komen setiap karya bagi satu pasport). Daftar pasport baharu untuk ulasan seterusnya."
+      );
       return false;
     }
 
-    allInteracted.add(artworkId);
-    const updatedUsedCount = allInteracted.size;
-    const updatedIds = Array.from(allInteracted);
+    if (!sessionInteracted.has(artworkId) && sessionInteracted.size >= 3) {
+      SoundFX.alert();
+      setActivePassport(null);
+      setPendingActionArtworkId(artworkId);
+      showTimedNotice(
+        "Kuota 3 karya bagi pasport semasa anda telah tamat! Sila daftar pasport baharu untuk meneruskan apresiasi."
+      );
+      setIsPassportModalOpen(true);
+      return false;
+    }
+
+    sessionInteracted.add(artworkId);
+    if (actionType === "comment") {
+      sessionCommented.add(artworkId);
+    }
+
+    const updatedUsedCount = sessionInteracted.size;
     const norm = normalizeName(activePassport.fullName);
 
-    setNameUsageHistory((prev) => ({
-      ...prev,
-      [norm]: updatedUsedCount,
-    }));
-
+    // Apabila mencapai 3/3 karya dan kuota habis, terus kembalikan ke mod mula (tiada paparan baki)
     if (updatedUsedCount >= 3) {
+      setPassportSessionsCount((prev) => ({
+        ...prev,
+        [norm]: (prev[norm] || 0) + 1,
+      }));
       setActivePassport(null);
-      setPassportNotice(
-        "Tahniah! Anda telah melengkapkan semua 3/3 misi Pasport anda."
+      showTimedNotice(
+        "Kuota 3/3 karya bagi pasport ini telah selesai! Daftar pasport baharu bila-bila masa untuk meneruskan apresiasi."
       );
-      setTimeout(() => setPassportNotice(null), 6000);
     } else {
       setActivePassport({
         ...activePassport,
         usedCount: updatedUsedCount,
-        maxAllowed: 3,
-        interactedArtworkIds: updatedIds,
+        sessionInteractedArtworkIds: Array.from(sessionInteracted),
+        sessionCommentedArtworkIds: Array.from(sessionCommented),
       });
     }
 
@@ -764,11 +1072,11 @@ export default function App() {
     };
     setArtworks((prev) => [createdArt, ...prev]);
     setIsAddModalOpen(false);
+    SoundFX.success();
     sendToSheet("add", createdArt);
-    setPassportNotice(
+    showTimedNotice(
       `Karya "${createdArt.title}" oleh ${createdArt.studentName} berjaya dipamerkan!`
     );
-    setTimeout(() => setPassportNotice(null), 4000);
   };
 
   const handleEditArtwork = (updatedData: {
@@ -779,19 +1087,26 @@ export default function App() {
   }) => {
     if (!editingArtwork || !loggedInStaff) return;
 
+    const cleanImageUrl = updatedData.imageUrl.trim();
     const updatedArt = {
       ...editingArtwork,
       title: updatedData.title.trim(),
       studentName: updatedData.studentName.trim(),
       className: updatedData.className,
-      imageUrl: updatedData.imageUrl,
+      imageUrl: cleanImageUrl,
+      updatedAt: Date.now(),
     };
 
     setArtworks((prev) =>
-      prev.map((art) => (art.id === updatedArt.id ? updatedArt : art))
+      prev.map((art) =>
+        String(art.id) === String(updatedArt.id) ? updatedArt : art
+      )
     );
 
-    if (selectedArtwork && selectedArtwork.id === updatedArt.id) {
+    if (
+      selectedArtwork &&
+      String(selectedArtwork.id) === String(updatedArt.id)
+    ) {
       setSelectedArtwork(updatedArt);
     }
 
@@ -802,28 +1117,52 @@ export default function App() {
       className: updatedArt.className,
       imageUrl: updatedArt.imageUrl,
     });
+    sendToSheet("update", updatedArt);
 
     setEditingArtwork(null);
-    setPassportNotice(
-      `Maklumat karya "${updatedArt.title}" berjaya dikemas kini!`
+    SoundFX.success();
+    showTimedNotice(
+      `Maklumat & gambar karya "${updatedArt.title}" berjaya dikemas kini!`
     );
-    setTimeout(() => setPassportNotice(null), 4500);
   };
 
+  // --- FUNGSI BINTANG (1 NAMA = 1 BINTANG SAHAJA PADA KARYA SAMA) ---
   const toggleLike = (artworkId: string, currentLikes: string[]) => {
-    const userKey = activePassport
-      ? `passport-${normalizeName(activePassport.fullName)}`
-      : visitorId;
-    const hasLiked = currentLikes.includes(userKey);
-
-    if (!hasLiked) {
-      const allowed = consumePassportQuota(artworkId);
-      if (!allowed) return;
+    if (!activePassport) {
+      SoundFX.alert();
+      setPendingActionArtworkId(artworkId);
+      showTimedNotice(
+        "Sila daftar Pasport Pengkritik terlebih dahulu sebelum memberi bintang."
+      );
+      setIsPassportModalOpen(true);
+      return;
     }
 
-    const newLikes = hasLiked
-      ? currentLikes.filter((id) => id !== userKey)
-      : [...currentLikes, userKey];
+    const norm = normalizeName(activePassport.fullName);
+    const userKey = `passport-${norm}`;
+    const hasAlreadyStarredThisArtwork = currentLikes.includes(userKey);
+
+    if (hasAlreadyStarredThisArtwork) {
+      SoundFX.alert();
+      showTimedNotice(
+        `Anda (${activePassport.fullName}) telah memberikan bintang pada karya ini. Setiap nama hanya boleh memberi 1 bintang bagi karya yang sama.`
+      );
+      return;
+    }
+
+    // Simpan kategori VIP jika pengguna ialah Guru / PIBG
+    if (activePassport.className) {
+      setCriticCategoryRegistry((prev) => ({
+        ...prev,
+        [norm]: activePassport.className,
+      }));
+    }
+
+    const allowed = recordPassportUsageForArtwork(artworkId, "star");
+    if (!allowed) return;
+
+    SoundFX.star();
+    const newLikes = [...currentLikes, userKey];
 
     setArtworks((prev) =>
       prev.map((art) => {
@@ -840,6 +1179,7 @@ export default function App() {
     );
   };
 
+  // --- FUNGSI KOMEN ---
   const addComment = (
     artworkId: string,
     commentText: string,
@@ -850,8 +1190,31 @@ export default function App() {
     const hasQuizAnswers = Array.isArray(quizAnswers) && quizAnswers.length > 0;
     if (!cleanFreeText && !hasQuizAnswers) return;
 
-    const allowed = consumePassportQuota(artworkId);
+    if (!activePassport) {
+      SoundFX.alert();
+      setPendingActionArtworkId(artworkId);
+      showTimedNotice(
+        "Sila daftar Pasport Pengkritik terlebih dahulu sebelum menghantar komen."
+      );
+      setIsPassportModalOpen(true);
+      return;
+    }
+
+    const norm = normalizeName(activePassport.fullName);
+    const vipStatus =
+      Boolean(activePassport.isVip) || isVipCategory(activePassport.className);
+
+    if (activePassport.className) {
+      setCriticCategoryRegistry((prev) => ({
+        ...prev,
+        [norm]: activePassport.className,
+      }));
+    }
+
+    const allowed = recordPassportUsageForArtwork(artworkId, "comment");
     if (!allowed) return;
+
+    SoundFX.comment();
 
     const quizFormatted = hasQuizAnswers
       ? quizAnswers
@@ -873,10 +1236,10 @@ export default function App() {
     const newComment = {
       id: Date.now().toString(),
       userId: visitorId,
-      authorName: activePassport
-        ? activePassport.fullName
-        : "Penjelajah Misteri",
-      authorClass: activePassport ? activePassport.className : "",
+      authorName: activePassport.fullName,
+      authorClass: activePassport.className,
+      isVip: vipStatus,
+      passportSession: activePassport.sessionNumber || 1,
       text: formattedText,
       timestamp: Date.now(),
     };
@@ -943,12 +1306,12 @@ export default function App() {
             setSelectedArtwork(updated);
           }
 
-          setPassportNotice(
+          SoundFX.alert();
+          showTimedNotice(
             starPenalized
               ? `Komen oleh "${commentObj.authorName}" telah dipadam dan 1 Bintang telah ditolak sebagai penalti.`
               : `Komen oleh "${commentObj.authorName}" telah dipadam.`
           );
-          setTimeout(() => setPassportNotice(null), 5000);
 
           return updated;
         }
@@ -973,8 +1336,8 @@ export default function App() {
           if (selectedArtwork && selectedArtwork.id === artworkId) {
             setSelectedArtwork(updated);
           }
-          setPassportNotice("1 Bintang telah berjaya dipadam daripada karya.");
-          setTimeout(() => setPassportNotice(null), 4000);
+          SoundFX.alert();
+          showTimedNotice("1 Bintang telah berjaya dipadam daripada karya.");
           return updated;
         }
         return art;
@@ -992,8 +1355,8 @@ export default function App() {
       setSelectedArtwork(null);
     }
     setArtworkToDelete(null);
-    setPassportNotice(`Karya "${deletedTitle}" telah berjaya dipadam.`);
-    setTimeout(() => setPassportNotice(null), 4000);
+    SoundFX.alert();
+    showTimedNotice(`Karya "${deletedTitle}" telah berjaya dipadam.`);
   };
 
   // --- FUNGSI LOG MASUK STAFF ---
@@ -1033,6 +1396,7 @@ export default function App() {
       });
       setIsStaffLoginModalOpen(false);
       setActiveTab("panel-admin");
+      SoundFX.success();
       return { success: true };
     }
 
@@ -1049,9 +1413,11 @@ export default function App() {
       });
       setIsStaffLoginModalOpen(false);
       setActiveTab("panel-admin");
+      SoundFX.success();
       return { success: true };
     }
 
+    SoundFX.alert();
     return {
       success: false,
       message: "Nama pengguna (Username) atau kata laluan salah!",
@@ -1059,12 +1425,14 @@ export default function App() {
   };
 
   const handleStaffLogout = () => {
+    SoundFX.exitPrompt();
     setLoggedInStaff(null);
     setArtworkToDelete(null);
     setEditingArtwork(null);
     if (activeTab === "panel-admin") {
       setActiveTab("laman-utama");
     }
+    showTimedNotice("Anda telah log keluar daripada Panel Kawalan.");
   };
 
   const currentYear = new Date().getFullYear().toString();
@@ -1102,6 +1470,11 @@ export default function App() {
   const activeUserKey = activePassport
     ? `passport-${normalizeName(activePassport.fullName)}`
     : visitorId;
+
+  const isCurrentPassportVip = Boolean(
+    activePassport &&
+      (activePassport.isVip || isVipCategory(activePassport.className))
+  );
 
   // --- PENGIRAAN TOP 3 ARTIS BULANAN ---
   const top3Artworks = [...artworks]
@@ -1159,6 +1532,10 @@ export default function App() {
                     75% { transform: scale(0.9) rotate(-8deg); }
                     100% { transform: scale(1) rotate(0deg); }
                 }
+                @keyframes shrinkBar5s {
+                    0% { width: 100%; }
+                    100% { width: 0%; }
+                }
                 .animate-float-slow { animation: floatSlow 4.5s ease-in-out infinite; }
                 .animate-float-reverse { animation: floatReverse 5.2s ease-in-out infinite; }
                 .animate-brush-stroke { animation: brushStroke 4.8s ease-in-out infinite; }
@@ -1166,6 +1543,7 @@ export default function App() {
                 .animate-modal-enter { animation: modalEnter 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; }
                 .animate-crown { animation: crownWobble 3s ease-in-out infinite; }
                 .animate-star-pop { animation: starPop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1); }
+                .animate-shrink-5s { animation: shrinkBar5s 5s linear forwards; }
 
                 @media print {
                     body {
@@ -1200,7 +1578,10 @@ export default function App() {
           <div className="flex justify-between items-center h-20">
             <div
               className="flex items-center cursor-pointer group"
-              onClick={() => setActiveTab("laman-utama")}
+              onClick={() => {
+                SoundFX.click();
+                setActiveTab("laman-utama");
+              }}
             >
               <div className="bg-blue-600 p-2 rounded-xl mr-3 shadow-sm transform -rotate-3 group-hover:rotate-12 group-hover:scale-110 transition-all duration-300">
                 <Compass className="text-yellow-300 w-8 h-8 group-hover:rotate-45 transition-transform duration-500" />
@@ -1215,25 +1596,76 @@ export default function App() {
               </div>
             </div>
 
-            <div className="flex items-center space-x-2 md:space-x-3">
-              {activePassport ? (
+            <div className="flex items-center space-x-2 md:space-x-2.5">
+              {/* BUTANG TOGGLE BUNYI (SOUND FX) */}
+              <button
+                onClick={() => {
+                  const next = !soundEnabled;
+                  setSoundEnabled(next);
+                  if (next) {
+                    SoundFX.enabled = true;
+                    SoundFX.click();
+                  }
+                }}
+                className={`p-2 rounded-full border-2 transition-all active:scale-90 ${
+                  soundEnabled
+                    ? "bg-sky-50 border-blue-200 text-blue-700 hover:bg-sky-100"
+                    : "bg-slate-100 border-slate-200 text-slate-400"
+                }`}
+                title={
+                  soundEnabled
+                    ? "Kesan Bunyi: Aktif (Klik untuk senyapkan)"
+                    : "Kesan Bunyi: Senyap (Klik untuk aktifkan)"
+                }
+              >
+                {soundEnabled ? (
+                  <Volume2 className="w-4 h-4" />
+                ) : (
+                  <VolumeX className="w-4 h-4" />
+                )}
+              </button>
+
+              {/* STATUS PASPORT (HANYA PAPAR JIKA MASIH AKTIF & BELUM HABIS) */}
+              {activePassport && activePassport.usedCount < 3 ? (
                 <div
-                  onClick={() => setActiveTab("sudut-apresiasi")}
-                  className="hidden sm:flex items-center bg-green-50 border-2 border-green-400 text-green-900 px-3 py-1.5 rounded-full text-xs font-bold cursor-pointer hover:bg-green-100 hover:scale-105 active:scale-95 transition-all"
+                  onClick={() => {
+                    SoundFX.click();
+                    setActiveTab("sudut-apresiasi");
+                  }}
+                  className={`hidden sm:flex items-center px-3 py-1.5 rounded-full text-xs font-bold cursor-pointer hover:scale-105 active:scale-95 transition-all shadow-xs ${
+                    isCurrentPassportVip
+                      ? "bg-gradient-to-r from-slate-900 via-amber-950 to-slate-900 border-2 border-yellow-400 text-yellow-300"
+                      : "bg-green-50 border-2 border-green-400 text-green-900 hover:bg-green-100"
+                  }`}
                   title="Klik untuk lihat status Pasport"
                 >
-                  <Award className="w-4 h-4 mr-1.5 text-green-600 animate-pulse" />
+                  {isCurrentPassportVip ? (
+                    <Crown className="w-4 h-4 mr-1.5 text-yellow-400 fill-current animate-pulse" />
+                  ) : (
+                    <Award className="w-4 h-4 mr-1.5 text-green-600 animate-pulse" />
+                  )}
                   <span className="truncate max-w-[100px]">
                     {activePassport.fullName}
                   </span>
-                  <span className="ml-1.5 bg-green-600 text-white px-2 py-0.5 rounded-full">
+                  {isCurrentPassportVip && (
+                    <span className="ml-1 bg-yellow-400 text-slate-950 text-[10px] font-black px-1.5 py-0.5 rounded-full">
+                      VIP
+                    </span>
+                  )}
+                  <span
+                    className={`ml-1.5 px-2 py-0.5 rounded-full font-black ${
+                      isCurrentPassportVip
+                        ? "bg-amber-500/30 text-yellow-200 border border-yellow-400/50"
+                        : "bg-green-600 text-white"
+                    }`}
+                  >
                     {3 - activePassport.usedCount}/3
                   </span>
                 </div>
               ) : (
                 <button
                   onClick={() => {
-                    setActiveTab("sudut-apresiasi");
+                    SoundFX.click();
                     setIsPassportModalOpen(true);
                   }}
                   className="hidden sm:flex items-center bg-amber-50 border-2 border-amber-300 text-amber-800 px-3 py-1.5 rounded-full text-xs font-bold hover:bg-amber-100 hover:scale-105 active:scale-95 transition-all"
@@ -1255,11 +1687,12 @@ export default function App() {
                     return (
                       <button
                         key={item}
-                        onClick={() =>
+                        onClick={() => {
+                          SoundFX.click();
                           setActiveTab(
                             tabKey === "galeri-seni" ? "galeri" : tabKey
-                          )
-                        }
+                          );
+                        }}
                         className={`px-3.5 py-2 rounded-full font-bold text-sm transition-all duration-300 active:scale-95 ${
                           isActive
                             ? "bg-yellow-400 text-blue-900 shadow-md transform scale-105"
@@ -1276,7 +1709,10 @@ export default function App() {
               {/* BUTANG LOG MASUK / PANEL ADMIN & GURU */}
               {loggedInStaff ? (
                 <button
-                  onClick={() => setActiveTab("panel-admin")}
+                  onClick={() => {
+                    SoundFX.click();
+                    setActiveTab("panel-admin");
+                  }}
                   className={`flex items-center px-3.5 py-2 rounded-full text-xs font-black transition-all shadow-sm border-2 ${
                     activeTab === "panel-admin"
                       ? "bg-blue-900 text-yellow-300 border-yellow-400 scale-105"
@@ -1291,7 +1727,10 @@ export default function App() {
                 </button>
               ) : (
                 <button
-                  onClick={() => setIsStaffLoginModalOpen(true)}
+                  onClick={() => {
+                    SoundFX.click();
+                    setIsStaffLoginModalOpen(true);
+                  }}
                   className="flex items-center bg-slate-800 hover:bg-slate-900 text-white px-3.5 py-2 rounded-full text-xs font-bold transition-all shadow-sm hover:scale-105 active:scale-95"
                   title="Log Masuk Admin atau Guru Mentor"
                 >
@@ -1299,25 +1738,50 @@ export default function App() {
                   <span>Admin / Guru</span>
                 </button>
               )}
+
+              {/* BUTANG KELUAR APLIKASI DENGAN PENGESAHAN */}
+              <button
+                onClick={() => {
+                  SoundFX.exitPrompt();
+                  setIsExitConfirmModalOpen(true);
+                }}
+                className="flex items-center bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 px-3 py-2 rounded-full text-xs font-extrabold transition-all active:scale-95"
+                title="Keluar daripada Kanta Seni"
+              >
+                <DoorOpen className="w-4 h-4 sm:mr-1" />
+                <span className="hidden sm:inline">Keluar</span>
+              </button>
             </div>
           </div>
         </div>
       </header>
 
-      {/* NOTIFIKASI SISTEM */}
-      {passportNotice && (
-        <div className="max-w-4xl mx-auto px-4 mt-4 w-full animate-pop-up no-print">
-          <div className="bg-blue-900 text-white px-5 py-3.5 rounded-2xl shadow-lg border-2 border-yellow-400 flex items-center justify-between gap-3">
-            <div className="flex items-center text-sm font-bold">
-              <Award className="w-5 h-5 mr-2.5 text-yellow-400 shrink-0 animate-bounce" />
-              <span>{passportNotice}</span>
+      {/* NOTIFIKASI SISTEM (AUTO-TUTUP TEPAT 5 SAAT) */}
+      {noticeObj && (
+        <div
+          key={noticeObj.id}
+          className="fixed top-24 left-1/2 -translate-x-1/2 z-[80] max-w-2xl w-[94%] animate-pop-up no-print"
+        >
+          <div className="bg-blue-950/95 backdrop-blur-md text-white rounded-2xl shadow-2xl border-2 border-yellow-400 overflow-hidden">
+            <div className="px-5 py-3.5 flex items-center justify-between gap-3">
+              <div className="flex items-center text-sm font-bold">
+                <Award className="w-5 h-5 mr-2.5 text-yellow-400 shrink-0 animate-bounce" />
+                <span>{noticeObj.message}</span>
+              </div>
+              <button
+                onClick={() => {
+                  SoundFX.click();
+                  setNoticeObj(null);
+                }}
+                className="text-blue-200 hover:text-white transition-colors p-1"
+                title="Tutup notifikasi"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
-            <button
-              onClick={() => setPassportNotice(null)}
-              className="text-blue-200 hover:text-white transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
+            <div className="h-1 bg-blue-900 w-full">
+              <div className="h-full bg-yellow-400 animate-shrink-5s"></div>
+            </div>
           </div>
         </div>
       )}
@@ -1360,7 +1824,10 @@ export default function App() {
                   anda di sini.
                 </p>
                 <button
-                  onClick={() => setActiveTab("galeri")}
+                  onClick={() => {
+                    SoundFX.success();
+                    setActiveTab("galeri");
+                  }}
                   className="group bg-yellow-400 hover:bg-yellow-300 text-blue-900 font-black text-xl py-4 px-10 rounded-full shadow-[0_8px_0_rgb(180,83,9)] hover:shadow-[0_4px_0_rgb(180,83,9)] hover:translate-y-1 active:translate-y-2 transition-all duration-200 border-4 border-white flex items-center justify-center mx-auto"
                 >
                   JOM MULAKAN EKSPLORASI!
@@ -1402,7 +1869,10 @@ export default function App() {
                 <div className="flex flex-col md:flex-row items-end justify-center gap-6 md:gap-8 relative z-10 px-4 md:mt-12">
                   {top3Artworks[1] && (
                     <div
-                      onClick={() => setSelectedArtwork(top3Artworks[1])}
+                      onClick={() => {
+                        SoundFX.click();
+                        setSelectedArtwork(top3Artworks[1]);
+                      }}
                       className="order-2 md:order-1 w-full md:w-1/3 flex flex-col items-center cursor-pointer transition-all duration-300 hover:-translate-y-3 animate-pop-up"
                       style={{ animationDelay: "0.3s" }}
                     >
@@ -1436,7 +1906,10 @@ export default function App() {
 
                   {top3Artworks[0] && (
                     <div
-                      onClick={() => setSelectedArtwork(top3Artworks[0])}
+                      onClick={() => {
+                        SoundFX.click();
+                        setSelectedArtwork(top3Artworks[0]);
+                      }}
                       className="order-1 md:order-2 w-full md:w-1/3 flex flex-col items-center cursor-pointer transition-all duration-300 hover:-translate-y-3 z-20 md:-translate-y-6 animate-pop-up"
                       style={{ animationDelay: "0.2s" }}
                     >
@@ -1477,7 +1950,10 @@ export default function App() {
 
                   {top3Artworks[2] && (
                     <div
-                      onClick={() => setSelectedArtwork(top3Artworks[2])}
+                      onClick={() => {
+                        SoundFX.click();
+                        setSelectedArtwork(top3Artworks[2]);
+                      }}
                       className="order-3 w-full md:w-1/3 flex flex-col items-center cursor-pointer transition-all duration-300 hover:-translate-y-3 animate-pop-up"
                       style={{ animationDelay: "0.4s" }}
                     >
@@ -1537,11 +2013,10 @@ export default function App() {
               </div>
             </div>
 
-            {/* --- BAR PENAPIS (FILTER): TAHUN, BULAN (JANUARI - DISEMBER) & KELAS --- */}
+            {/* --- BAR PENAPIS (FILTER): TAHUN, BULAN & KELAS --- */}
             <div className="bg-white p-4 md:p-5 rounded-2xl shadow-sm border-2 border-blue-100 mb-8 space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div className="flex flex-wrap items-center gap-4">
-                  {/* Penapis Sesi / Tahun */}
                   <div className="flex items-center gap-2.5">
                     <div className="flex items-center text-blue-900 font-bold text-sm shrink-0">
                       <Filter className="w-4 h-4 mr-1.5 text-blue-600" />
@@ -1549,7 +2024,10 @@ export default function App() {
                     </div>
                     <select
                       value={selectedYear}
-                      onChange={(e) => setSelectedYear(e.target.value)}
+                      onChange={(e) => {
+                        SoundFX.click();
+                        setSelectedYear(e.target.value);
+                      }}
                       className="bg-sky-50 border-2 border-blue-200 text-blue-900 font-bold text-sm rounded-xl px-3.5 py-2 focus:outline-none focus:border-blue-500 cursor-pointer transition-colors"
                     >
                       <option value="Semua">Semua Tahun</option>
@@ -1561,7 +2039,6 @@ export default function App() {
                     </select>
                   </div>
 
-                  {/* Penapis Bulan (Januari - Disember) */}
                   <div className="flex items-center gap-2.5">
                     <div className="flex items-center text-blue-900 font-bold text-sm shrink-0">
                       <Calendar className="w-4 h-4 mr-1.5 text-blue-600" />
@@ -1569,7 +2046,10 @@ export default function App() {
                     </div>
                     <select
                       value={selectedMonth}
-                      onChange={(e) => setSelectedMonth(e.target.value)}
+                      onChange={(e) => {
+                        SoundFX.click();
+                        setSelectedMonth(e.target.value);
+                      }}
                       className="bg-sky-50 border-2 border-blue-200 text-blue-900 font-bold text-sm rounded-xl px-3.5 py-2 focus:outline-none focus:border-blue-500 cursor-pointer transition-colors"
                     >
                       {MONTH_OPTIONS.map((m) => (
@@ -1586,6 +2066,7 @@ export default function App() {
                   selectedClass !== "Semua") && (
                   <button
                     onClick={() => {
+                      SoundFX.click();
                       setSelectedYear("Semua");
                       setSelectedMonth("Semua");
                       setSelectedClass("Semua");
@@ -1597,7 +2078,6 @@ export default function App() {
                 )}
               </div>
 
-              {/* Penapis Kelas */}
               <div className="flex items-center gap-2 flex-wrap pt-3 border-t border-slate-100">
                 <span className="text-blue-900 font-bold text-sm mr-1">
                   Kelas:
@@ -1605,7 +2085,10 @@ export default function App() {
                 {classOptions.map((cls) => (
                   <button
                     key={cls}
-                    onClick={() => setSelectedClass(cls)}
+                    onClick={() => {
+                      SoundFX.click();
+                      setSelectedClass(cls);
+                    }}
                     className={`px-3.5 py-1.5 rounded-full text-xs md:text-sm font-bold transition-all active:scale-95 ${
                       selectedClass === cls
                         ? "bg-blue-600 text-white shadow-sm scale-105"
@@ -1628,7 +2111,10 @@ export default function App() {
                   Jadilah penjelajah pertama yang mempamerkan karya seni anda.
                 </p>
                 <button
-                  onClick={() => setIsAddModalOpen(true)}
+                  onClick={() => {
+                    SoundFX.click();
+                    setIsAddModalOpen(true);
+                  }}
                   className="bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 hover:scale-105 active:scale-95 shadow-md transition-all"
                 >
                   Tambah Karya Pertama
@@ -1653,6 +2139,7 @@ export default function App() {
                 </p>
                 <button
                   onClick={() => {
+                    SoundFX.click();
                     setSelectedYear("Semua");
                     setSelectedMonth("Semua");
                     setSelectedClass("Semua");
@@ -1666,14 +2153,22 @@ export default function App() {
               <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6">
                 {filteredArtworks.map((artwork, idx) => (
                   <ArtworkCard
-                    key={artwork.id}
+                    key={`${artwork.id}-${artwork.updatedAt || ""}`}
                     index={idx}
                     artwork={artwork}
                     artworkYear={getArtworkYear(artwork.createdAt)}
                     activeUserKey={activeUserKey}
                     activePassport={activePassport}
+                    vipRegistry={criticCategoryRegistry}
                     isStaffLoggedIn={!!loggedInStaff}
                     onLike={() => toggleLike(artwork.id, artwork.likes || [])}
+                    onOpenStarList={(givers: StarGiverItem[]) => {
+                      SoundFX.click();
+                      setStarListModalData({
+                        title: artwork.title,
+                        givers,
+                      });
+                    }}
                     onComment={(text: string, quizAnswers?: any) =>
                       addComment(
                         artwork.id,
@@ -1685,9 +2180,18 @@ export default function App() {
                     onDeleteComment={(commentObj: any) =>
                       handleDeleteCommentWithPenalty(artwork.id, commentObj)
                     }
-                    onRequestEdit={() => setEditingArtwork(artwork)}
-                    onRequestDelete={() => setArtworkToDelete(artwork)}
-                    onOpenPreview={() => setSelectedArtwork(artwork)}
+                    onRequestEdit={() => {
+                      SoundFX.click();
+                      setEditingArtwork(artwork);
+                    }}
+                    onRequestDelete={() => {
+                      SoundFX.alert();
+                      setArtworkToDelete(artwork);
+                    }}
+                    onOpenPreview={() => {
+                      SoundFX.click();
+                      setSelectedArtwork(artwork);
+                    }}
                   />
                 ))}
               </div>
@@ -1709,31 +2213,68 @@ export default function App() {
               </h3>
               <p className="text-lg text-slate-600 font-medium mb-8 relative z-10">
                 Misi anda: Dapatkan pasport pengkritik, terokai galeri, cari
-                karya kegemaran (maksimum 3 karya), berikan 'Bintang' dan
-                tinggalkan komen positif!
+                karya kegemaran (3 karya bagi setiap pasport), berikan 'Bintang'
+                dan tinggalkan komen positif! Jika habis, anda boleh daftar
+                pasport baharu semula.
               </p>
 
-              {activePassport && (
-                <div className="max-w-md mx-auto mb-8 bg-gradient-to-r from-blue-600 to-blue-800 text-white p-5 rounded-2xl shadow-lg border-2 border-yellow-400 text-left relative z-10 animate-pop-up">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-extrabold uppercase tracking-wider bg-yellow-400 text-blue-900 px-3 py-0.5 rounded-full">
-                      PASPORT AKTIF
-                    </span>
-                    <span className="text-xs font-bold text-blue-200">
+              {/* KAD PASPORT AKTIF (TEMA BIASA ATAU TEMA VIP GURU/PIBG) */}
+              {activePassport && activePassport.usedCount < 3 && (
+                <div
+                  className={`max-w-md mx-auto mb-8 p-6 rounded-2xl shadow-xl text-left relative z-10 overflow-hidden animate-pop-up ${
+                    isCurrentPassportVip
+                      ? "bg-gradient-to-br from-slate-950 via-amber-950 to-slate-900 text-yellow-100 border-4 border-yellow-400"
+                      : "bg-gradient-to-r from-blue-600 to-blue-800 text-white border-2 border-yellow-400"
+                  }`}
+                >
+                  {isCurrentPassportVip && (
+                    <>
+                      <Crown className="absolute -bottom-3 -right-3 w-28 h-28 text-yellow-400/15 rotate-12 pointer-events-none" />
+                      <Sparkles className="absolute top-3 right-3 w-5 h-5 text-yellow-400 animate-pulse pointer-events-none" />
+                    </>
+                  )}
+
+                  <div className="flex items-center justify-between mb-3 relative z-10">
+                    {isCurrentPassportVip ? (
+                      <span className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-500 text-slate-950 px-3 py-1 rounded-full shadow-sm">
+                        <Crown className="w-3.5 h-3.5 fill-current" />
+                        PASPORT VIP • {activePassport.className.toUpperCase()}
+                      </span>
+                    ) : (
+                      <span className="text-xs font-extrabold uppercase tracking-wider bg-yellow-400 text-blue-900 px-3 py-0.5 rounded-full">
+                        PASPORT #{activePassport.sessionNumber || 1} AKTIF
+                      </span>
+                    )}
+
+                    <span
+                      className={`text-xs font-bold ${
+                        isCurrentPassportVip
+                          ? "text-yellow-300"
+                          : "text-blue-200"
+                      }`}
+                    >
                       Baki Kuota: {3 - activePassport.usedCount} / 3 Karya
                     </span>
                   </div>
-                  <h4 className="text-xl font-black">
+
+                  <h4
+                    className={`text-xl font-black relative z-10 ${
+                      isCurrentPassportVip ? "text-yellow-300" : "text-white"
+                    }`}
+                  >
                     {activePassport.fullName}
                   </h4>
-                  <p className="text-sm text-blue-100 font-semibold">
+                  <p
+                    className={`text-sm font-semibold relative z-10 ${
+                      isCurrentPassportVip ? "text-amber-200" : "text-blue-100"
+                    }`}
+                  >
                     {activePassport.className}{" "}
                     {activePassport.email ? `• ${activePassport.email}` : ""}
                   </p>
                 </div>
               )}
 
-              {/* NAMA PROSES DI ATAS KOTAK LANGKAH 1 HINGGA 3 */}
               <div className="relative z-10 mb-5">
                 <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-900 px-4 py-1.5 rounded-full text-xs md:text-sm font-black uppercase tracking-wider border border-blue-200">
                   <Compass className="w-4 h-4 text-blue-600" />
@@ -1790,14 +2331,20 @@ export default function App() {
 
               <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10">
                 <button
-                  onClick={() => setActiveTab("galeri")}
+                  onClick={() => {
+                    SoundFX.click();
+                    setActiveTab("galeri");
+                  }}
                   className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-8 rounded-full shadow-lg hover:scale-105 active:scale-95 transition-all inline-flex items-center justify-center"
                 >
                   Kembali ke Galeri <Compass className="ml-2 w-5 h-5" />
                 </button>
 
                 <button
-                  onClick={() => setIsPassportModalOpen(true)}
+                  onClick={() => {
+                    SoundFX.click();
+                    setIsPassportModalOpen(true);
+                  }}
                   className="w-full sm:w-auto bg-yellow-400 hover:bg-yellow-300 text-blue-900 font-black py-3.5 px-8 rounded-full shadow-[0_5px_0_rgb(180,83,9)] hover:shadow-[0_2px_0_rgb(180,83,9)] hover:translate-y-0.5 active:translate-y-1 transition-all border-2 border-blue-900 inline-flex items-center justify-center"
                 >
                   <Award className="mr-2 w-5 h-5" />
@@ -1835,7 +2382,10 @@ export default function App() {
                   ].map((tab) => (
                     <button
                       key={tab.id}
-                      onClick={() => setCriticMetricFilter(tab.id as any)}
+                      onClick={() => {
+                        SoundFX.click();
+                        setCriticMetricFilter(tab.id as any);
+                      }}
                       className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
                         criticMetricFilter === tab.id
                           ? "bg-blue-600 text-white shadow-sm"
@@ -1899,8 +2449,14 @@ export default function App() {
                               #{index + 1}
                             </span>
                             <div>
-                              <div className="font-extrabold text-slate-800 text-sm md:text-base flex items-center gap-1.5">
+                              <div className="font-extrabold text-slate-800 text-sm md:text-base flex items-center gap-1.5 flex-wrap">
                                 <span>{critic.displayName}</span>
+                                {critic.isVip && (
+                                  <span className="inline-flex items-center gap-1 bg-slate-900 text-yellow-300 border border-yellow-400 text-[10px] font-black px-2 py-0.5 rounded-full">
+                                    <Crown className="w-2.5 h-2.5 fill-current" />
+                                    VIP
+                                  </span>
+                                )}
                                 {index === 0 && (
                                   <Crown className="w-4 h-4 text-yellow-500 fill-current animate-crown" />
                                 )}
@@ -1964,10 +2520,7 @@ export default function App() {
             onDeleteCommentWithPenalty={handleDeleteCommentWithPenalty}
             onRemoveSingleStar={handleRemoveSingleStar}
             onLogout={handleStaffLogout}
-            onShowNotice={(msg: string) => {
-              setPassportNotice(msg);
-              setTimeout(() => setPassportNotice(null), 5000);
-            }}
+            onShowNotice={(msg: string) => showTimedNotice(msg)}
           />
         )}
       </main>
@@ -1989,9 +2542,12 @@ export default function App() {
 
       {/* FLOATING ACTION BUTTON - HANYA PAPAR DI TAB GALERI */}
       {activeTab === "galeri" && (
-        <div className="fixed bottom-20 md:bottom-10 right-6 md:right-10 z-50 animate-pop-up no-print">
+        <div className="fixed bottom-20 md:bottom-10 right-6 md:right-10 z-40 animate-pop-up no-print">
           <button
-            onClick={() => setIsAddModalOpen(true)}
+            onClick={() => {
+              SoundFX.click();
+              setIsAddModalOpen(true);
+            }}
             className="bg-yellow-400 text-blue-900 hover:bg-yellow-300 p-4 md:p-5 rounded-full shadow-[0_8px_0_rgb(30,58,138)] hover:shadow-[0_4px_0_rgb(30,58,138)] hover:translate-y-1 active:translate-y-2 transition-all duration-200 flex items-center justify-center border-4 border-blue-900 group"
             title="Tambah Karya Baru"
           >
@@ -2011,7 +2567,10 @@ export default function App() {
           return (
             <button
               key={item}
-              onClick={() => setActiveTab(tabKey)}
+              onClick={() => {
+                SoundFX.click();
+                setActiveTab(tabKey);
+              }}
               className={`flex flex-col items-center p-2 rounded-xl text-xs font-bold transition-all active:scale-90 ${
                 isActive
                   ? "text-blue-700 bg-blue-50 scale-105"
@@ -2027,7 +2586,10 @@ export default function App() {
         })}
         {loggedInStaff && (
           <button
-            onClick={() => setActiveTab("panel-admin")}
+            onClick={() => {
+              SoundFX.click();
+              setActiveTab("panel-admin");
+            }}
             className={`flex flex-col items-center p-2 rounded-xl text-xs font-bold transition-all active:scale-90 ${
               activeTab === "panel-admin"
                 ? "text-blue-900 bg-yellow-100 scale-105"
@@ -2043,21 +2605,11 @@ export default function App() {
       {/* MODAL LOG MASUK ADMIN / GURU */}
       {isStaffLoginModalOpen && (
         <StaffLoginModal
-          onClose={() => setIsStaffLoginModalOpen(false)}
-          onLogin={handleStaffLogin}
-        />
-      )}
-
-      {/* MODAL DAFTAR PENGKRITIK (PASPORT) */}
-      {isPassportModalOpen && (
-        <PassportRegistrationModal
-          onClose={() => setIsPassportModalOpen(false)}
-          onRegister={handleRegisterPassport}
-          getGlobalUsageByName={getGlobalUsageByName}
-          onGoToGallery={() => {
-            setIsPassportModalOpen(false);
-            setActiveTab("galeri");
+          onClose={() => {
+            SoundFX.click();
+            setIsStaffLoginModalOpen(false);
           }}
+          onLogin={handleStaffLogin}
         />
       )}
 
@@ -2065,33 +2617,50 @@ export default function App() {
       {isAddModalOpen && (
         <ArtworkFormModal
           mode="add"
-          onClose={() => setIsAddModalOpen(false)}
+          onClose={() => {
+            SoundFX.click();
+            setIsAddModalOpen(false);
+          }}
           onSubmit={handleAddArtwork}
         />
       )}
 
-      {/* EDIT ARTWORK MODAL (KHUSUS GURU & ADMIN YANG SUDAH LOG MASUK) */}
+      {/* EDIT ARTWORK MODAL */}
       {editingArtwork && loggedInStaff && (
         <ArtworkFormModal
           mode="edit"
           initialData={editingArtwork}
-          onClose={() => setEditingArtwork(null)}
+          onClose={() => {
+            SoundFX.click();
+            setEditingArtwork(null);
+          }}
           onSubmit={handleEditArtwork}
         />
       )}
 
-      {/* MODAL POP-UP & ZOOM + DRAG KARYA */}
+      {/* MODAL POP-UP & ZOOM + DRAG KARYA (z-50) */}
       {selectedArtwork && (
         <ArtworkLightboxModal
           artwork={selectedArtwork}
           artworkYear={getArtworkYear(selectedArtwork.createdAt)}
           activeUserKey={activeUserKey}
           activePassport={activePassport}
+          vipRegistry={criticCategoryRegistry}
           isStaffLoggedIn={!!loggedInStaff}
-          onClose={() => setSelectedArtwork(null)}
+          onClose={() => {
+            SoundFX.click();
+            setSelectedArtwork(null);
+          }}
           onLike={() =>
             toggleLike(selectedArtwork.id, selectedArtwork.likes || [])
           }
+          onOpenStarList={(givers: StarGiverItem[]) => {
+            SoundFX.click();
+            setStarListModalData({
+              title: selectedArtwork.title,
+              givers,
+            });
+          }}
           onComment={(text: string, quizAnswers?: any) =>
             addComment(
               selectedArtwork.id,
@@ -2103,14 +2672,125 @@ export default function App() {
           onDeleteComment={(commentObj: any) =>
             handleDeleteCommentWithPenalty(selectedArtwork.id, commentObj)
           }
-          onRequestEdit={() => setEditingArtwork(selectedArtwork)}
-          onRequestDelete={() => setArtworkToDelete(selectedArtwork)}
+          onRequestEdit={() => {
+            SoundFX.click();
+            setEditingArtwork(selectedArtwork);
+          }}
+          onRequestDelete={() => {
+            SoundFX.alert();
+            setArtworkToDelete(selectedArtwork);
+          }}
         />
       )}
 
-      {/* MODAL PENGESAHAN PADAM KARYA (HANYA ADMIN & GURU) */}
+      {/* MODAL SENARAI PEMBERI BINTANG GAYA FACEBOOK (z-[65]) */}
+      {starListModalData && (
+        <div
+          onClick={() => {
+            SoundFX.click();
+            setStarListModalData(null);
+          }}
+          className="fixed inset-0 bg-slate-900/65 backdrop-blur-xs flex items-center justify-center z-[65] p-4"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl border-4 border-yellow-400 animate-modal-enter"
+          >
+            <div className="bg-blue-900 px-5 py-4 flex items-center justify-between text-white">
+              <div className="flex items-center gap-2">
+                <Star className="w-5 h-5 text-yellow-400 fill-current" />
+                <div>
+                  <h4 className="font-black text-base leading-tight">
+                    Pemberi Bintang ({starListModalData.givers.length})
+                  </h4>
+                  <p className="text-[11px] text-blue-200 line-clamp-1">
+                    {starListModalData.title}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  SoundFX.click();
+                  setStarListModalData(null);
+                }}
+                className="p-1.5 hover:bg-blue-800 rounded-full transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="max-h-72 overflow-y-auto divide-y divide-slate-100 p-2">
+              {starListModalData.givers.map((g, idx) => {
+                const avatarStyle = getAvatarColorClass(g.name, g.isVip);
+                return (
+                  <div
+                    key={`${g.key}-${idx}`}
+                    className={`flex items-center justify-between px-3 py-2.5 rounded-xl transition-colors ${
+                      g.isVip
+                        ? "bg-gradient-to-r from-amber-50 to-yellow-50/70"
+                        : "hover:bg-sky-50"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="relative">
+                        <div
+                          className={`w-9 h-9 rounded-full bg-gradient-to-br ${avatarStyle} border-2 border-white flex items-center justify-center font-black text-sm shadow-sm`}
+                        >
+                          {g.initial}
+                        </div>
+                        {g.isVip && (
+                          <span className="absolute -top-1.5 -right-1.5 bg-slate-900 text-yellow-300 border border-yellow-400 rounded-full p-0.5 shadow-xs">
+                            <Crown className="w-2.5 h-2.5 fill-current" />
+                          </span>
+                        )}
+                      </div>
+                      <div>
+                        <div className="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+                          <span>{g.name}</span>
+                          {g.isVip && (
+                            <span className="bg-slate-900 text-yellow-300 border border-yellow-400 text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase">
+                              VIP {g.roleLabel ? `• ${g.roleLabel}` : ""}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <span className="bg-yellow-100 text-amber-800 text-[11px] font-extrabold px-2.5 py-0.5 rounded-full flex items-center gap-1 border border-yellow-300">
+                      <Star className="w-3 h-3 fill-current text-yellow-500" />
+                      +1
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DAFTAR PENGKRITIK (PASPORT) - LAPISAN HADAPAN (z-[70]) */}
+      {isPassportModalOpen && (
+        <PassportRegistrationModal
+          onClose={() => {
+            SoundFX.click();
+            setIsPassportModalOpen(false);
+            setPendingActionArtworkId(null);
+          }}
+          onRegister={handleRegisterPassport}
+          getGlobalHistoryByName={getGlobalHistoryByName}
+          hasPendingArtwork={Boolean(pendingActionArtworkId)}
+          onGoToGallery={() => {
+            SoundFX.click();
+            setIsPassportModalOpen(false);
+            if (!pendingActionArtworkId) {
+              setActiveTab("galeri");
+            }
+          }}
+        />
+      )}
+
+      {/* MODAL PENGESAHAN PADAM KARYA (HANYA ADMIN & GURU) (z-[70]) */}
       {artworkToDelete && loggedInStaff && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-slate-900/65 backdrop-blur-sm flex items-center justify-center z-[70] p-4">
           <div className="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl border-4 border-red-400 p-6 text-center animate-modal-enter">
             <div className="bg-red-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-red-600 animate-bounce">
               <AlertTriangle className="w-9 h-9" />
@@ -2131,7 +2811,10 @@ export default function App() {
             </p>
             <div className="flex gap-3">
               <button
-                onClick={() => setArtworkToDelete(null)}
+                onClick={() => {
+                  SoundFX.click();
+                  setArtworkToDelete(null);
+                }}
                 className="flex-1 py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-colors"
               >
                 Batal
@@ -2146,11 +2829,107 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {/* MODAL PENGESAHAN KELUAR DARIPADA SISTEM KANTA SENI (z-[75]) */}
+      {isExitConfirmModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center z-[75] p-4">
+          <div className="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl border-4 border-yellow-400 p-6 text-center animate-modal-enter">
+            <div className="bg-amber-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-amber-700 animate-bounce">
+              <DoorOpen className="w-9 h-9" />
+            </div>
+            <h3 className="text-xl font-black text-blue-900 mb-2">
+              Keluar daripada Kanta Seni?
+            </h3>
+            <p className="text-sm text-slate-600 mb-6">
+              Adakah anda pasti mahu menutup dan keluar daripada aplikasi
+              pameran maya Kanta Seni sekarang?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  SoundFX.click();
+                  setIsExitConfirmModalOpen(false);
+                }}
+                className="flex-1 py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-colors"
+              >
+                Kekal di Sini
+              </button>
+              <button
+                onClick={() => {
+                  SoundFX.exitPrompt();
+                  setIsExitConfirmModalOpen(false);
+                  window.close();
+                  showTimedNotice(
+                    "Terima kasih melawat Kanta Seni! Anda boleh menutup tab pelayar ini sekarang."
+                  );
+                }}
+                className="flex-1 py-3 px-4 bg-red-600 hover:bg-red-700 text-white font-black rounded-xl shadow-[0_4px_0_rgb(153,27,27)] hover:translate-y-0.5 transition-all"
+              >
+                Ya, Keluar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 // --- SUB-COMPONENTS ---
+
+// --- AVATAR HURUF PELBAGAI WARNA & SIMBOL DOT (...) SELEPAS 3 BINTANG ---
+function StarGiversAvatars({
+  givers,
+  onOpenStarList,
+}: {
+  givers: StarGiverItem[];
+  onOpenStarList: (givers: StarGiverItem[]) => void;
+}) {
+  if (!givers || givers.length === 0) return null;
+
+  // Paparkan maksimum 3 avatar, jika lebih daripada 3 tunjuk simbol dot (...) gaya Facebook
+  const visibleGivers = givers.slice(0, 3);
+  const hasMoreThanThree = givers.length > 3;
+
+  return (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        onOpenStarList(givers);
+      }}
+      title={`Klik untuk lihat senarai penuh pemberi bintang (${givers
+        .map((g) => (g.isVip ? `${g.name} (VIP)` : g.name))
+        .join(", ")})`}
+      className="flex items-center -space-x-2 hover:scale-105 active:scale-95 transition-transform pl-1"
+    >
+      {visibleGivers.map((g, idx) => {
+        const avatarColor = getAvatarColorClass(g.name, g.isVip);
+        return (
+          <span
+            key={`${g.key}-${idx}`}
+            className={`relative w-6 h-6 rounded-full bg-gradient-to-br ${avatarColor} border-2 border-white shadow-xs flex items-center justify-center text-[10px] font-black uppercase`}
+          >
+            {g.initial}
+            {g.isVip && (
+              <span className="absolute -top-1.5 -right-1 bg-slate-950 text-yellow-300 rounded-full p-[1px] border border-yellow-400">
+                <Crown className="w-2 h-2 fill-current" />
+              </span>
+            )}
+          </span>
+        );
+      })}
+      {hasMoreThanThree && (
+        <span
+          className="w-6 h-6 rounded-full bg-slate-200 hover:bg-slate-300 text-slate-700 border-2 border-white shadow-xs flex items-center justify-center"
+          aria-label="Lihat semua pemberi bintang"
+        >
+          <MoreHorizontal className="w-3.5 h-3.5" />
+        </span>
+      )}
+    </button>
+  );
+}
 
 function PassportQuizBox({
   stage,
@@ -2190,7 +2969,10 @@ function PassportQuizBox({
         <div className="flex items-center gap-1">
           <button
             type="button"
-            onClick={onRefreshQuestions}
+            onClick={() => {
+              SoundFX.click();
+              onRefreshQuestions();
+            }}
             className="p-1.5 bg-white hover:bg-blue-100 text-blue-700 rounded-lg border border-blue-200 transition-colors"
             title="Jana set 3 soalan rawak baharu"
           >
@@ -2198,7 +2980,10 @@ function PassportQuizBox({
           </button>
           <button
             type="button"
-            onClick={onClose}
+            onClick={() => {
+              SoundFX.click();
+              onClose();
+            }}
             className="p-1.5 bg-white hover:bg-red-100 text-slate-500 hover:text-red-600 rounded-lg border border-slate-200 transition-colors"
             title="Tutup soalan"
           >
@@ -2215,7 +3000,10 @@ function PassportQuizBox({
             <button
               key={q.id}
               type="button"
-              onClick={() => onChangeStep(idx)}
+              onClick={() => {
+                SoundFX.click();
+                onChangeStep(idx);
+              }}
               className={`flex-1 py-1 px-2 rounded-lg text-[11px] font-black transition-all flex items-center justify-center gap-1 border ${
                 isCurrent
                   ? "bg-blue-700 text-yellow-300 border-blue-800 shadow-2xs"
@@ -2254,7 +3042,10 @@ function PassportQuizBox({
             <button
               key={opt}
               type="button"
-              onClick={() => onSelectAnswer(currentIndex, opt)}
+              onClick={() => {
+                SoundFX.click();
+                onSelectAnswer(currentIndex, opt);
+              }}
               className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold border transition-all flex items-center justify-between gap-2 ${
                 isSelected
                   ? "bg-blue-600 text-white border-blue-700 shadow-xs"
@@ -2327,7 +3118,7 @@ function StaffLoginModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center z-[70] p-4">
       <div className="bg-white rounded-[2rem] w-full max-w-md overflow-hidden shadow-2xl border-4 border-yellow-400 animate-modal-enter">
         <div className="bg-blue-900 p-6 flex justify-between items-center text-white relative overflow-hidden">
           <Shield className="absolute top-1 right-10 w-20 h-20 text-blue-700 opacity-40 animate-float-slow" />
@@ -2391,12 +3182,12 @@ function StaffLoginModal({
               />
               <button
                 type="button"
-                onClick={() => setShowPassword((prev) => !prev)}
+                onClick={() => {
+                  SoundFX.click();
+                  setShowPassword((prev) => !prev);
+                }}
                 className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-blue-700 rounded-lg transition-colors"
                 title={
-                  showPassword ? "Sembunyikan kata laluan" : "Lihat kata laluan"
-                }
-                aria-label={
                   showPassword ? "Sembunyikan kata laluan" : "Lihat kata laluan"
                 }
               >
@@ -2452,7 +3243,6 @@ function StaffDashboardPanel({
     "moderasi" | "senarai" | "guru" | "tetapan"
   >("moderasi");
 
-  // State Penapis Rekod Pendaftaran / Cetakan
   const [printYearFilter, setPrintYearFilter] = useState("Semua");
   const [printClassFilter, setPrintClassFilter] = useState("Semua");
 
@@ -2469,7 +3259,6 @@ function StaffDashboardPanel({
     "Lain-lain",
   ];
 
-  // Penapisan Senarai Pelukis Cilik mengikut Sesi & Kelas
   const filteredArtistsForPrint = useMemo(() => {
     return artworks.filter((art: any) => {
       const artYear = getArtworkYear(art.createdAt);
@@ -2481,7 +3270,6 @@ function StaffDashboardPanel({
     });
   }, [artworks, printYearFilter, printClassFilter]);
 
-  // Penapisan Senarai Pengkritik mengikut Sesi & Kelas
   const filteredCriticsForPrint = useMemo(() => {
     return allRegisteredCritics.filter((critic: any) => {
       const matchYear =
@@ -2494,14 +3282,12 @@ function StaffDashboardPanel({
     });
   }, [allRegisteredCritics, printYearFilter, printClassFilter]);
 
-  // State Borang Daftar Guru (Admin sahaja)
   const [teacherName, setTeacherName] = useState("");
   const [teacherUser, setTeacherUser] = useState("");
   const [teacherPass, setTeacherPass] = useState("");
   const [showTeacherPass, setShowTeacherPass] = useState(false);
   const [teacherClass, setTeacherClass] = useState("Semua Kelas");
 
-  // State Tetapan Akaun Admin (Admin sahaja)
   const [newAdminUser, setNewAdminUser] = useState(adminCredentials.username);
   const [newAdminPass, setNewAdminPass] = useState(adminCredentials.password);
   const [showAdminPass, setShowAdminPass] = useState(false);
@@ -2521,6 +3307,7 @@ function StaffDashboardPanel({
       );
 
     if (duplicate) {
+      SoundFX.alert();
       onShowNotice(
         "Nama pengguna (username) tersebut sudah wujud. Sila guna username lain."
       );
@@ -2545,6 +3332,7 @@ function StaffDashboardPanel({
     setTeacherName("");
     setTeacherUser("");
     setTeacherPass("");
+    SoundFX.success();
     onShowNotice(
       `Akaun Guru Mentor (${newTeacher.fullName}) berjaya didaftarkan & diselaraskan ke semua peranti!`
     );
@@ -2558,6 +3346,7 @@ function StaffDashboardPanel({
       teachers: updatedTeachers,
       adminCreds: adminCredentials,
     });
+    SoundFX.alert();
     onShowNotice("Akaun guru telah dipadam.");
   };
 
@@ -2574,10 +3363,12 @@ function StaffDashboardPanel({
       teachers: teachersList,
       adminCreds: updatedCreds,
     });
+    SoundFX.success();
     onShowNotice("Tetapan Username & Password Admin berjaya dikemas kini!");
   };
 
   const handlePrintLists = () => {
+    SoundFX.click();
     window.print();
   };
 
@@ -2590,7 +3381,6 @@ function StaffDashboardPanel({
 
   return (
     <section className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 mt-8 space-y-6 animate-pop-up">
-      {/* HEADER PANEL STAFF */}
       <div className="bg-gradient-to-r from-blue-900 to-slate-900 text-white p-6 md:p-8 rounded-3xl shadow-xl border-b-4 border-yellow-400 flex flex-col md:flex-row md:items-center justify-between gap-4 no-print">
         <div className="flex items-center gap-4">
           <div className="bg-yellow-400 text-blue-900 p-3.5 rounded-2xl shadow-md">
@@ -2622,10 +3412,12 @@ function StaffDashboardPanel({
         </button>
       </div>
 
-      {/* MENU TAB KAWALAN */}
       <div className="flex flex-wrap gap-2 bg-white p-2 rounded-2xl shadow-sm border-2 border-blue-100 no-print">
         <button
-          onClick={() => setSubTab("moderasi")}
+          onClick={() => {
+            SoundFX.click();
+            setSubTab("moderasi");
+          }}
           className={`px-4 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition-all ${
             subTab === "moderasi"
               ? "bg-blue-600 text-white shadow-sm"
@@ -2637,7 +3429,10 @@ function StaffDashboardPanel({
         </button>
 
         <button
-          onClick={() => setSubTab("senarai")}
+          onClick={() => {
+            SoundFX.click();
+            setSubTab("senarai");
+          }}
           className={`px-4 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition-all ${
             subTab === "senarai"
               ? "bg-blue-600 text-white shadow-sm"
@@ -2651,7 +3446,10 @@ function StaffDashboardPanel({
         {isAdmin && (
           <>
             <button
-              onClick={() => setSubTab("guru")}
+              onClick={() => {
+                SoundFX.click();
+                setSubTab("guru");
+              }}
               className={`px-4 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition-all ${
                 subTab === "guru"
                   ? "bg-blue-600 text-white shadow-sm"
@@ -2663,7 +3461,10 @@ function StaffDashboardPanel({
             </button>
 
             <button
-              onClick={() => setSubTab("tetapan")}
+              onClick={() => {
+                SoundFX.click();
+                setSubTab("tetapan");
+              }}
               className={`px-4 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition-all ${
                 subTab === "tetapan"
                   ? "bg-blue-600 text-white shadow-sm"
@@ -2677,7 +3478,7 @@ function StaffDashboardPanel({
         )}
       </div>
 
-      {/* 1. TAB MODERASI KOMEN & BINTANG (ADMIN & GURU) */}
+      {/* 1. TAB MODERASI KOMEN & BINTANG */}
       {subTab === "moderasi" && (
         <div className="bg-white p-6 md:p-8 rounded-3xl shadow-lg border-2 border-blue-100 space-y-6 animate-pop-up">
           <div className="border-b border-slate-100 pb-4">
@@ -2744,7 +3545,6 @@ function StaffDashboardPanel({
                       </div>
                     </div>
 
-                    {/* SENARAI BINTANG PADA KARYA INI */}
                     <div className="mt-4">
                       <h5 className="text-xs font-extrabold uppercase tracking-wider text-slate-500 mb-2">
                         Senarai Pemberi Bintang ({likes.length}):
@@ -2777,7 +3577,6 @@ function StaffDashboardPanel({
                       )}
                     </div>
 
-                    {/* SENARAI KOMEN PADA KARYA INI */}
                     <div className="mt-4">
                       <h5 className="text-xs font-extrabold uppercase tracking-wider text-slate-500 mb-2">
                         Senarai Komen ({comments.length}):
@@ -2830,7 +3629,7 @@ function StaffDashboardPanel({
         </div>
       )}
 
-      {/* 2. TAB SENARAI NAMA PELUKIS CILIK & PENGKRITIK + BUTANG TAPISAN & CETAK */}
+      {/* 2. TAB SENARAI NAMA & CETAK */}
       {subTab === "senarai" && (
         <div className="bg-white p-6 md:p-8 rounded-3xl shadow-lg border-2 border-blue-100 space-y-6 animate-pop-up">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4 no-print">
@@ -2863,7 +3662,10 @@ function StaffDashboardPanel({
                 {["Semua", ...availableYears].map((yr: string) => (
                   <button
                     key={yr}
-                    onClick={() => setPrintYearFilter(yr)}
+                    onClick={() => {
+                      SoundFX.click();
+                      setPrintYearFilter(yr);
+                    }}
                     className={`px-3.5 py-1.5 rounded-full text-xs font-extrabold transition-all ${
                       printYearFilter === yr
                         ? "bg-blue-700 text-white shadow-sm scale-105"
@@ -2879,6 +3681,7 @@ function StaffDashboardPanel({
                 printClassFilter !== "Semua") && (
                 <button
                   onClick={() => {
+                    SoundFX.click();
                     setPrintYearFilter("Semua");
                     setPrintClassFilter("Semua");
                   }}
@@ -2896,7 +3699,10 @@ function StaffDashboardPanel({
               {printClassOptions.map((cls) => (
                 <button
                   key={cls}
-                  onClick={() => setPrintClassFilter(cls)}
+                  onClick={() => {
+                    SoundFX.click();
+                    setPrintClassFilter(cls);
+                  }}
                   className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
                     printClassFilter === cls
                       ? "bg-yellow-400 text-blue-900 border-2 border-blue-900 shadow-sm scale-105"
@@ -3104,7 +3910,8 @@ function StaffDashboardPanel({
                                 {idx + 1}
                               </td>
                               <td className="py-2.5 px-4 font-bold text-slate-800">
-                                {critic.displayName}
+                                {critic.displayName}{" "}
+                                {critic.isVip ? "(VIP)" : ""}
                               </td>
                               <td className="py-2.5 px-4 text-slate-700 font-medium">
                                 {critic.className}
@@ -3145,7 +3952,7 @@ function StaffDashboardPanel({
         </div>
       )}
 
-      {/* 3. TAB DAFTAR GURU MENTOR (HANYA ADMIN) */}
+      {/* 3. TAB DAFTAR GURU MENTOR */}
       {subTab === "guru" && isAdmin && (
         <div className="bg-white p-6 md:p-8 rounded-3xl shadow-lg border-2 border-blue-100 space-y-6 animate-pop-up">
           <div className="border-b border-slate-100 pb-4">
@@ -3154,9 +3961,9 @@ function StaffDashboardPanel({
               Daftar Akaun Guru (Mentor Galeri)
             </h3>
             <p className="text-sm text-slate-500 mt-1">
-              Guru yang didaftarkan akan diselaraskan secara automatik ke semua
-              telefon/peranti lain dan diberi akses menyunting/memadam karya
-              serta mencetak senarai nama.
+              Guru yang didaftarkan akan diselaraskan secara automatik ke
+              semua telefon/peranti lain dan diberi akses menyunting/memadam
+              karya serta mencetak senarai nama.
             </p>
           </div>
 
@@ -3226,13 +4033,11 @@ function StaffDashboardPanel({
                 />
                 <button
                   type="button"
-                  onClick={() => setShowTeacherPass((prev) => !prev)}
+                  onClick={() => {
+                    SoundFX.click();
+                    setShowTeacherPass((prev) => !prev);
+                  }}
                   className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-blue-700"
-                  title={
-                    showTeacherPass
-                      ? "Sembunyikan kata laluan"
-                      : "Lihat kata laluan"
-                  }
                 >
                   {showTeacherPass ? (
                     <EyeOff className="w-4 h-4" />
@@ -3302,7 +4107,7 @@ function StaffDashboardPanel({
         </div>
       )}
 
-      {/* 4. TAB TETAPAN USERNAME & PASSWORD ADMIN (HANYA ADMIN) */}
+      {/* 4. TAB TETAPAN ADMIN */}
       {subTab === "tetapan" && isAdmin && (
         <div className="bg-white p-6 md:p-8 rounded-3xl shadow-lg border-2 border-blue-100 max-w-xl animate-pop-up">
           <div className="border-b border-slate-100 pb-4 mb-6">
@@ -3344,13 +4149,11 @@ function StaffDashboardPanel({
                 />
                 <button
                   type="button"
-                  onClick={() => setShowAdminPass((prev) => !prev)}
+                  onClick={() => {
+                    SoundFX.click();
+                    setShowAdminPass((prev) => !prev);
+                  }}
                   className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-blue-700"
-                  title={
-                    showAdminPass
-                      ? "Sembunyikan kata laluan"
-                      : "Lihat kata laluan"
-                  }
                 >
                   {showAdminPass ? (
                     <EyeOff className="w-5 h-5" />
@@ -3374,10 +4177,12 @@ function StaffDashboardPanel({
   );
 }
 
+// --- MODAL PENDAFTARAN PASPORT (DENGAN PRATONTON KAD VIP GURU & PIBG) ---
 function PassportRegistrationModal({
   onClose,
   onRegister,
-  getGlobalUsageByName,
+  getGlobalHistoryByName,
+  hasPendingArtwork,
   onGoToGallery,
 }: any) {
   const [fullName, setFullName] = useState("");
@@ -3385,7 +4190,9 @@ function PassportRegistrationModal({
   const [email, setEmail] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [successInfo, setSuccessInfo] = useState<{
-    isReturningUser: boolean;
+    isRenewal: boolean;
+    isVip: boolean;
+    sessionNumber: number;
     remainingQuota: number;
   } | null>(null);
 
@@ -3401,52 +4208,85 @@ function PassportRegistrationModal({
     "Lain-lain",
   ];
 
-  const { totalUsed } = fullName.trim()
-    ? getGlobalUsageByName(fullName)
-    : { totalUsed: 0 };
-  const remainingForName = Math.max(0, 3 - totalUsed);
+  const isSelectedVip = isVipCategory(className);
+
+  const { totalSessionsCompleted } = fullName.trim()
+    ? getGlobalHistoryByName(fullName)
+    : { totalSessionsCompleted: 0 };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg("");
 
     if (!fullName.trim()) {
+      SoundFX.alert();
       setErrorMsg("Sila isi Nama Penuh anda.");
       return;
     }
     if (!className) {
+      SoundFX.alert();
       setErrorMsg("Sila pilih Kelas / Kategori anda.");
       return;
     }
 
     const result = onRegister({ fullName, className, email });
     if (!result.success) {
+      SoundFX.alert();
       setErrorMsg(result.message);
-    } else {
+    } else if (!hasPendingArtwork) {
       setSuccessInfo({
-        isReturningUser: result.isReturningUser,
+        isRenewal: result.isRenewal,
+        isVip: result.isVip,
+        sessionNumber: result.sessionNumber,
         remainingQuota: result.remainingQuota,
       });
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-[2rem] w-full max-w-md overflow-hidden shadow-2xl border-4 border-yellow-400 animate-modal-enter">
-        <div className="bg-blue-600 p-6 flex justify-between items-center text-white relative overflow-hidden">
-          <Award className="absolute top-1 right-10 w-20 h-20 text-blue-500 opacity-30 animate-float-slow" />
+    <div className="fixed inset-0 bg-slate-900/75 backdrop-blur-sm flex items-center justify-center z-[70] p-4">
+      <div
+        className={`bg-white rounded-[2rem] w-full max-w-md overflow-hidden shadow-2xl border-4 animate-modal-enter ${
+          isSelectedVip ? "border-amber-400" : "border-yellow-400"
+        }`}
+      >
+        <div
+          className={`p-6 flex justify-between items-center relative overflow-hidden ${
+            isSelectedVip
+              ? "bg-gradient-to-r from-slate-950 via-amber-950 to-slate-900 text-yellow-300"
+              : "bg-blue-600 text-white"
+          }`}
+        >
+          {isSelectedVip ? (
+            <Crown className="absolute top-1 right-10 w-20 h-20 text-yellow-400 opacity-20 animate-float-slow" />
+          ) : (
+            <Award className="absolute top-1 right-10 w-20 h-20 text-blue-500 opacity-30 animate-float-slow" />
+          )}
           <div>
             <h3 className="text-2xl font-black flex items-center relative z-10">
-              <Award className="mr-2 text-yellow-400" />
-              Daftar Pengkritik
+              {isSelectedVip ? (
+                <>
+                  <Crown className="mr-2 text-yellow-400 fill-current" />
+                  Pasport VIP ({className})
+                </>
+              ) : (
+                <>
+                  <Award className="mr-2 text-yellow-400" />
+                  Daftar Pengkritik
+                </>
+              )}
             </h3>
-            <p className="text-xs text-blue-100 font-medium mt-0.5 relative z-10">
-              Had penggunaan: 3 karya bagi setiap nama
+            <p
+              className={`text-xs font-medium mt-0.5 relative z-10 ${
+                isSelectedVip ? "text-amber-200" : "text-blue-100"
+              }`}
+            >
+              3 karya setiap pasport • Boleh daftar semula jika sudah tamat
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-blue-700 rounded-full transition-colors relative z-10"
+            className="p-2 hover:bg-white/10 rounded-full transition-colors relative z-10"
           >
             <X className="w-6 h-6" />
           </button>
@@ -3454,25 +4294,34 @@ function PassportRegistrationModal({
 
         {successInfo ? (
           <div className="p-8 text-center animate-pop-up">
-            <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-green-600 animate-bounce">
-              <CheckCircle2 className="w-10 h-10" />
+            <div
+              className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce ${
+                successInfo.isVip
+                  ? "bg-slate-900 text-yellow-400 border-2 border-yellow-400"
+                  : "bg-green-100 text-green-600"
+              }`}
+            >
+              {successInfo.isVip ? (
+                <Crown className="w-9 h-9 fill-current" />
+              ) : (
+                <CheckCircle2 className="w-10 h-10" />
+              )}
             </div>
             <h4 className="text-2xl font-black text-slate-800 mb-2">
-              {successInfo.isReturningUser
-                ? "Pasport Dipulihkan!"
+              {successInfo.isVip
+                ? `Pasport VIP #${successInfo.sessionNumber} Diaktifkan!`
+                : successInfo.isRenewal
+                ? `Pasport #${successInfo.sessionNumber} Diaktifkan!`
                 : "Pasport Siap!"}
             </h4>
             <p className="text-sm text-slate-600 mb-6">
               Selamat bertugas,{" "}
               <span className="font-bold text-blue-900">{fullName}</span> (
-              {className}).
-              {successInfo.isReturningUser
-                ? ` Rekod anda sebelum ini telah diselaraskan. Anda mempunyai baki `
-                : ` Anda boleh memberi bintang dan komen pada `}
+              {className}). Anda mempunyai kuota baharu{" "}
               <span className="font-bold text-green-700">
                 {successInfo.remainingQuota} karya
-              </span>
-              .
+              </span>{" "}
+              untuk diberi bintang dan komen.
             </p>
             <button
               onClick={onGoToGallery}
@@ -3483,9 +4332,33 @@ function PassportRegistrationModal({
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="p-6 space-y-5">
-            <div className="text-xs text-red-600 font-bold bg-red-50 px-3 py-2 rounded-lg border border-red-100">
-              * Menunjukkan soalan yang wajib diisi
-            </div>
+            {isSelectedVip && (
+              <div className="bg-gradient-to-r from-slate-900 to-amber-950 text-yellow-300 border-2 border-yellow-400 p-3.5 rounded-2xl flex items-center gap-3 shadow-md animate-pop-up">
+                <div className="bg-yellow-400 text-slate-950 p-2 rounded-xl shrink-0">
+                  <Crown className="w-5 h-5 fill-current" />
+                </div>
+                <div className="text-xs">
+                  <div className="font-black uppercase tracking-wider text-yellow-400">
+                    Akses Tema VIP Diaktifkan ({className})
+                  </div>
+                  <p className="text-amber-100 mt-0.5">
+                    Kad Pasport, avatar bintang, dan lencana komen anda akan
+                    dipaparkan dengan tema eksklusif VIP!
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {hasPendingArtwork ? (
+              <div className="text-xs text-blue-900 font-bold bg-amber-50 px-3 py-2.5 rounded-xl border border-yellow-400">
+                Selepas selesai daftar, anda akan terus dibawa kembali ke
+                karya yang dipilih tadi!
+              </div>
+            ) : (
+              <div className="text-xs text-red-600 font-bold bg-red-50 px-3 py-2 rounded-lg border border-red-100">
+                * Menunjukkan soalan yang wajib diisi
+              </div>
+            )}
 
             {errorMsg && (
               <div className="bg-red-100 border-l-4 border-red-500 text-red-800 p-3 rounded-r-xl text-xs font-bold flex items-start gap-2 animate-pop-up">
@@ -3510,18 +4383,12 @@ function PassportRegistrationModal({
                 className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all font-medium"
               />
               {fullName.trim().length > 1 && (
-                <p
-                  className={`text-xs font-bold mt-1.5 ${
-                    remainingForName > 0 ? "text-blue-600" : "text-red-600"
-                  }`}
-                >
-                  {remainingForName === 3 &&
-                    "Nama baharu: Baki 3 daripada 3 kuota tersedia."}
-                  {remainingForName > 0 &&
-                    remainingForName < 3 &&
-                    `Rekod sedia ada ditemui: Baki ${remainingForName} daripada 3 kuota.`}
-                  {remainingForName === 0 &&
-                    "Had 3 penggunaan pasport untuk nama ini telah penuh."}
+                <p className="text-xs font-bold mt-1.5 text-blue-600">
+                  {totalSessionsCompleted === 0
+                    ? "Nama baharu: Pasport #1 (Kuota 3/3 karya tersedia)."
+                    : `Rekod terdahulu ditemui: Mendaftar Pasport Baharu #${
+                        totalSessionsCompleted + 1
+                      } (Kuota baharu 3/3 karya).`}
                 </p>
               )}
             </div>
@@ -3545,7 +4412,7 @@ function PassportRegistrationModal({
                 </option>
                 {criticCategories.map((item) => (
                   <option key={item} value={item}>
-                    {item}
+                    {isVipCategory(item) ? `${item} (Pasport VIP)` : item}
                   </option>
                 ))}
               </select>
@@ -3577,11 +4444,16 @@ function PassportRegistrationModal({
               </button>
               <button
                 type="submit"
-                disabled={fullName.trim().length > 1 && remainingForName === 0}
-                className="w-2/3 px-4 py-3 bg-yellow-400 hover:bg-yellow-300 disabled:opacity-50 disabled:cursor-not-allowed text-blue-900 font-black rounded-xl shadow-[0_4px_0_rgb(180,83,9)] hover:translate-y-0.5 transition-all"
+                className={`w-2/3 px-4 py-3 font-black rounded-xl transition-all ${
+                  isSelectedVip
+                    ? "bg-gradient-to-r from-slate-900 to-amber-950 text-yellow-300 border-2 border-yellow-400 shadow-[0_4px_0_rgb(120,53,15)] hover:translate-y-0.5"
+                    : "bg-yellow-400 hover:bg-yellow-300 text-blue-900 shadow-[0_4px_0_rgb(180,83,9)] hover:translate-y-0.5"
+                }`}
               >
-                {totalUsed > 0 && remainingForName > 0
-                  ? "Sambung Pasport!"
+                {isSelectedVip
+                  ? "Aktifkan Pasport VIP!"
+                  : totalSessionsCompleted > 0
+                  ? "Aktifkan Pasport Baharu!"
                   : "Aktifkan Passport!"}
               </button>
             </div>
@@ -3597,8 +4469,10 @@ function ArtworkCard({
   artworkYear,
   activeUserKey,
   activePassport,
+  vipRegistry,
   isStaffLoggedIn,
   onLike,
+  onOpenStarList,
   onComment,
   onDeleteComment,
   onRequestEdit,
@@ -3618,11 +4492,14 @@ function ArtworkCard({
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
   const [quizAnswers, setQuizAnswers] = useState<Record<number, string>>({});
 
-  const likesCount = artwork.likes ? artwork.likes.length : 0;
-  const hasLiked = artwork.likes
-    ? artwork.likes.includes(activeUserKey)
-    : false;
-  const commentsList = artwork.comments || [];
+  const likesList = Array.isArray(artwork.likes) ? artwork.likes : [];
+  const likesCount = likesList.length;
+  const hasLiked = likesList.includes(activeUserKey);
+  const commentsList = Array.isArray(artwork.comments) ? artwork.comments : [];
+  const starGivers = useMemo(
+    () => parseStarGivers(likesList, commentsList, vipRegistry),
+    [likesList, commentsList, vipRegistry]
+  );
 
   const handleLikeClick = () => {
     setStarBurst(true);
@@ -3631,6 +4508,7 @@ function ArtworkCard({
   };
 
   const handleToggleQuiz = () => {
+    SoundFX.click();
     if (!isQuizOpen) {
       setQuizQuestions(pickThreeRandomQuestions(criticStage));
       setCurrentQuestionIdx(0);
@@ -3696,7 +4574,6 @@ function ArtworkCard({
       className="break-inside-avoid bg-white rounded-3xl shadow-lg border border-slate-100 overflow-hidden transform transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl group relative animate-pop-up"
       style={{ animationDelay: `${Math.min(index * 0.06, 0.5)}s` }}
     >
-      {/* BUTANG EDIT & PADAM HANYA DIPAPARKAN KEPADA GURU & ADMIN YANG SUDAH LOG MASUK */}
       {isStaffLoggedIn && (
         <div className="absolute top-3 right-3 flex items-center gap-1.5 z-10">
           <button
@@ -3728,13 +4605,14 @@ function ArtworkCard({
         className="relative overflow-hidden bg-slate-100 rounded-t-3xl border-b-4 border-blue-400 cursor-zoom-in group/img"
       >
         <img
+          key={artwork.imageUrl}
           src={
             artwork.imageUrl ||
             "https://placehold.co/600x400/e2e8f0/475569?text=Tiada+Gambar"
           }
           alt={artwork.title}
           onError={handleImageError}
-          className="w-full h-auto object-cover min-h-[200px] transition-transform duration-500 ease-out group-hover/img:scale-105"
+          className="w-full h-auto object-contain transition-transform duration-500 ease-out group-hover/img:scale-105"
         />
         <div className="absolute bottom-3 right-3 bg-slate-900/75 text-white p-2 rounded-full opacity-0 group-hover/img:opacity-100 transition-all duration-300 transform translate-y-1 group-hover/img:translate-y-0 shadow-md">
           <ZoomIn className="w-4 h-4" />
@@ -3761,25 +4639,40 @@ function ArtworkCard({
           <span>{artwork.studentName}</span>
         </div>
 
-        <div className="flex items-center space-x-4 border-t border-slate-100 pt-4">
-          <button
-            onClick={handleLikeClick}
-            className={`flex items-center space-x-1.5 font-bold transition-colors ${
-              hasLiked
-                ? "text-yellow-500"
-                : "text-slate-400 hover:text-yellow-500"
-            }`}
-          >
-            <Star
-              className={`w-6 h-6 ${hasLiked ? "fill-current" : ""} ${
-                starBurst ? "animate-star-pop" : ""
-              } transition-transform`}
+        <div className="flex items-center justify-between border-t border-slate-100 pt-4 gap-2">
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={handleLikeClick}
+              className={`flex items-center space-x-1.5 font-bold transition-colors ${
+                hasLiked
+                  ? "text-yellow-500"
+                  : "text-slate-400 hover:text-yellow-500"
+              }`}
+              title={
+                hasLiked
+                  ? "Anda telah memberi bintang pada karya ini"
+                  : "Beri Bintang"
+              }
+            >
+              <Star
+                className={`w-6 h-6 ${hasLiked ? "fill-current" : ""} ${
+                  starBurst ? "animate-star-pop" : ""
+                } transition-transform`}
+              />
+              <span>{likesCount > 0 ? likesCount : "Bintang"}</span>
+            </button>
+
+            <StarGiversAvatars
+              givers={starGivers}
+              onOpenStarList={onOpenStarList}
             />
-            <span>{likesCount > 0 ? likesCount : "Bintang"}</span>
-          </button>
+          </div>
 
           <button
-            onClick={() => setShowComments(!showComments)}
+            onClick={() => {
+              SoundFX.click();
+              setShowComments(!showComments);
+            }}
             className="flex items-center space-x-1.5 text-slate-400 hover:text-blue-500 font-bold transition-colors"
           >
             <MessageCircle className="w-6 h-6 transition-transform hover:scale-110" />
@@ -3821,38 +4714,77 @@ function ArtworkCard({
                 Belum ada ulasan. Jadilah yang pertama!
               </p>
             ) : (
-              commentsList.map((comment: any) => (
-                <div
-                  key={comment.id}
-                  className="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 text-sm transition-all hover:border-blue-200"
-                >
-                  <div className="flex justify-between items-start mb-0.5">
-                    <div className="font-bold text-blue-900 text-xs">
-                      {comment.authorName || "Penjelajah Misteri"}
-                      {comment.authorClass ? ` (${comment.authorClass})` : ""}
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      {comment.timestamp && (
-                        <div className="text-[10px] text-slate-400 font-medium whitespace-nowrap">
-                          {formatTimeAgo(comment.timestamp)}
+              commentsList.map((comment: any) => {
+                const commentIsVip =
+                  Boolean(comment.isVip) || isVipCategory(comment.authorClass);
+                const authorDisplay =
+                  comment.authorName || "Penjelajah Misteri";
+                const avatarStyle = getAvatarColorClass(
+                  authorDisplay,
+                  commentIsVip
+                );
+
+                return (
+                  <div
+                    key={comment.id}
+                    className={`p-3 rounded-2xl shadow-sm border text-sm transition-all ${
+                      commentIsVip
+                        ? "bg-gradient-to-r from-amber-50/90 via-yellow-50/70 to-white border-amber-300"
+                        : "bg-white border-slate-100 hover:border-blue-200"
+                    }`}
+                  >
+                    <div className="flex justify-between items-start mb-1 gap-2">
+                      <div className="flex items-center gap-2">
+                        <div className="relative shrink-0">
+                          <div
+                            className={`w-7 h-7 rounded-full bg-gradient-to-br ${avatarStyle} flex items-center justify-center text-xs font-black uppercase shadow-2xs`}
+                          >
+                            {authorDisplay.charAt(0).toUpperCase()}
+                          </div>
+                          {commentIsVip && (
+                            <span className="absolute -top-1.5 -right-1 bg-slate-950 text-yellow-300 rounded-full p-[1.5px] border border-yellow-400">
+                              <Crown className="w-2.5 h-2.5 fill-current" />
+                            </span>
+                          )}
                         </div>
-                      )}
-                      {isStaffLoggedIn && (
-                        <button
-                          onClick={() => onDeleteComment(comment)}
-                          className="text-red-500 hover:text-red-700 p-0.5 rounded"
-                          title="Padam komen & auto tolak bintang"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      )}
+                        <div className="font-bold text-blue-900 text-xs flex items-center flex-wrap gap-1">
+                          <span>
+                            {authorDisplay}
+                            {comment.authorClass
+                              ? ` (${comment.authorClass})`
+                              : ""}
+                          </span>
+                          {commentIsVip && (
+                            <span className="inline-flex items-center gap-0.5 bg-slate-900 text-yellow-300 border border-yellow-400 text-[9px] font-black px-1.5 py-0.2 rounded-full">
+                              <Crown className="w-2.5 h-2.5 fill-current" />
+                              VIP
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {comment.timestamp && (
+                          <div className="text-[10px] text-slate-400 font-medium whitespace-nowrap">
+                            {formatTimeAgo(comment.timestamp)}
+                          </div>
+                        )}
+                        {isStaffLoggedIn && (
+                          <button
+                            onClick={() => onDeleteComment(comment)}
+                            className="text-red-500 hover:text-red-700 p-0.5 rounded"
+                            title="Padam komen & auto tolak bintang"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
                     </div>
+                    <p className="text-slate-700 text-sm whitespace-pre-line pl-9">
+                      {comment.text}
+                    </p>
                   </div>
-                  <p className="text-slate-700 text-sm whitespace-pre-line">
-                    {comment.text}
-                  </p>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
 
@@ -3919,15 +4851,17 @@ function ArtworkCard({
   );
 }
 
-// --- MODAL POP-UP & ZOOM + DRAG / PAN GAMBAR KARYA (KUNCI SKROL BELAKANG) ---
+// --- MODAL POP-UP & ZOOM + DRAG / PAN GAMBAR KARYA ---
 function ArtworkLightboxModal({
   artwork,
   artworkYear,
   activeUserKey,
   activePassport,
+  vipRegistry,
   isStaffLoggedIn,
   onClose,
   onLike,
+  onOpenStarList,
   onComment,
   onDeleteComment,
   onRequestEdit,
@@ -3950,7 +4884,6 @@ function ArtworkLightboxModal({
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
   const [quizAnswers, setQuizAnswers] = useState<Record<number, string>>({});
 
-  // Kunci skrol halaman latar belakang semasa pop-up terbuka
   useEffect(() => {
     const prevBodyOverflow = document.body.style.overflow;
     const prevHtmlOverflow = document.documentElement.style.overflow;
@@ -3963,17 +4896,22 @@ function ArtworkLightboxModal({
     };
   }, []);
 
-  const likesCount = artwork.likes ? artwork.likes.length : 0;
-  const hasLiked = artwork.likes
-    ? artwork.likes.includes(activeUserKey)
-    : false;
-  const commentsList = artwork.comments || [];
+  const likesList = Array.isArray(artwork.likes) ? artwork.likes : [];
+  const likesCount = likesList.length;
+  const hasLiked = likesList.includes(activeUserKey);
+  const commentsList = Array.isArray(artwork.comments) ? artwork.comments : [];
+  const starGivers = useMemo(
+    () => parseStarGivers(likesList, commentsList, vipRegistry),
+    [likesList, commentsList, vipRegistry]
+  );
 
   const handleZoomIn = () => {
+    SoundFX.click();
     setZoom((prev) => Math.min(prev + 0.4, 3.5));
   };
 
   const handleZoomOut = () => {
+    SoundFX.click();
     setZoom((prev) => {
       const next = Math.max(prev - 0.4, 1);
       if (next <= 1) {
@@ -3984,11 +4922,11 @@ function ArtworkLightboxModal({
   };
 
   const handleResetZoom = () => {
+    SoundFX.click();
     setZoom(1);
     setPan({ x: 0, y: 0 });
   };
 
-  // --- Mula Drag / Pan dengan Tetikus (Mouse) ---
   const handleMouseDown = (e: React.MouseEvent) => {
     if (zoom <= 1) return;
     e.preventDefault();
@@ -4016,7 +4954,6 @@ function ArtworkLightboxModal({
     }
   };
 
-  // --- Mula Drag / Pan dengan Sentuhan Jari (Touch Mobile/Tablet) ---
   const handleTouchStart = (e: React.TouchEvent) => {
     if (zoom <= 1 || e.touches.length !== 1) return;
     e.stopPropagation();
@@ -4044,7 +4981,6 @@ function ArtworkLightboxModal({
     }
   };
 
-  // --- Zoom guna roda tetikus terus pada ruang gambar ---
   const handleWheelOnImage = (e: React.WheelEvent) => {
     e.stopPropagation();
     if (e.deltaY < 0) {
@@ -4065,6 +5001,7 @@ function ArtworkLightboxModal({
   };
 
   const handleToggleQuiz = () => {
+    SoundFX.click();
     if (!isQuizOpen) {
       setQuizQuestions(pickThreeRandomQuestions(criticStage));
       setCurrentQuestionIdx(0);
@@ -4129,7 +5066,6 @@ function ArtworkLightboxModal({
         onClick={(e) => e.stopPropagation()}
         className="bg-white rounded-3xl w-full max-w-5xl max-h-[92vh] overflow-hidden shadow-2xl border-4 border-yellow-400 flex flex-col md:flex-row relative animate-modal-enter"
       >
-        {/* BUTANG KAWALAN ATAS KANAN: EDIT & PADAM (JIKA GURU/ADMIN) + TUTUP */}
         <div className="absolute top-3 right-3 z-20 flex items-center gap-2">
           {isStaffLoggedIn && (
             <>
@@ -4158,7 +5094,6 @@ function ArtworkLightboxModal({
           </button>
         </div>
 
-        {/* BAHAGIAN GAMBAR KARYA (SOKONG ZOOM & DRAG KE SETIAP SUDUT) */}
         <div
           ref={viewportRef}
           onWheel={handleWheelOnImage}
@@ -4177,7 +5112,6 @@ function ArtworkLightboxModal({
               : "cursor-zoom-in"
           }`}
         >
-          {/* Petunjuk Seret Gambar apabila di-Zoom */}
           {zoom > 1 && (
             <div className="absolute top-3 left-3 bg-blue-900/85 text-yellow-300 border border-yellow-400/50 px-3 py-1 rounded-full text-[11px] font-bold flex items-center gap-1.5 z-10 pointer-events-none shadow-md">
               <Move className="w-3.5 h-3.5" />
@@ -4187,7 +5121,10 @@ function ArtworkLightboxModal({
 
           <div
             onClick={() => {
-              if (zoom === 1) setZoom(1.8);
+              if (zoom === 1) {
+                SoundFX.click();
+                setZoom(1.8);
+              }
             }}
             style={{
               transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`,
@@ -4197,6 +5134,7 @@ function ArtworkLightboxModal({
             className="w-full h-full flex items-center justify-center p-4 will-change-transform"
           >
             <img
+              key={artwork.imageUrl}
               src={
                 artwork.imageUrl ||
                 "https://placehold.co/600x400/e2e8f0/475569?text=Tiada+Gambar"
@@ -4245,7 +5183,6 @@ function ArtworkLightboxModal({
           </div>
         </div>
 
-        {/* BAHAGIAN MAKLUMAT, SOALAN & KOMEN */}
         <div className="md:w-2/5 flex-1 min-h-0 flex flex-col overflow-hidden bg-white">
           <div className="p-4 md:p-5 border-b border-slate-100 shrink-0 pr-24 md:pr-28">
             <div className="flex items-center gap-2 mb-2">
@@ -4265,22 +5202,30 @@ function ArtworkLightboxModal({
               <span>{artwork.studentName}</span>
             </div>
 
-            <div className="flex items-center space-x-4 pt-2.5 border-t border-slate-100">
-              <button
-                onClick={handleLikeClick}
-                className={`flex items-center space-x-1.5 font-bold transition-colors ${
-                  hasLiked
-                    ? "text-yellow-500"
-                    : "text-slate-400 hover:text-yellow-500"
-                }`}
-              >
-                <Star
-                  className={`w-6 h-6 ${hasLiked ? "fill-current" : ""} ${
-                    starBurst ? "animate-star-pop" : ""
-                  } transition-transform`}
+            <div className="flex items-center justify-between pt-2.5 border-t border-slate-100 gap-2">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleLikeClick}
+                  className={`flex items-center space-x-1.5 font-bold transition-colors ${
+                    hasLiked
+                      ? "text-yellow-500"
+                      : "text-slate-400 hover:text-yellow-500"
+                  }`}
+                >
+                  <Star
+                    className={`w-6 h-6 ${hasLiked ? "fill-current" : ""} ${
+                      starBurst ? "animate-star-pop" : ""
+                    } transition-transform`}
+                  />
+                  <span>{likesCount > 0 ? likesCount : "Bintang"}</span>
+                </button>
+
+                <StarGiversAvatars
+                  givers={starGivers}
+                  onOpenStarList={onOpenStarList}
                 />
-                <span>{likesCount > 0 ? likesCount : "Bintang"}</span>
-              </button>
+              </div>
+
               <div className="flex items-center space-x-1.5 text-slate-400 font-bold">
                 <MessageCircle className="w-6 h-6" />
                 <span>
@@ -4335,38 +5280,77 @@ function ArtworkLightboxModal({
                 Belum ada ulasan. Jadilah yang pertama memberi pujian!
               </p>
             ) : (
-              commentsList.map((comment: any) => (
-                <div
-                  key={comment.id}
-                  className="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 text-sm animate-pop-up"
-                >
-                  <div className="flex justify-between items-start mb-1">
-                    <div className="font-bold text-blue-900 text-xs">
-                      {comment.authorName || "Penjelajah Misteri"}
-                      {comment.authorClass ? ` (${comment.authorClass})` : ""}
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      {comment.timestamp && (
-                        <div className="text-[10px] text-slate-400 font-medium whitespace-nowrap">
-                          {formatTimeAgo(comment.timestamp)}
+              commentsList.map((comment: any) => {
+                const commentIsVip =
+                  Boolean(comment.isVip) || isVipCategory(comment.authorClass);
+                const authorDisplay =
+                  comment.authorName || "Penjelajah Misteri";
+                const avatarStyle = getAvatarColorClass(
+                  authorDisplay,
+                  commentIsVip
+                );
+
+                return (
+                  <div
+                    key={comment.id}
+                    className={`p-3 rounded-2xl shadow-sm border text-sm animate-pop-up ${
+                      commentIsVip
+                        ? "bg-gradient-to-r from-amber-50/95 via-yellow-50/75 to-white border-amber-300"
+                        : "bg-white border-slate-100"
+                    }`}
+                  >
+                    <div className="flex justify-between items-start mb-1 gap-2">
+                      <div className="flex items-center gap-2">
+                        <div className="relative shrink-0">
+                          <div
+                            className={`w-7 h-7 rounded-full bg-gradient-to-br ${avatarStyle} flex items-center justify-center text-xs font-black uppercase shadow-2xs`}
+                          >
+                            {authorDisplay.charAt(0).toUpperCase()}
+                          </div>
+                          {commentIsVip && (
+                            <span className="absolute -top-1.5 -right-1 bg-slate-950 text-yellow-300 rounded-full p-[1.5px] border border-yellow-400">
+                              <Crown className="w-2.5 h-2.5 fill-current" />
+                            </span>
+                          )}
                         </div>
-                      )}
-                      {isStaffLoggedIn && (
-                        <button
-                          onClick={() => onDeleteComment(comment)}
-                          className="text-red-500 hover:text-red-700 p-0.5 rounded"
-                          title="Padam komen & auto tolak bintang"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      )}
+                        <div className="font-bold text-blue-900 text-xs flex items-center flex-wrap gap-1">
+                          <span>
+                            {authorDisplay}
+                            {comment.authorClass
+                              ? ` (${comment.authorClass})`
+                              : ""}
+                          </span>
+                          {commentIsVip && (
+                            <span className="inline-flex items-center gap-0.5 bg-slate-900 text-yellow-300 border border-yellow-400 text-[9px] font-black px-1.5 py-0.2 rounded-full">
+                              <Crown className="w-2.5 h-2.5 fill-current" />
+                              VIP
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {comment.timestamp && (
+                          <div className="text-[10px] text-slate-400 font-medium whitespace-nowrap">
+                            {formatTimeAgo(comment.timestamp)}
+                          </div>
+                        )}
+                        {isStaffLoggedIn && (
+                          <button
+                            onClick={() => onDeleteComment(comment)}
+                            className="text-red-500 hover:text-red-700 p-0.5 rounded"
+                            title="Padam komen & auto tolak bintang"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
                     </div>
+                    <p className="text-slate-700 whitespace-pre-line pl-9">
+                      {comment.text}
+                    </p>
                   </div>
-                  <p className="text-slate-700 whitespace-pre-line">
-                    {comment.text}
-                  </p>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
 
@@ -4468,7 +5452,10 @@ function ArtworkFormModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.imageUrl) return;
+    if (!formData.imageUrl) {
+      SoundFX.alert();
+      return;
+    }
     onSubmit(formData);
   };
 
@@ -4478,7 +5465,7 @@ function ArtworkFormModal({
   };
 
   const handleImageUpload = (e: any) => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
     if (!file) return;
 
     setIsProcessingImage(true);
@@ -4521,12 +5508,15 @@ function ArtworkFormModal({
           compressedDataUrl = canvas.toDataURL("image/jpeg", quality);
         }
 
+        setRawLinkInput("");
         setFormData((prev) => ({ ...prev, imageUrl: compressedDataUrl }));
         setIsProcessingImage(false);
+        SoundFX.success();
       };
       img.onerror = () => {
         setIsProcessingImage(false);
         setPreviewError(true);
+        SoundFX.alert();
       };
       img.src = event.target.result;
     };
@@ -4542,7 +5532,7 @@ function ArtworkFormModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-slate-900/65 backdrop-blur-sm flex items-center justify-center z-[70] p-4">
       <div className="bg-white rounded-[2rem] w-full max-w-md max-h-[92vh] overflow-y-auto shadow-2xl border-4 border-yellow-400 animate-modal-enter">
         <div
           className={`${
@@ -4574,8 +5564,8 @@ function ArtworkFormModal({
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           {isEdit && (
             <div className="bg-amber-50 border-l-4 border-yellow-400 text-amber-900 p-3 rounded-r-xl text-xs font-bold">
-              Mod Suntingan Guru / Admin: Betulkan sebarang kesilapan ejaan
-              tajuk, nama murid, kelas, atau gambar di bawah.
+              Mod Suntingan Guru / Admin: Anda boleh menukar tajuk, nama
+              murid, kelas, atau memuat naik gambar / pautan baharu.
             </div>
           )}
 
@@ -4636,6 +5626,7 @@ function ArtworkFormModal({
               <button
                 type="button"
                 onClick={() => {
+                  SoundFX.click();
                   setImageSourceMode("upload");
                   setPreviewError(false);
                 }}
@@ -4651,6 +5642,7 @@ function ArtworkFormModal({
               <button
                 type="button"
                 onClick={() => {
+                  SoundFX.click();
                   setImageSourceMode("link");
                   setPreviewError(false);
                 }}
@@ -4666,15 +5658,15 @@ function ArtworkFormModal({
             </div>
 
             {imageSourceMode === "upload" ? (
-              <div className="flex flex-col sm:flex-row items-center gap-4">
-                <label className="flex-1 w-full cursor-pointer bg-blue-50 border-2 border-dashed border-blue-300 hover:bg-blue-100 hover:border-blue-400 transition-colors rounded-xl p-4 text-center text-blue-700 font-medium relative overflow-hidden group">
-                  <div className="flex flex-col items-center justify-center space-y-2">
+              <div className="space-y-3">
+                <label className="block w-full cursor-pointer bg-blue-50 border-2 border-dashed border-blue-300 hover:bg-blue-100 hover:border-blue-400 transition-colors rounded-xl p-4 text-center text-blue-700 font-medium relative overflow-hidden group">
+                  <div className="flex flex-col items-center justify-center space-y-1.5">
                     <ImageIcon className="w-8 h-8 text-blue-500 group-hover:scale-110 transition-transform" />
                     <span className="text-sm font-bold">
                       {isProcessingImage
                         ? "Memproses Gambar HD..."
                         : isEdit
-                        ? "Tukar Fail Gambar (Pilihan)"
+                        ? "Klik untuk Tukar Fail Gambar Baharu"
                         : "Klik untuk Pilih Gambar"}
                     </span>
                   </div>
@@ -4687,23 +5679,18 @@ function ArtworkFormModal({
                   />
                 </label>
 
-                {formData.imageUrl ? (
-                  <div className="w-32 h-32 rounded-xl overflow-hidden border-4 border-yellow-400 shrink-0 shadow-md relative animate-pop-up">
+                {formData.imageUrl && (
+                  <div className="rounded-2xl overflow-hidden border-4 border-yellow-400 shadow-md relative bg-slate-900 animate-pop-up">
                     <img
+                      key={formData.imageUrl}
                       src={formData.imageUrl}
-                      alt="Preview"
+                      alt="Pratonton Karya"
                       onError={() => setPreviewError(true)}
-                      className="w-full h-full object-cover"
+                      className="w-full max-h-56 object-contain mx-auto"
                     />
-                    <div className="absolute bottom-0 inset-x-0 bg-green-600/90 text-white text-[10px] text-center py-1 font-bold">
-                      SEDIA (HD)
+                    <div className="bg-green-600 text-white text-[11px] text-center py-1 font-extrabold">
+                      PRATONTON GAMBAR SEMASA (NISBAH ASAL)
                     </div>
-                  </div>
-                ) : (
-                  <div className="w-32 h-32 rounded-xl bg-slate-100 border-2 border-slate-200 shrink-0 flex items-center justify-center text-slate-400">
-                    <span className="text-xs font-bold px-2 text-center">
-                      Tiada Gambar
-                    </span>
                   </div>
                 )}
               </div>
@@ -4711,7 +5698,7 @@ function ArtworkFormModal({
               <div className="space-y-3 bg-blue-50/60 p-4 rounded-2xl border-2 border-blue-100">
                 <div>
                   <label className="block text-xs font-extrabold text-blue-900 mb-1">
-                    Tampal Pautan (Link) Gambar Karya:
+                    Tampal Pautan (Link) Gambar Baharu:
                   </label>
                   <input
                     type="url"
@@ -4729,15 +5716,18 @@ function ArtworkFormModal({
                 </div>
 
                 {formData.imageUrl && (
-                  <div className="flex items-center gap-3 bg-white p-2.5 rounded-xl border border-blue-200">
-                    <img
-                      src={formData.imageUrl}
-                      alt="Pratonton Link"
-                      onError={() => setPreviewError(true)}
-                      onLoad={() => setPreviewError(false)}
-                      className="w-20 h-20 rounded-lg object-cover border-2 border-yellow-400 shrink-0 bg-slate-100"
-                    />
-                    <div className="text-xs">
+                  <div className="bg-white p-2.5 rounded-xl border border-blue-200 space-y-2">
+                    <div className="bg-slate-900 rounded-lg overflow-hidden">
+                      <img
+                        key={formData.imageUrl}
+                        src={formData.imageUrl}
+                        alt="Pratonton Link"
+                        onError={() => setPreviewError(true)}
+                        onLoad={() => setPreviewError(false)}
+                        className="w-full max-h-48 object-contain mx-auto"
+                      />
+                    </div>
+                    <div className="text-xs text-center">
                       {previewError ? (
                         <span className="text-red-600 font-bold">
                           Gambar tidak dapat dimuatkan. Pastikan link boleh
@@ -4745,7 +5735,7 @@ function ArtworkFormModal({
                         </span>
                       ) : (
                         <span className="text-green-700 font-bold">
-                          Pratonton gambar berjaya dimuatkan dengan jelas!
+                          Pratonton gambar berjaya dimuatkan mengikut saiz asal!
                         </span>
                       )}
                     </div>
@@ -4756,8 +5746,8 @@ function ArtworkFormModal({
 
             <p className="text-xs text-slate-500 mt-2 flex items-center">
               <Compass className="w-3 h-3 mr-1 shrink-0" />
-              Gambar dioptimumkan ke kualiti HD agar kekal jelas apabila
-              di-zoom.
+              Gambar dipaparkan mengikut saiz & nisbah asal agar kekal jelas
+              apabila di-zoom.
             </p>
           </div>
 
