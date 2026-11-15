@@ -1721,6 +1721,7 @@ export default function App() {
                 .animate-star-pop { animation: starPop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1); }
                 .animate-shrink-5s { animation: shrinkBar5s 5s linear forwards; }
 
+                
                 @media print {
                     body {
                         -webkit-print-color-adjust: exact !important;
@@ -1739,13 +1740,24 @@ export default function App() {
                         top: 0;
                         width: 100%;
                         background: white !important;
-                        padding: 12px !important;
+                        padding: 0 !important;
                         box-shadow: none !important;
+                        border: none !important;
                     }
                     .no-print {
                         display: none !important;
                     }
+                    /* Add table fixes for PDF saving */
+                    table {
+                        width: 100% !important;
+                        page-break-inside: auto;
+                    }
+                    tr {
+                        page-break-inside: avoid;
+                        page-break-after: auto;
+                    }
                 }
+
             `}</style>
 
       {/* --- HEADER --- */}
@@ -1950,7 +1962,7 @@ export default function App() {
       {noticeObj && (
         <div
           key={noticeObj.id}
-          className="fixed top-24 left-1/2 -translate-x-1/2 z-[80] max-w-2xl w-[94%] animate-pop-up no-print"
+          className="fixed top-20 right-[5%] z-[9999] max-w-sm w-[90vw] animate-pop-up no-print"
         >
           <div className="bg-blue-950/95 backdrop-blur-md text-white rounded-2xl shadow-2xl border-2 border-yellow-400 overflow-hidden">
             <div className="px-5 py-3.5 flex items-center justify-between gap-3">
@@ -2641,9 +2653,7 @@ export default function App() {
                             <div>
                               <div className="font-extrabold text-slate-800 text-sm md:text-base flex items-center gap-1.5 flex-wrap">
                                 <span>{critic.displayName}</span>
-                                {critic.isVip && (
-                                  <Crown className="w-4 h-4 text-amber-500 fill-current shrink-0" />
-                                )}
+                                {critic.isVip && <span className="bg-yellow-400 text-black text-[10px] font-bold px-1.5 py-0.5 rounded-md ml-1">VIP</span>}
                                 {index === 0 && (
                                   <Crown className="w-4 h-4 text-yellow-500 fill-current animate-crown" />
                                 )}
@@ -4938,9 +4948,7 @@ function ArtworkCard({
                               ? ` (${comment.authorClass})`
                               : ""}
                           </span>
-                          {commentIsVip && (
-                            <Crown className="w-3.5 h-3.5 text-amber-500 fill-current shrink-0" />
-                          )}
+                          
                         </div>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
@@ -5501,9 +5509,7 @@ function ArtworkLightboxModal({
                               ? ` (${comment.authorClass})`
                               : ""}
                           </span>
-                          {commentIsVip && (
-                            <Crown className="w-3.5 h-3.5 text-amber-500 fill-current shrink-0" />
-                          )}
+                          
                         </div>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
