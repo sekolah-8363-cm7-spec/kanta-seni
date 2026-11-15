@@ -1,54 +1,95 @@
-import React, { useState, useEffect, useMemo, useRef } from "react";
-import {
-  Compass,
-  Star,
-  Image as ImageIcon,
-  MessageCircle,
-  Plus,
-  User,
-  Send,
-  X,
-  Filter,
-  AlertTriangle,
-  ZoomIn,
-  ZoomOut,
-  RotateCcw,
-  Award,
-  CheckCircle2,
-  Lock,
-  Crown,
-  BarChart3,
-  Sparkles,
-  Shield,
-  Printer,
-  Trash2,
-  UserPlus,
-  Settings,
-  LogOut,
-  KeyRound,
-  Users,
-  Palette,
-  Eye,
-  EyeOff,
-  Brush,
-  PenTool,
-  Shapes,
-  Frame,
-  HelpCircle,
-  RefreshCw,
-  ChevronRight,
-  Link2,
-  Upload,
-  Pencil,
-  Calendar,
-  Move,
-  Volume2,
-  VolumeX,
-  DoorOpen,
-  MoreHorizontal,
-  CloudCheck,
-  Loader2,
-} from "lucide-react";
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kanta Seni - Misi Eksplorasi & Jejak Bintang</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-sky-50">
+  <div id="root"></div>
+
+  <script type="text/babel" data-presets="react,typescript">
+    const { useState, useEffect, useMemo, useRef } = React;
+
+    // Penjana komponen ikon Lucide secara dinamik supaya semua ikon berfungsi dalam HTML standalone
+    const createLucideComponent = (iconName) => {
+      return function LucideIcon({ className = "", style = {}, ...props }) {
+        const spanRef = useRef(null);
+        useEffect(() => {
+          if (spanRef.current && window.lucide && window.lucide.icons) {
+            const pascalToKebab = iconName
+              .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
+              .replace(/([A-Z])([A-Z][a-z])/g, "$1-$2")
+              .toLowerCase();
+            const iconDef = window.lucide.icons[iconName] || window.lucide.icons[pascalToKebab];
+            if (iconDef && typeof window.lucide.createElement === "function") {
+              spanRef.current.innerHTML = "";
+              const svg = window.lucide.createElement(iconDef);
+              if (className) svg.setAttribute("class", className);
+              Object.entries(style || {}).forEach(([k, v]) => {
+                svg.style[k] = v;
+              });
+              spanRef.current.appendChild(svg);
+            }
+          }
+        }, [className, JSON.stringify(style)]);
+        return <span ref={spanRef} className="inline-flex items-center justify-center shrink-0" {...props} />;
+      };
+    };
+
+    const Compass = createLucideComponent("Compass");
+    const Star = createLucideComponent("Star");
+    const ImageIcon = createLucideComponent("Image");
+    const MessageCircle = createLucideComponent("MessageCircle");
+    const Plus = createLucideComponent("Plus");
+    const User = createLucideComponent("User");
+    const Send = createLucideComponent("Send");
+    const X = createLucideComponent("X");
+    const Filter = createLucideComponent("Filter");
+    const AlertTriangle = createLucideComponent("AlertTriangle");
+    const ZoomIn = createLucideComponent("ZoomIn");
+    const ZoomOut = createLucideComponent("ZoomOut");
+    const RotateCcw = createLucideComponent("RotateCcw");
+    const Award = createLucideComponent("Award");
+    const CheckCircle2 = createLucideComponent("CheckCircle2");
+    const Lock = createLucideComponent("Lock");
+    const Crown = createLucideComponent("Crown");
+    const BarChart3 = createLucideComponent("BarChart3");
+    const Sparkles = createLucideComponent("Sparkles");
+    const Shield = createLucideComponent("Shield");
+    const Printer = createLucideComponent("Printer");
+    const Trash2 = createLucideComponent("Trash2");
+    const UserPlus = createLucideComponent("UserPlus");
+    const Settings = createLucideComponent("Settings");
+    const LogOut = createLucideComponent("LogOut");
+    const KeyRound = createLucideComponent("KeyRound");
+    const Users = createLucideComponent("Users");
+    const Palette = createLucideComponent("Palette");
+    const Eye = createLucideComponent("Eye");
+    const EyeOff = createLucideComponent("EyeOff");
+    const Brush = createLucideComponent("Brush");
+    const PenTool = createLucideComponent("PenTool");
+    const Shapes = createLucideComponent("Shapes");
+    const Frame = createLucideComponent("Frame");
+    const HelpCircle = createLucideComponent("HelpCircle");
+    const RefreshCw = createLucideComponent("RefreshCw");
+    const ChevronRight = createLucideComponent("ChevronRight");
+    const Link2 = createLucideComponent("Link2");
+    const Upload = createLucideComponent("Upload");
+    const Pencil = createLucideComponent("Pencil");
+    const Calendar = createLucideComponent("Calendar");
+    const Move = createLucideComponent("Move");
+    const Volume2 = createLucideComponent("Volume2");
+    const VolumeX = createLucideComponent("VolumeX");
+    const DoorOpen = createLucideComponent("DoorOpen");
+    const MoreHorizontal = createLucideComponent("MoreHorizontal");
+    const CloudCheck = createLucideComponent("CloudCheck");
+    const Loader2 = createLucideComponent("Loader2");
 
 // --- URL Google Apps Script Anda ---
 const SCRIPT_URL =
@@ -439,7 +480,7 @@ const toTitleCase = (str: string) =>
     (txt) => txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase()
   );
 
-export interface StarGiverItem {
+interface StarGiverItem {
   key: string;
   name: string;
   initial: string;
@@ -494,7 +535,7 @@ const parseStarGivers = (
   });
 };
 
-export default function App() {
+function App() {
   const [artworks, setArtworks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -1721,12 +1762,6 @@ export default function App() {
                 .animate-star-pop { animation: starPop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1); }
                 .animate-shrink-5s { animation: shrinkBar5s 5s linear forwards; }
 
-                
-                
-
-            
-                
-                
                 @media screen {
                     .hide-on-screen {
                         display: none !important;
@@ -1744,17 +1779,17 @@ export default function App() {
                         transform: none !important;
                         transition: none !important;
                     }
-                    
+
                     body {
                         -webkit-print-color-adjust: exact !important;
                         print-color-adjust: exact !important;
                         background: white !important;
                     }
-                    
+
                     .no-print {
                         display: none !important;
                     }
-                    
+
                     /* Reset semua "parent layout" kepada blok biasa (static) supaya browser boleh paginasi jadual ke bawah */
                     html, body, #root, main, section, .min-h-screen, .flex-1 {
                         height: auto !important;
@@ -1763,14 +1798,14 @@ export default function App() {
                         position: static !important;
                         display: block !important;
                     }
-                    
+
                     /* Bebaskan kawasan cetakan daripada sebarang had overflow */
                     .overflow-x-auto, .overflow-hidden, .overflow-y-auto {
                         overflow: visible !important;
                         overflow-x: visible !important;
                         overflow-y: visible !important;
                     }
-                    
+
                     /* Kawasan jadual/slip - TIDAK BOLEH menggunakan 'position: absolute', ini punca ia tersekat pada 1 muka surat */
                     #printable-lists-area {
                         position: static !important;
@@ -1781,7 +1816,7 @@ export default function App() {
                         box-shadow: none !important;
                         border: none !important;
                     }
-                    
+
                     /* Set Format Jadual PDF */
                     table {
                         width: 100% !important;
@@ -2469,7 +2504,7 @@ export default function App() {
               {/* KAD PASPORT AKTIF (TEMA BIASA ATAU TEMA VIP GURU/PIBG) */}
               {activePassport && activePassport.usedCount < 3 && (
                 <div
-                  className={`max-w-md mx-auto mb-8 p-6 rounded-2xl shadow-xl text-left relative z-10 overflow-hidden animate-pop-up ${
+                  className={`max-w-lg mx-auto mb-8 p-6 sm:p-7 rounded-3xl shadow-xl text-left relative z-10 overflow-hidden animate-pop-up ${
                     isCurrentPassportVip
                       ? "bg-gradient-to-br from-slate-950 via-amber-950 to-slate-900 text-yellow-100 border-4 border-yellow-400"
                       : "bg-gradient-to-r from-blue-600 to-blue-800 text-white border-2 border-yellow-400"
@@ -2482,44 +2517,70 @@ export default function App() {
                     </>
                   )}
 
-                  <div className="flex items-center justify-between mb-3 relative z-10">
+                  <div className="flex flex-wrap items-center justify-between gap-2.5 pb-4 mb-4 border-b border-white/15 relative z-10">
                     {isCurrentPassportVip ? (
-                      <span className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-500 text-slate-950 px-3 py-1 rounded-full shadow-sm">
+                      <span className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-500 text-slate-950 px-3.5 py-1.5 rounded-full shadow-sm">
                         <Crown className="w-3.5 h-3.5 fill-current" />
-                        PASPORT VIP - {activePassport.className.toUpperCase()}
+                        PASPORT VIP • {activePassport.className.toUpperCase()}
                       </span>
                     ) : (
-                      <span className="text-xs font-extrabold uppercase tracking-wider bg-yellow-400 text-blue-900 px-3 py-0.5 rounded-full">
+                      <span className="inline-flex items-center text-xs font-extrabold uppercase tracking-wider bg-yellow-400 text-blue-900 px-3.5 py-1 rounded-full shadow-sm">
                         PASPORT #{activePassport.sessionNumber || 1} AKTIF
                       </span>
                     )}
 
                     <span
-                      className={`text-xs font-bold ${
+                      className={`text-xs font-extrabold px-3 py-1 rounded-full ${
                         isCurrentPassportVip
-                          ? "text-yellow-300"
-                          : "text-blue-200"
+                          ? "bg-yellow-400/15 text-yellow-300 border border-yellow-400/40"
+                          : "bg-blue-950/50 text-blue-100 border border-blue-400/30"
                       }`}
                     >
                       Baki Kuota: {3 - activePassport.usedCount} / 3 Karya
                     </span>
                   </div>
 
-                  <h4
-                    className={`text-xl font-black relative z-10 ${
-                      isCurrentPassportVip ? "text-yellow-300" : "text-white"
-                    }`}
-                  >
-                    {activePassport.fullName}
-                  </h4>
-                  <p
-                    className={`text-sm font-semibold relative z-10 ${
-                      isCurrentPassportVip ? "text-amber-200" : "text-blue-100"
-                    }`}
-                  >
-                    {activePassport.className}{" "}
-                    {activePassport.email ? `â€¢ ${activePassport.email}` : ""}
-                  </p>
+                  <div className="space-y-2.5 relative z-10">
+                    <div>
+                      <span
+                        className={`text-[10px] font-bold uppercase tracking-widest block mb-0.5 ${
+                          isCurrentPassportVip ? "text-amber-300/80" : "text-blue-200"
+                        }`}
+                      >
+                        Pemegang Pasport
+                      </span>
+                      <h4
+                        className={`text-xl sm:text-2xl font-black leading-snug tracking-tight ${
+                          isCurrentPassportVip ? "text-yellow-300" : "text-white"
+                        }`}
+                      >
+                        {activePassport.fullName}
+                      </h4>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2 pt-1">
+                      <span
+                        className={`text-xs font-bold px-3 py-1 rounded-lg ${
+                          isCurrentPassportVip
+                            ? "bg-amber-900/60 text-amber-100 border border-amber-500/30"
+                            : "bg-white/15 text-white"
+                        }`}
+                      >
+                        {activePassport.className}
+                      </span>
+                      {activePassport.email && (
+                        <span
+                          className={`text-xs font-medium px-3 py-1 rounded-lg break-all ${
+                            isCurrentPassportVip
+                              ? "bg-slate-900/70 text-amber-200 border border-amber-500/20"
+                              : "bg-blue-950/40 text-blue-100"
+                          }`}
+                        >
+                          {activePassport.email}
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </div>
               )}
 
@@ -3838,7 +3899,7 @@ function StaffDashboardPanel({
                                   {c.authorClass ? `(${c.authorClass})` : ""}
                                   {c.timestamp && (
                                     <span className="text-slate-400 font-normal ml-2">
-                                      â€¢ {formatTimeAgo(c.timestamp)}
+                                      • {formatTimeAgo(c.timestamp)}
                                     </span>
                                   )}
                                 </div>
@@ -3962,8 +4023,8 @@ function StaffDashboardPanel({
             <div className="bg-gradient-to-r from-blue-800 via-blue-700 to-blue-900 text-white p-6 border-b-4 border-yellow-400 relative overflow-hidden hide-on-screen">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
                 <div className="flex items-center gap-3.5">
-                  <div className="bg-yellow-400 text-blue-900 p-3 rounded-2xl border-2 border-white shadow-md">
-                    <Compass className="w-8 h-8" />
+                  <div className="bg-blue-600 p-3 rounded-2xl border-2 border-yellow-400 shadow-md">
+                    <Compass className="text-yellow-300 w-8 h-8" />
                   </div>
                   <div>
                     <div className="inline-block bg-yellow-400 text-blue-900 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider mb-1">
@@ -3987,12 +4048,12 @@ function StaffDashboardPanel({
                         ? "Semua Sesi"
                         : `Tahun ${printYearFilter}`}
                     </span>
-                    
+
                     <span className="text-blue-200 font-medium">Kategori:</span>
                     <span className="font-black text-yellow-300 text-right truncate">
                       {printClassFilter}
                     </span>
-                    
+
                     <span className="text-blue-200 font-medium">Tarikh:</span>
                     <span className="font-bold text-white text-right">
                       {new Date().toLocaleDateString("ms-MY")}
@@ -4169,19 +4230,23 @@ function StaffDashboardPanel({
                 </div>
               </div>
 
-              <div className="pt-4 border-t-2 border-dashed border-slate-300 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6 text-xs text-slate-600 hide-on-screen">
-                <div>
+              <div className="pt-8 mt-6 border-t-2 border-dashed border-slate-300 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-8 text-xs text-slate-600 hide-on-screen">
+                <div className="space-y-1">
                   <p className="font-bold text-blue-900">
                     Kanta Seni - Sistem Galeri Maya & Apresiasi PSV
                   </p>
-                  <p className="text-slate-500 mt-0.5">
+                  <p className="text-slate-500">
                     &copy; {new Date().getFullYear()} E&J Studio. Hak Cipta
                     Terpelihara.
                   </p>
                 </div>
-                <div className="w-56 pt-6 border-b border-slate-400 text-center hide-on-screen">
-                  <span className="font-bold text-slate-700 block">
+                <div className="w-64 text-center shrink-0">
+                  <div className="h-16 border-b-2 border-slate-500 mb-2"></div>
+                  <span className="font-extrabold text-slate-800 block">
                     Pengesahan Guru / Pentadbir
+                  </span>
+                  <span className="text-[10px] text-slate-500 block mt-0.5">
+                    (Tandatangan & Cop Rasmi)
                   </span>
                 </div>
               </div>
@@ -4324,7 +4389,7 @@ function StaffDashboardPanel({
                         <span className="font-mono font-bold text-slate-700">
                           {t.username}
                         </span>{" "}
-                        â€¢ Password:{" "}
+                        • Password:{" "}
                         <span className="font-mono font-bold text-slate-700">
                           {t.password}
                         </span>
@@ -4519,7 +4584,7 @@ function PassportRegistrationModal({
                 isSelectedVip ? "text-amber-200" : "text-blue-100"
               }`}
             >
-              3 karya setiap pasport â€¢ Boleh daftar semula jika sudah tamat
+              3 karya setiap pasport • Boleh daftar semula jika sudah tamat
             </p>
           </div>
           <button
@@ -4992,7 +5057,7 @@ function ArtworkCard({
                               ? ` (${comment.authorClass})`
                               : ""}
                           </span>
-                          
+
                         </div>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
@@ -5553,7 +5618,7 @@ function ArtworkLightboxModal({
                               ? ` (${comment.authorClass})`
                               : ""}
                           </span>
-                          
+
                         </div>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
@@ -6000,3 +6065,10 @@ function ArtworkFormModal({
     </div>
   );
 }
+
+
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<App />);
+  </script>
+</body>
+</html>
