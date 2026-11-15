@@ -245,137 +245,451 @@ const formatDirectImageUrl = (rawUrl: string): string => {
 };
 
 
-// --- BANK SOALAN APRESIASI PSV (TAHAP 1 & TAHAP 2) ---
+// --- BANK SOALAN APRESIASI PSV DSKP SEKOLAH RENDAH (4 BIDANG UTAMA) ---
+const PSV_FIELDS = [
+  "Menggambar",
+  "Corak dan Rekaan",
+  "Binaan",
+  "Kraf Tradisional",
+] as const;
+
+type PsvFieldType = (typeof PSV_FIELDS)[number];
+
+const normalizePsvField = (rawField?: string): PsvFieldType => {
+  const clean = String(rawField || "").trim().toLowerCase();
+  if (clean.includes("corak") || clean.includes("rekaan")) return "Corak dan Rekaan";
+  if (clean.includes("binaan") || clean.includes("membentuk")) return "Binaan";
+  if (clean.includes("kraf") || clean.includes("tradisional")) return "Kraf Tradisional";
+  return "Menggambar";
+};
+
 interface AppreciationQuestion {
   id: string;
-  category: "Unsur Seni" | "Hal Benda" | "Mesej Karya";
+  field: PsvFieldType;
+  category: "Bahasa Seni Visual" | "Teknik & Proses" | "Nilai & Mesej";
   question: string;
   options: string[];
 }
 
+const APPRECIATION_QUESTIONS_BY_FIELD: Record<
+  PsvFieldType,
+  {
+    tahap1: AppreciationQuestion[];
+    tahap2: AppreciationQuestion[];
+  }
+> = {
+  Menggambar: {
+    tahap1: [
+      {
+        id: "mg-t1-1",
+        field: "Menggambar",
+        category: "Bahasa Seni Visual",
+        question: "Apakah jenis warna yang paling menonjol dalam lukisan atau catan ini?",
+        options: [
+          "Warna cerah dan ceria (merah, kuning, jingga)",
+          "Warna sejuk dan tenang (biru, hijau, ungu)",
+          "Gabungan pelbagai warna terang dan gelap",
+          "Warna kontra yang menonjolkan objek utama",
+        ],
+      },
+      {
+        id: "mg-t1-2",
+        field: "Menggambar",
+        category: "Teknik & Proses",
+        question: "Apakah teknik menggambar yang dapat kamu lihat pada karya ini?",
+        options: [
+          "Lukisan (menggunakan pensel warna / krayon / pen)",
+          "Catan (menggunakan warna air / poster / berus)",
+          "Kolaj atau tampalan kertas warna yang kreatif",
+          "Gosokan atau resis yang menghasilkan kesan menarik",
+        ],
+      },
+      {
+        id: "mg-t1-3",
+        field: "Menggambar",
+        category: "Nilai & Mesej",
+        question: "Apakah cerita atau perasaan yang kamu dapat apabila melihat gambar ini?",
+        options: [
+          "Suasana gembira, ceria dan menyeronokkan",
+          "Pemandangan alam semula jadi yang tenang dan damai",
+          "Kasih sayang terhadap keluarga, haiwan atau rakan",
+          "Imaginasi kreatif yang sangat menarik perhatian",
+        ],
+      },
+      {
+        id: "mg-t1-4",
+        field: "Menggambar",
+        category: "Bahasa Seni Visual",
+        question: "Apakah jenis garisan yang jelas kelihatan pada objek dalam gambar ini?",
+        options: [
+          "Garisan melengkung dan beralun yang lembut",
+          "Garisan lurus, tebal dan kemas",
+          "Garisan putus-putus dan beralun",
+          "Gabungan pelbagai garisan yang menghidupkan gambar",
+        ],
+      },
+    ],
+    tahap2: [
+      {
+        id: "mg-t2-1",
+        field: "Menggambar",
+        category: "Bahasa Seni Visual",
+        question: "Bagaimanakah pengolahan ruang dan perspektif dalam karya menggambar ini?",
+        options: [
+          "Objek hadapan dilukis lebih besar berbanding objek di latar belakang",
+          "Pembahagian ruang hadapan, tengah dan belakang kelihatan jelas",
+          "Tona warna cerah dan gelap membantu mewujudkan ilusi ruang",
+          "Susunan komposisi objek seimbang dan memenuhi ruang kertas",
+        ],
+      },
+      {
+        id: "mg-t2-2",
+        field: "Menggambar",
+        category: "Teknik & Proses",
+        question: "Apakah kekuatan teknik dan media yang digunakan oleh pengkarya?",
+        options: [
+          "Sapuan warna dan ton yang kemas serta terkawal",
+          "Gabungan teknik campuran (lukisan, catan atau kolaj) yang kreatif",
+          "Olahan jalinan tampak pada permukaan objek kelihatan hidup",
+          "Penggunaan garisan luar (outline) dan bayang yang menonjolkan bentuk",
+        ],
+      },
+      {
+        id: "mg-t2-3",
+        field: "Menggambar",
+        category: "Nilai & Mesej",
+        question: "Apakah mesej utama yang ingin disampaikan melalui hal benda (subject matter) karya ini?",
+        options: [
+          "Kepentingan memelihara keindahan alam sekitar dan hidupan",
+          "Semangat perpaduan, muhibah dan keharmonian masyarakat",
+          "Kebebasan berimaginasi dan keberanian meneroka idea baharu",
+          "Penghargaan terhadap kehidupan harian dan budaya tempatan",
+        ],
+      },
+      {
+        id: "mg-t2-4",
+        field: "Menggambar",
+        category: "Bahasa Seni Visual",
+        question: "Bagaimanakah prinsip penegasan (titik fokus) diwujudkan dalam gambar ini?",
+        options: [
+          "Penggunaan warna kontra pada objek utama menarik tumpuan mata",
+          "Saiz objek utama yang lebih dominan di bahagian tengah karya",
+          "Perincian jalinan dan garisan tertumpu pada subjek utama",
+          "Latar belakang yang ringkas menonjolkan subjek di hadapan",
+        ],
+      },
+    ],
+  },
 
-const APPRECIATION_QUESTIONS_TAHAP_1: AppreciationQuestion[] = [
-  {
-    id: "t1-1",
-    category: "Unsur Seni",
-    question: "Apakah warna yang paling menonjol dalam karya ini?",
-    options: [
-      "Warna cerah dan ceria (kuning, merah, oren)",
-      "Warna sejuk dan tenang (biru, hijau, ungu)",
-      "Campuran pelbagai warna pelangi",
-      "Warna gelap dan kontra (hitam, kelabu, coklat)",
+  "Corak dan Rekaan": {
+    tahap1: [
+      {
+        id: "cr-t1-1",
+        field: "Corak dan Rekaan",
+        category: "Bahasa Seni Visual",
+        question: "Apakah jenis motif atau rupa yang digunakan untuk menghasilkan corak ini?",
+        options: [
+          "Motif flora (bunga, daun atau tumbuhan)",
+          "Motif fauna (haiwan atau serangga comel)",
+          "Motif geometri (bulat, segi tiga, segi empat)",
+          "Motif bebas dan organik yang kreatif",
+        ],
+      },
+      {
+        id: "cr-t1-2",
+        field: "Corak dan Rekaan",
+        category: "Teknik & Proses",
+        question: "Bagaimanakah susunan corak dalam karya ini dihasilkan?",
+        options: [
+          "Susunan berulang-ulang secara teratur dan kemas",
+          "Corak tidak terancang (seperti tiupan, titisan atau renjisan)",
+          "Teknik capan menggunakan bahan alam atau objek harian",
+          "Teknik lipatan dan guntingan atau cetakan yang menarik",
+        ],
+      },
+      {
+        id: "cr-t1-3",
+        field: "Corak dan Rekaan",
+        category: "Nilai & Mesej",
+        question: "Pada pendapat kamu, di manakah corak cantik ini sesuai digunakan?",
+        options: [
+          "Pembalut hadiah atau kad ucapan yang ceria",
+          "Hiasan kulit buku nota atau penanda buku",
+          "Corak kain baju, langsir atau alas meja",
+          "Hiasan dinding bilik darjah yang menarik",
+        ],
+      },
+      {
+        id: "cr-t1-4",
+        field: "Corak dan Rekaan",
+        category: "Bahasa Seni Visual",
+        question: "Apakah kesan harmoni warna yang kamu lihat pada corak ini?",
+        options: [
+          "Gabungan warna ceria yang menjadikan corak nampak meriah",
+          "Pengulangan warna yang sama mewujudkan kesatuan yang kemas",
+          "Warna latar dan warna motif kontra serta mudah dilihat",
+          "Campuran warna lembut yang sedap dipandang",
+        ],
+      },
+    ],
+    tahap2: [
+      {
+        id: "cr-t2-1",
+        field: "Corak dan Rekaan",
+        category: "Bahasa Seni Visual",
+        question: "Apakah prinsip rekaan yang paling ketara dalam gubahan corak ini?",
+        options: [
+          "Prinsip harmoni dan kesatuan melalui pengulangan motif yang konsisten",
+          "Prinsip irama dan pergerakan hasil susunan motif yang beralun",
+          "Prinsip imbangan simetri yang kemas dan terancang",
+          "Prinsip kontra antara warna motif dengan warna latar belakang",
+        ],
+      },
+      {
+        id: "cr-t2-2",
+        field: "Corak dan Rekaan",
+        category: "Teknik & Proses",
+        question: "Bagaimanakah teknik penghasilan corak dalam karya ini dilaksanakan?",
+        options: [
+          "Corak terancang (grid, cerminan, batu-bata atau sisik ikan)",
+          "Corak tidak terancang (pualaman, ikatan dan celupan atau tiupan)",
+          "Teknik cetakan blok / stensilan dengan ulangan motif yang tepat",
+          "Teknik resis atau kolaj yang menghasilkan jalinan permukaan menarik",
+        ],
+      },
+      {
+        id: "cr-t2-3",
+        field: "Corak dan Rekaan",
+        category: "Nilai & Mesej",
+        question: "Apakah nilai keusahawanan dan fungsi rekaan corak ini dalam kehidupan harian?",
+        options: [
+          "Sesuai dikomersialkan sebagai rekaan tekstil, beg atau kertas pembalut",
+          "Sesuai dijadikan hiasan dalaman, jubin atau kertas dinding moden",
+          "Menunjukkan ketelitian, kesabaran dan disiplin tinggi dalam menyusun motif",
+          "Mengolah sumber alam semula jadi kepada rekaan kontemporari yang bernilai",
+        ],
+      },
+      {
+        id: "cr-t2-4",
+        field: "Corak dan Rekaan",
+        category: "Bahasa Seni Visual",
+        question: "Bagaimanakah pengolahan rupa positif dan rupa negatif dalam corak ini?",
+        options: [
+          "Rupa positif (motif) dan rupa negatif (ruang latar) seimbang dan jelas",
+          "Jarak antara setiap unit motif disusun rapi tanpa bertindih secara serabut",
+          "Olahan motif geometri dan organik digabungkan secara kreatif",
+          "Garisan grid membantu mengekalkan ketepatan susunan corak",
+        ],
+      },
     ],
   },
-  {
-    id: "t1-2",
-    category: "Unsur Seni",
-    question:
-      "Apakah jenis garisan yang paling banyak digunakan dalam lukisan ini?",
-    options: [
-      "Garisan melengkung dan beralun yang lembut",
-      "Garisan lurus dan menegak yang kemas",
-      "Garisan zig-zag dan berputar yang rancak",
-      "Garisan putus-putus dan tebal",
-    ],
-  },
-  {
-    id: "t1-3",
-    category: "Hal Benda",
-    question: "Apakah Hal Benda (objek utama) yang dilukis dalam karya ini?",
-    options: [
-      "Alam semula jadi (tumbuhan, haiwan atau pemandangan)",
-      "Objek buatan manusia (bangunan, kenderaan atau alatan)",
-      "Figura manusia atau watak imaginasi",
-      "Corak geometri dan bentuk kreatif",
-    ],
-  },
-  {
-    id: "t1-4",
-    category: "Mesej Karya",
-    question:
-      "Apakah perasaan atau mesej yang kamu rasa apabila melihat karya ini?",
-    options: [
-      "Rasa gembira, ceria dan bersemangat",
-      "Rasa tenang, damai dan selesa",
-      "Rasa kagum dengan kreativiti dan imaginasi pelukis",
-      "Mesej menyayangi alam sekitar dan hidupan",
-    ],
-  },
-  {
-    id: "t1-5",
-    category: "Unsur Seni",
-    question: "Bagaimanakah rupa dan bentuk objek dalam karya ini kelihatan?",
-    options: [
-      "Rupa organik (bebas seperti alam semula jadi)",
-      "Rupa geometri (bulat, segi tiga, segi empat)",
-      "Gabungan rupa organik dan geometri yang seimbang",
-      "Bentuk kelihatan timbul dan menarik",
-    ],
-  },
-];
 
+  Binaan: {
+    tahap1: [
+      {
+        id: "bn-t1-1",
+        field: "Binaan",
+        category: "Bahasa Seni Visual",
+        question: "Apakah bentuk 3 dimensi (3D) yang dapat kamu lihat pada karya binaan ini?",
+        options: [
+          "Bentuk konkrit 3D yang boleh dilihat dari pelbagai sudut",
+          "Gabungan bentuk kubus, silinder, sfera atau kon",
+          "Bentuk haiwan, kenderaan atau bangunan imaginasi",
+          "Bentuk topeng, boneka atau mobail yang menarik",
+        ],
+      },
+      {
+        id: "bn-t1-2",
+        field: "Binaan",
+        category: "Teknik & Proses",
+        question: "Apakah bahan kitar semula atau bahan binaan yang digunakan dalam karya ini?",
+        options: [
+          "Kotak, kadbod atau gulungan tisu yang dibentuk semula",
+          "Botol plastik, cawan kertas atau penyedut minuman",
+          "Doh, plastisin atau tanah liat yang diuli kemas",
+          "Kertas keras yang digunting, dilipat dan dicantum",
+        ],
+      },
+      {
+        id: "bn-t1-3",
+        field: "Binaan",
+        category: "Nilai & Mesej",
+        question: "Apakah keistimewaan karya binaan ini apabila dipamerkan?",
+        options: [
+          "Boleh berdiri stabil dan seimbang dengan kukuh",
+          "Mengajar kita menjaga alam sekitar melalui guna semula bahan terbuang",
+          "Sangat kreatif dan boleh dijadikan alat permainan atau hiasan",
+          "Cantuman bahagian binaan kelihatan kemas dan teliti",
+        ],
+      },
+      {
+        id: "bn-t1-4",
+        field: "Binaan",
+        category: "Bahasa Seni Visual",
+        question: "Bagaimanakah jalinan sentuh pada permukaan karya binaan ini?",
+        options: [
+          "Permukaan licin dan kemas hasil balutan kertas warna",
+          "Permukaan berjalinan kasar dan timbul yang menarik",
+          "Gabungan permukaan lembut dan keras yang kreatif",
+          "Hiasan tambahan menjadikan permukaan binaan lebih ceria",
+        ],
+      },
+    ],
+    tahap2: [
+      {
+        id: "bn-t2-1",
+        field: "Binaan",
+        category: "Bahasa Seni Visual",
+        question: "Bagaimanakah prinsip imbangan dan kestabilan diterapkan dalam binaan 3D ini?",
+        options: [
+          "Struktur binaan mempunyai tapak yang kukuh dan seimbang (simetri / tidak simetri)",
+          "Agihan berat setiap bahagian binaan dirancang dengan teliti supaya stabil",
+          "Ruang konkrit di sekeliling dan di dalam binaan diolah dengan baik",
+          "Perkadaran (nisbah saiz) antara bahagian binaan kelihatan realistik",
+        ],
+      },
+      {
+        id: "bn-t2-2",
+        field: "Binaan",
+        category: "Teknik & Proses",
+        question: "Apakah teknik membentuk dan membuat binaan yang jelas pada karya ini?",
+        options: [
+          "Teknik asemblaj (mencantum pelbagai bahan kutipan / terbuang)",
+          "Teknik arca stabail / mobail yang mempunyai ciri pergerakan atau kestabilan",
+          "Teknik luakan, ukiran atau acuan yang kemas dan terperinci",
+          "Teknik lipatan origami 3D / pembinaan model berskala",
+        ],
+      },
+      {
+        id: "bn-t2-3",
+        field: "Binaan",
+        category: "Nilai & Mesej",
+        question: "Apakah nilai kelestarian alam dan inovasi yang ditonjolkan oleh pengkarya?",
+        options: [
+          "Mengubah bahan kitar semula menjadi produk seni 3D yang bernilai tinggi",
+          "Menunjukkan kemahiran menyelesaikan masalah semasa mencantum struktur",
+          "Karya berfungsi sebagai model hiasan, alat bantu atau bekas serbaguna",
+          "Memupuk kesedaran menjaga alam sekitar melalui amalan 3R",
+        ],
+      },
+      {
+        id: "bn-t2-4",
+        field: "Binaan",
+        category: "Bahasa Seni Visual",
+        question: "Bagaimanakah jalinan sentuh dan kemasan akhir meningkatkan mutu binaan ini?",
+        options: [
+          "Kemasan cat dan warna menyerlahkan lagi bentuk 3D karya",
+          "Jalinan sentuh semula jadi daripada bahan binaan memberi kesan unik",
+          "Setiap sambungan dilekatkan dengan kemas tanpa kesan comot",
+          "Gabungan pelbagai tekstur menjadikan karya menarik dari setiap sudut",
+        ],
+      },
+    ],
+  },
 
-const APPRECIATION_QUESTIONS_TAHAP_2: AppreciationQuestion[] = [
-  {
-    id: "t2-1",
-    category: "Unsur Seni",
-    question: "Bagaimanakah penggunaan unsur warna dan kontra dalam karya ini?",
-    options: [
-      "Penggunaan warna panas dan sejuk mewujudkan kontra yang menarik tumpuan",
-      "Tona warna yang harmoni menjadikan karya kelihatan lembut dan bersatu",
-      "Gabungan warna penggenap menghidupkan suasana visual karya",
-      "Pengolahan warna gelap dan cerah berjaya menampakkan kesan pencahayaan",
+  "Kraf Tradisional": {
+    tahap1: [
+      {
+        id: "kt-t1-1",
+        field: "Kraf Tradisional",
+        category: "Bahasa Seni Visual",
+        question: "Apakah jenis kraf tradisional Malaysia yang diperkenalkan dalam karya ini?",
+        options: [
+          "Batik / Corak Kain Tradisional yang berwarna-warni",
+          "Anyaman tikar / kelarai daripada jalur kertas atau daun",
+          "Wau tradisional / Gasing / Alat permainan rakyat",
+          "Tembikar (Labu Sayong) atau Perhiasan Diri (Dokoh / Cucuk Sanggul)",
+        ],
+      },
+      {
+        id: "kt-t1-2",
+        field: "Kraf Tradisional",
+        category: "Teknik & Proses",
+        question: "Apakah motif atau corak hiasan yang menghiasi karya kraf ini?",
+        options: [
+          "Motif flora, pucuk rebung atau daun tumbuh-tumbuhan",
+          "Corak kelarai anyaman berselang-seli yang kemas",
+          "Garisan berlingkar dan corak geometri tradisional",
+          "Gabungan warna tradisi yang cerah dan menarik",
+        ],
+      },
+      {
+        id: "kt-t1-3",
+        field: "Kraf Tradisional",
+        category: "Nilai & Mesej",
+        question: "Mengapakah kita perlu menghargai seni kraf tradisional seperti karya ini?",
+        options: [
+          "Supaya warisan budaya Malaysia tidak dilupakan",
+          "Menunjukkan kehalusan kerja tangan dan kesabaran pengkarya",
+          "Kraf tradisional sangat cantik dijadikan hiasan dan kegunaan harian",
+          "Berbangga dengan keunikan seni warisan negara kita",
+        ],
+      },
+      {
+        id: "kt-t1-4",
+        field: "Kraf Tradisional",
+        category: "Bahasa Seni Visual",
+        question: "Bagaimanakah rupa dan garisan pada karya kraf tradisional ini kelihatan?",
+        options: [
+          "Rupa simetri yang seimbang di sebelah kiri dan kanan",
+          "Garisan beralun dan melengkung yang lembut seperti motif batik",
+          "Susunan jalur lurus bersilang yang sangat kemas",
+          "Bentuk tradisional yang unik dan mudah dikenali",
+        ],
+      },
+    ],
+    tahap2: [
+      {
+        id: "kt-t2-1",
+        field: "Kraf Tradisional",
+        category: "Bahasa Seni Visual",
+        question: "Bagaimanakah motif dan prinsip rekaan tradisional diolah dalam karya kraf ini?",
+        options: [
+          "Motif flora dan alam (seperti pucuk rebung, bunga cengkih) disusun harmoni",
+          "Imbangan simetri yang tepat pada struktur wau, tembikar atau perhiasan diri",
+          "Jalinan sentuh dan tampak terhasil daripada teknik anyaman atau ukiran",
+          "Kontra warna latar dan motif menyerlahkan identiti kraf warisan",
+        ],
+      },
+      {
+        id: "kt-t2-2",
+        field: "Kraf Tradisional",
+        category: "Teknik & Proses",
+        question: "Apakah proses atau teknik kraf yang diaplikasikan dalam penghasilan karya ini?",
+        options: [
+          "Teknik resis / cantingan (batik) menggunakan lilin, krayon atau warna air",
+          "Teknik anyaman kelarai (selang-seli) menggunakan jalur kertas atau bahan gantian",
+          "Teknik lingkaran, picitan atau acuan bagi membentuk tembikar",
+          "Teknik tebukan, ukiran atau tampalan bagi perhiasan diri dan alat permainan",
+        ],
+      },
+      {
+        id: "kt-t2-3",
+        field: "Kraf Tradisional",
+        category: "Nilai & Mesej",
+        question: "Apakah nilai warisan budaya dan jati diri yang dapat dipelajari daripada karya ini?",
+        options: [
+          "Memupuk semangat cinta akan warisan seni kraf tempatan Malaysia",
+          "Menghargai nilai ketekunan, ketelitian dan kesabaran tukang kraf",
+          "Mengaplikasikan bahan gantian moden untuk mengekalkan seni tradisional",
+          "Menyedari fungsi kraf sebagai kegunaan harian serta identiti bangsa",
+        ],
+      },
+      {
+        id: "kt-t2-4",
+        field: "Kraf Tradisional",
+        category: "Bahasa Seni Visual",
+        question: "Bagaimanakah kesatuan bentuk dan fungsi kelihatan pada karya kraf ini?",
+        options: [
+          "Reka bentuk mengekalkan ciri asli kraf tradisional walaupun menggunakan bahan murid",
+          "Setiap bahagian hiasan melengkapi struktur utama karya dengan kemas",
+          "Pemilihan warna sesuai dengan identiti seni kraf tempatan",
+          "Kualiti kekemasan menunjukkan pemahaman murid terhadap proses kraf",
+        ],
+      },
     ],
   },
-  {
-    id: "t2-2",
-    category: "Unsur Seni",
-    question: "Apakah kesan unsur jalinan dan ruang yang dapat diperhatikan?",
-    options: [
-      "Jalinan tampak jelas dan mewujudkan ilusi ruang hadapan serta belakang",
-      "Susunan objek dari besar ke kecil menampakkan perspektif ruang yang baik",
-      "Olahan jalinan pada permukaan objek menambah perincian yang realistik",
-      "Penggunaan ruang lapang dan padat seimbang serta tidak serabut",
-    ],
-  },
-  {
-    id: "t2-3",
-    category: "Hal Benda",
-    question:
-      "Bagaimanakah pemilihan Hal Benda (Subject Matter) menyokong tema karya?",
-    options: [
-      "Hal benda alam semula jadi diolah secara kreatif untuk menyampaikan tema",
-      "Hal benda objek buatan manusia disusun sebagai titik fokus utama",
-      "Gabungan figura dan latar belakang menceritakan situasi dengan jelas",
-      "Hal benda berunsur imaginasi / fantasi menunjukkan pemikiran luar kotak",
-    ],
-  },
-  {
-    id: "t2-4",
-    category: "Mesej Karya",
-    question:
-      "Apakah nilai atau mesej tersirat yang ingin disampaikan oleh pengkarya?",
-    options: [
-      "Kesedaran memelihara keindahan alam sekitar dan kelestarian hidup",
-      "Semangat perpaduan, kasih sayang dan keharmonian masyarakat",
-      "Kebebasan berkarya, inovasi dan keberanian meneroka idea baharu",
-      "Penghargaan terhadap budaya, warisan dan identiti tempatan",
-    ],
-  },
-  {
-    id: "t2-5",
-    category: "Unsur Seni",
-    question:
-      "Apakah kekuatan utama gubahan garisan dan bentuk dalam karya ini?",
-    options: [
-      "Pelbagai jenis garisan berjaya menghasilkan kesan pergerakan dan irama",
-      "Olahan bentuk ilusi 3D kelihatan mantap dengan kesan bayang yang kemas",
-      "Rupa positif dan negatif diimbangi dengan sangat teliti",
-      "Ketelitian garisan luar (outline) menegaskan identiti setiap objek",
-    ],
-  },
-];
-
+};
 
 const getStageFromClass = (className?: string): "tahap1" | "tahap2" => {
   if (!className) return "tahap2";
@@ -385,20 +699,16 @@ const getStageFromClass = (className?: string): "tahap1" | "tahap2" => {
   return "tahap2";
 };
 
-
 const pickThreeRandomQuestions = (
-  stage: "tahap1" | "tahap2"
+  stage: "tahap1" | "tahap2",
+  rawField?: string
 ): AppreciationQuestion[] => {
-  const pool =
-    stage === "tahap1"
-      ? APPRECIATION_QUESTIONS_TAHAP_1
-      : APPRECIATION_QUESTIONS_TAHAP_2;
+  const field = normalizePsvField(rawField);
+  const pool = APPRECIATION_QUESTIONS_BY_FIELD[field][stage];
   const shuffled = [...pool].sort(() => Math.random() - 0.5);
-
 
   const picked: AppreciationQuestion[] = [];
   const usedCategories = new Set<string>();
-
 
   for (const q of shuffled) {
     if (!usedCategories.has(q.category) && picked.length < 3) {
@@ -407,7 +717,6 @@ const pickThreeRandomQuestions = (
     }
   }
 
-
   for (const q of shuffled) {
     if (picked.length >= 3) break;
     if (!picked.some((item) => item.id === q.id)) {
@@ -415,10 +724,8 @@ const pickThreeRandomQuestions = (
     }
   }
 
-
   return picked;
 };
-
 
 // --- Helper: Format Masa Komen (Gaya Facebook) ---
 const formatTimeAgo = (timestamp: number) => {
@@ -647,6 +954,7 @@ export default function App() {
   const [selectedYear, setSelectedYear] = useState("Semua");
   const [selectedMonth, setSelectedMonth] = useState("Semua");
   const [selectedClass, setSelectedClass] = useState("Semua");
+  const [selectedField, setSelectedField] = useState("Semua");
 
 
   // --- State Penapis Graf Pengkritik ---
@@ -970,7 +1278,18 @@ export default function App() {
     fetch(SCRIPT_URL)
       .then((res) => res.json())
       .then((data) => {
-        setArtworks(Array.isArray(data) ? data : []);
+        const normalized = Array.isArray(data)
+          ? data.map((item: any) => ({
+              ...item,
+              id: String(item.id ?? "").trim(),
+              title: String(item.title ?? ""),
+              studentName: String(item.studentName ?? ""),
+              className: String(item.className ?? "Tahun 1"),
+              field: normalizePsvField(item.field),
+              imageUrl: String(item.imageUrl ?? ""),
+            }))
+          : [];
+        setArtworks(normalized);
         setLoading(false);
       })
       .catch((error) => {
@@ -1354,6 +1673,7 @@ export default function App() {
     const createdArt = {
       id: Date.now().toString(),
       ...newArtwork,
+      field: normalizePsvField(newArtwork.field),
       createdAt: Date.now(),
       likes: [],
       comments: [],
@@ -1372,31 +1692,34 @@ export default function App() {
     title: string;
     studentName: string;
     className: string;
+    field: string;
     imageUrl: string;
   }) => {
     if (!editingArtwork || !loggedInStaff) return;
 
+    const targetId = String(editingArtwork.id ?? "").trim();
     const cleanImageUrl = formatDirectImageUrl(updatedData.imageUrl.trim());
+    const normalizedField = normalizePsvField(updatedData.field);
     const updatedArt = {
       ...editingArtwork,
+      id: targetId,
       title: updatedData.title.trim(),
       studentName: updatedData.studentName.trim(),
       className: updatedData.className,
+      field: normalizedField,
       imageUrl: cleanImageUrl,
       updatedAt: Date.now(),
     };
 
     setArtworks((prev) =>
       prev.map((art) =>
-        String(art.id).trim() === String(updatedArt.id).trim()
-          ? updatedArt
-          : art
+        String(art.id ?? "").trim() === targetId ? updatedArt : art
       )
     );
 
     if (
       selectedArtwork &&
-      String(selectedArtwork.id).trim() === String(updatedArt.id).trim()
+      String(selectedArtwork.id ?? "").trim() === targetId
     ) {
       setSelectedArtwork(updatedArt);
     }
@@ -1407,13 +1730,15 @@ export default function App() {
       `Maklumat & gambar karya "${updatedArt.title}" berjaya dikemas kini ke pangkalan data!`
     );
 
-    await sendToSheet("update", updatedArt);
     await sendToSheet("edit", {
-      id: String(updatedArt.id).trim(),
+      id: targetId,
       title: updatedArt.title,
       studentName: updatedArt.studentName,
       className: updatedArt.className,
+      field: updatedArt.field,
       imageUrl: updatedArt.imageUrl,
+      likes: Array.isArray(updatedArt.likes) ? updatedArt.likes : [],
+      comments: Array.isArray(updatedArt.comments) ? updatedArt.comments : [],
     });
   };
 
@@ -1791,15 +2116,17 @@ export default function App() {
   ];
 
 
-  // --- PENAPISAN KARYA MENGIKUT TAHUN, BULAN & KELAS ---
+  // --- PENAPISAN KARYA MENGIKUT TAHUN, BULAN, KELAS & BIDANG DSKP ---
   const filteredArtworks = artworks.filter((art) => {
     const artYear = getArtworkYear(art.createdAt);
     const artMonth = getArtworkMonth(art.createdAt);
+    const artField = normalizePsvField(art.field);
     const matchYear = selectedYear === "Semua" || artYear === selectedYear;
     const matchMonth = selectedMonth === "Semua" || artMonth === selectedMonth;
     const matchClass =
       selectedClass === "Semua" || art.className === selectedClass;
-    return matchYear && matchMonth && matchClass;
+    const matchField = selectedField === "Semua" || artField === selectedField;
+    return matchYear && matchMonth && matchClass && matchField;
   });
 
 
@@ -1814,35 +2141,45 @@ export default function App() {
     return cleaned || "tanpa-tajuk";
   };
 
-  // --- KUMPULKAN KARYA MENGIKUT TAJUK YANG SAMA ---
-  const groupedArtworks = useMemo(() => {
-    const groupsMap = new Map<
-      string,
-      {
-        key: string;
-        displayTitle: string;
-        items: any[];
-      }
-    >();
+  // --- KUMPULKAN KARYA MENGIKUT BIDANG DSKP DAHULU, KEMUDIAN TAJUK YANG SAMA ---
+  const groupedArtworksByField = useMemo(() => {
+    return PSV_FIELDS.map((fieldName) => {
+      const fieldItems = filteredArtworks.filter(
+        (art) => normalizePsvField(art.field) === fieldName
+      );
 
-    filteredArtworks.forEach((art) => {
-      const key = normalizeTitleKey(art.title);
-      if (!groupsMap.has(key)) {
-        const cleanDisplay =
-          String(art.title || "")
-            .replace(/[^a-zA-Z0-9\s]/g, " ")
-            .replace(/\s+/g, " ")
-            .trim() || "Tanpa Tajuk";
-        groupsMap.set(key, {
-          key,
-          displayTitle: toTitleCase(cleanDisplay),
-          items: [],
-        });
-      }
-      groupsMap.get(key)!.items.push(art);
-    });
+      const titleGroupsMap = new Map<
+        string,
+        {
+          key: string;
+          displayTitle: string;
+          items: any[];
+        }
+      >();
 
-    return Array.from(groupsMap.values());
+      fieldItems.forEach((art) => {
+        const key = normalizeTitleKey(art.title);
+        if (!titleGroupsMap.has(key)) {
+          const cleanDisplay =
+            String(art.title || "")
+              .replace(/[^a-zA-Z0-9\s]/g, " ")
+              .replace(/\s+/g, " ")
+              .trim() || "Tanpa Tajuk";
+          titleGroupsMap.set(key, {
+            key,
+            displayTitle: toTitleCase(cleanDisplay),
+            items: [],
+          });
+        }
+        titleGroupsMap.get(key)!.items.push(art);
+      });
+
+      return {
+        fieldName,
+        totalArtworks: fieldItems.length,
+        titleGroups: Array.from(titleGroupsMap.values()),
+      };
+    }).filter((fg) => fg.totalArtworks > 0);
   }, [filteredArtworks]);
 
   const selectedMonthLabel =
@@ -2572,19 +2909,44 @@ export default function App() {
 
                 {(selectedYear !== "Semua" ||
                   selectedMonth !== "Semua" ||
-                  selectedClass !== "Semua") && (
+                  selectedClass !== "Semua" ||
+                  selectedField !== "Semua") && (
                   <button
                     onClick={() => {
                       SoundFX.click();
                       setSelectedYear("Semua");
                       setSelectedMonth("Semua");
                       setSelectedClass("Semua");
+                      setSelectedField("Semua");
                     }}
                     className="text-xs font-extrabold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-full transition-colors"
                   >
                     Set Semula Tapisan
                   </button>
                 )}
+              </div>
+
+
+              <div className="flex items-center gap-2 flex-wrap pt-3 border-t border-slate-100">
+                <span className="text-blue-900 font-bold text-sm mr-1">
+                  Bidang PSV:
+                </span>
+                {["Semua", ...PSV_FIELDS].map((fld) => (
+                  <button
+                    key={fld}
+                    onClick={() => {
+                      SoundFX.click();
+                      setSelectedField(fld);
+                    }}
+                    className={`px-3.5 py-1.5 rounded-full text-xs md:text-sm font-bold transition-all active:scale-95 ${
+                      selectedField === fld
+                        ? "bg-yellow-400 text-blue-950 border-2 border-blue-900 shadow-sm scale-105"
+                        : "bg-amber-50 text-amber-900 border border-amber-200 hover:bg-yellow-100"
+                    }`}
+                  >
+                    {fld === "Semua" ? "Semua Bidang" : fld}
+                  </button>
+                ))}
               </div>
 
 
@@ -2654,6 +3016,7 @@ export default function App() {
                     setSelectedYear("Semua");
                     setSelectedMonth("Semua");
                     setSelectedClass("Semua");
+                    setSelectedField("Semua");
                   }}
                   className="bg-yellow-400 hover:bg-yellow-300 text-blue-900 font-bold py-2.5 px-6 rounded-full shadow-sm hover:scale-105 active:scale-95 transition-all text-sm"
                 >
@@ -2661,74 +3024,105 @@ export default function App() {
                 </button>
               </div>
             ) : (
-              <div className="space-y-10">
-                {groupedArtworks.map((group) => (
+              <div className="space-y-12">
+                {groupedArtworksByField.map((fieldSection) => (
                   <div
-                    key={group.key}
-                    className="bg-white/75 backdrop-blur-xs p-5 md:p-6 rounded-3xl border-2 border-blue-100 shadow-sm"
+                    key={fieldSection.fieldName}
+                    className="bg-gradient-to-b from-blue-50/90 to-white p-5 md:p-7 rounded-[2rem] border-4 border-blue-200 shadow-md space-y-6"
                   >
-                    <div className="flex flex-wrap items-center justify-between gap-2 pb-3.5 mb-6 border-b-2 border-yellow-300">
-                      <div className="flex items-center gap-2.5">
-                        <span className="bg-blue-700 text-yellow-300 p-2 rounded-xl shadow-2xs">
-                          <Palette className="w-5 h-5" />
-                        </span>
-                        <h4 className="text-xl md:text-2xl font-black text-blue-950 tracking-tight">
-                          {group.displayTitle}
-                        </h4>
+                    {/* PENGEPALA UTAMA BIDANG DSKP */}
+                    <div className="flex flex-wrap items-center justify-between gap-3 bg-blue-900 text-white px-5 py-4 rounded-2xl border-b-4 border-yellow-400 shadow-sm">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-yellow-400 text-blue-950 p-2.5 rounded-xl shadow-xs">
+                          <Shapes className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <span className="text-[10px] font-extrabold uppercase tracking-widest text-yellow-300 block">
+                            Bidang DSKP PSV
+                          </span>
+                          <h4 className="text-xl md:text-2xl font-black tracking-tight">
+                            {fieldSection.fieldName}
+                          </h4>
+                        </div>
                       </div>
-                      <span className="bg-yellow-400 text-blue-950 text-xs font-black px-3.5 py-1 rounded-full border border-blue-900/20">
-                        {group.items.length} Karya
+                      <span className="bg-yellow-400 text-blue-950 text-xs md:text-sm font-black px-4 py-1.5 rounded-full shadow-xs">
+                        {fieldSection.totalArtworks} Karya •{" "}
+                        {fieldSection.titleGroups.length} Tajuk
                       </span>
                     </div>
 
-                    <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6">
-                      {group.items.map((artwork, idx) => (
-                        <ArtworkCard
-                          key={`${artwork.id}-${artwork.updatedAt || ""}`}
-                          index={idx}
-                          artwork={artwork}
-                          artworkYear={getArtworkYear(artwork.createdAt)}
-                          activeUserKey={activeUserKey}
-                          activePassport={activePassport}
-                          vipRegistry={criticCategoryRegistry}
-                          isStaffLoggedIn={!!loggedInStaff}
-                          onLike={() =>
-                            toggleLike(artwork.id, artwork.likes || [])
-                          }
-                          onOpenStarList={(givers: StarGiverItem[]) => {
-                            SoundFX.click();
-                            setStarListModalData({
-                              title: artwork.title,
-                              givers,
-                            });
-                          }}
-                          onComment={(text: string, quizAnswers?: any) =>
-                            addComment(
-                              artwork.id,
-                              text,
-                              artwork.comments || [],
-                              quizAnswers
-                            )
-                          }
-                          onDeleteComment={(commentObj: any) =>
-                            handleDeleteCommentWithPenalty(
-                              artwork.id,
-                              commentObj
-                            )
-                          }
-                          onRequestEdit={() => {
-                            SoundFX.click();
-                            setEditingArtwork(artwork);
-                          }}
-                          onRequestDelete={() => {
-                            SoundFX.alert();
-                            setArtworkToDelete(artwork);
-                          }}
-                          onOpenPreview={() => {
-                            SoundFX.click();
-                            setSelectedArtwork(artwork);
-                          }}
-                        />
+                    {/* SUB-KUMPULAN MENGIKUT TAJUK YANG SAMA DALAM BIDANG TERSEBUT */}
+                    <div className="space-y-6">
+                      {fieldSection.titleGroups.map((group) => (
+                        <div
+                          key={`${fieldSection.fieldName}-${group.key}`}
+                          className="bg-white p-4 md:p-6 rounded-3xl border-2 border-blue-100 shadow-xs"
+                        >
+                          <div className="flex flex-wrap items-center justify-between gap-2 pb-3 mb-5 border-b-2 border-yellow-300">
+                            <div className="flex items-center gap-2.5">
+                              <span className="bg-blue-700 text-yellow-300 p-2 rounded-xl shadow-2xs">
+                                <Palette className="w-5 h-5" />
+                              </span>
+                              <h5 className="text-lg md:text-xl font-black text-blue-950 tracking-tight">
+                                {group.displayTitle}
+                              </h5>
+                            </div>
+                            <span className="bg-yellow-100 text-blue-950 text-xs font-black px-3.5 py-1 rounded-full border border-yellow-400">
+                              {group.items.length} Karya
+                            </span>
+                          </div>
+
+                          <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6">
+                            {group.items.map((artwork, idx) => (
+                              <ArtworkCard
+                                key={`${artwork.id}-${artwork.updatedAt || ""}`}
+                                index={idx}
+                                artwork={artwork}
+                                artworkYear={getArtworkYear(artwork.createdAt)}
+                                activeUserKey={activeUserKey}
+                                activePassport={activePassport}
+                                vipRegistry={criticCategoryRegistry}
+                                isStaffLoggedIn={!!loggedInStaff}
+                                onLike={() =>
+                                  toggleLike(artwork.id, artwork.likes || [])
+                                }
+                                onOpenStarList={(givers: StarGiverItem[]) => {
+                                  SoundFX.click();
+                                  setStarListModalData({
+                                    title: artwork.title,
+                                    givers,
+                                  });
+                                }}
+                                onComment={(text: string, quizAnswers?: any) =>
+                                  addComment(
+                                    artwork.id,
+                                    text,
+                                    artwork.comments || [],
+                                    quizAnswers
+                                  )
+                                }
+                                onDeleteComment={(commentObj: any) =>
+                                  handleDeleteCommentWithPenalty(
+                                    artwork.id,
+                                    commentObj
+                                  )
+                                }
+                                onRequestEdit={() => {
+                                  SoundFX.click();
+                                  setEditingArtwork(artwork);
+                                }}
+                                onRequestDelete={() => {
+                                  SoundFX.alert();
+                                  setArtworkToDelete(artwork);
+                                }}
+                                onOpenPreview={() => {
+                                  SoundFX.click();
+                                  setSelectedArtwork(artwork);
+                                }}
+                              />
+                            ))}
+                          </div>
+                        </div>
                       ))}
                     </div>
                   </div>
@@ -3546,6 +3940,7 @@ function StarGiversAvatars({
 
 function PassportQuizBox({
   stage,
+  field,
   questions,
   currentIndex,
   answers,
@@ -3555,6 +3950,7 @@ function PassportQuizBox({
   onClose,
 }: {
   stage: "tahap1" | "tahap2";
+  field: PsvFieldType;
   questions: AppreciationQuestion[];
   currentIndex: number;
   answers: Record<number, string>;
@@ -3573,8 +3969,11 @@ function PassportQuizBox({
     <div className="bg-gradient-to-br from-blue-50 to-amber-50 border-2 border-yellow-400 rounded-2xl p-3.5 mb-3 shadow-sm animate-pop-up text-left">
       <div className="flex items-center justify-between gap-2 mb-2">
         <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="bg-blue-900 text-yellow-300 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase">
+            Bidang: {field}
+          </span>
           <span className="bg-blue-700 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase">
-            {stage === "tahap1" ? "Aras Tahap 1" : "Aras Tahap 2"}
+            {stage === "tahap1" ? "Tahap 1" : "Tahap 2"}
           </span>
           <span className="bg-yellow-400 text-blue-900 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full">
             {activeQuestion.category}
@@ -4476,6 +4875,7 @@ function StaffDashboardPanel({
                           Nama Pelukis Cilik
                         </th>
                         <th className="py-2.5 px-4 font-black">Kelas</th>
+                        <th className="py-2.5 px-4 font-black">Bidang</th>
                         <th className="py-2.5 px-4 font-black">Sesi</th>
                         <th className="py-2.5 px-4 font-black">Tajuk Karya</th>
                         <th className="py-2.5 px-4 font-black text-center">
@@ -4487,7 +4887,7 @@ function StaffDashboardPanel({
                       {filteredArtistsForPrint.length === 0 ? (
                         <tr>
                           <td
-                            colSpan={6}
+                            colSpan={7}
                             className="py-6 text-center text-slate-400 italic"
                           >
                             Tiada rekod pelukis cilik bagi tapisan ini.
@@ -4507,6 +4907,9 @@ function StaffDashboardPanel({
                             </td>
                             <td className="py-2.5 px-4 text-slate-700 font-medium">
                               {art.className}
+                            </td>
+                            <td className="py-2.5 px-4 text-blue-900 font-semibold">
+                              {normalizePsvField(art.field)}
                             </td>
                             <td className="py-2.5 px-4 text-slate-600">
                               {getArtworkYear(art.createdAt)}
@@ -5189,9 +5592,10 @@ function ArtworkCard({
 
 
   const criticStage = getStageFromClass(activePassport?.className);
+  const artworkField = normalizePsvField(artwork.field);
   const [isQuizOpen, setIsQuizOpen] = useState(false);
   const [quizQuestions, setQuizQuestions] = useState<AppreciationQuestion[]>(
-    () => pickThreeRandomQuestions(criticStage)
+    () => pickThreeRandomQuestions(criticStage, artworkField)
   );
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
   const [quizAnswers, setQuizAnswers] = useState<Record<number, string>>({});
@@ -5217,7 +5621,7 @@ function ArtworkCard({
   const handleToggleQuiz = () => {
     SoundFX.click();
     if (!isQuizOpen) {
-      setQuizQuestions(pickThreeRandomQuestions(criticStage));
+      setQuizQuestions(pickThreeRandomQuestions(criticStage, artworkField));
       setCurrentQuestionIdx(0);
       setQuizAnswers({});
       setIsQuizOpen(true);
@@ -5230,7 +5634,7 @@ function ArtworkCard({
 
 
   const handleRefreshQuiz = () => {
-    setQuizQuestions(pickThreeRandomQuestions(criticStage));
+    setQuizQuestions(pickThreeRandomQuestions(criticStage, artworkField));
     setCurrentQuestionIdx(0);
     setQuizAnswers({});
   };
@@ -5333,11 +5737,14 @@ function ArtworkCard({
         <div className="absolute bottom-3 right-3 bg-slate-900/75 text-white p-2 rounded-full opacity-0 group-hover/img:opacity-100 transition-all duration-300 transform translate-y-1 group-hover/img:translate-y-0 shadow-md">
           <ZoomIn className="w-4 h-4" />
         </div>
-        <div className="absolute top-4 left-4 flex items-center gap-1.5">
-          <span className="bg-yellow-400 text-blue-900 text-xs font-extrabold px-3 py-1.5 rounded-full shadow-md uppercase tracking-wider">
+        <div className="absolute top-4 left-4 flex flex-wrap items-center gap-1.5 pr-20">
+          <span className="bg-yellow-400 text-blue-900 text-xs font-extrabold px-3 py-1 rounded-full shadow-md uppercase tracking-wider">
             {artwork.className}
           </span>
-          <span className="bg-blue-900/85 text-white text-xs font-bold px-2.5 py-1.5 rounded-full shadow-md">
+          <span className="bg-blue-900/90 text-yellow-300 text-xs font-extrabold px-2.5 py-1 rounded-full shadow-md">
+            {artworkField}
+          </span>
+          <span className="bg-slate-900/80 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-md">
             {artworkYear}
           </span>
         </div>
@@ -5510,6 +5917,7 @@ function ArtworkCard({
           {activePassport && isQuizOpen && (
             <PassportQuizBox
               stage={criticStage}
+              field={artworkField}
               questions={quizQuestions}
               currentIndex={currentQuestionIdx}
               answers={quizAnswers}
@@ -5600,9 +6008,10 @@ function ArtworkLightboxModal({
 
 
   const criticStage = getStageFromClass(activePassport?.className);
+  const artworkField = normalizePsvField(artwork.field);
   const [isQuizOpen, setIsQuizOpen] = useState(false);
   const [quizQuestions, setQuizQuestions] = useState<AppreciationQuestion[]>(
-    () => pickThreeRandomQuestions(criticStage)
+    () => pickThreeRandomQuestions(criticStage, artworkField)
   );
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
   const [quizAnswers, setQuizAnswers] = useState<Record<number, string>>({});
@@ -5741,7 +6150,7 @@ function ArtworkLightboxModal({
   const handleToggleQuiz = () => {
     SoundFX.click();
     if (!isQuizOpen) {
-      setQuizQuestions(pickThreeRandomQuestions(criticStage));
+      setQuizQuestions(pickThreeRandomQuestions(criticStage, artworkField));
       setCurrentQuestionIdx(0);
       setQuizAnswers({});
       setIsQuizOpen(true);
@@ -5754,7 +6163,7 @@ function ArtworkLightboxModal({
 
 
   const handleRefreshQuiz = () => {
-    setQuizQuestions(pickThreeRandomQuestions(criticStage));
+    setQuizQuestions(pickThreeRandomQuestions(criticStage, artworkField));
     setCurrentQuestionIdx(0);
     setQuizAnswers({});
   };
@@ -5934,9 +6343,12 @@ function ArtworkLightboxModal({
 
         <div className="md:w-2/5 flex-1 min-h-0 flex flex-col overflow-hidden bg-white">
           <div className="p-4 md:p-5 border-b border-slate-100 shrink-0 pr-24 md:pr-28">
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex flex-wrap items-center gap-2 mb-2">
               <span className="bg-yellow-400 text-blue-900 text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">
                 {artwork.className}
+              </span>
+              <span className="bg-blue-900 text-yellow-300 text-xs font-extrabold px-3 py-1 rounded-full">
+                {artworkField}
               </span>
               <span className="bg-blue-100 text-blue-900 text-xs font-bold px-2.5 py-1 rounded-full">
                 Sesi {artworkYear}
@@ -6016,6 +6428,7 @@ function ArtworkLightboxModal({
             {activePassport && isQuizOpen && (
               <PassportQuizBox
                 stage={criticStage}
+                field={artworkField}
                 questions={quizQuestions}
                 currentIndex={currentQuestionIdx}
                 answers={quizAnswers}
@@ -6171,29 +6584,14 @@ function ArtworkFormModal({
     title: string;
     studentName: string;
     className: string;
+    field: string;
     imageUrl: string;
   }) => void;
 }) {
   const isEdit = mode === "edit" && !!initialData;
-  const initialImgUrl = isEdit ? initialData.imageUrl || "" : "";
+  const initialImgUrl = isEdit ? String(initialData.imageUrl || "") : "";
   const isInitialHttpLink =
     initialImgUrl.startsWith("http://") || initialImgUrl.startsWith("https://");
-
-
-  const [formData, setFormData] = useState({
-    title: isEdit ? initialData.title || "" : "",
-    studentName: isEdit ? initialData.studentName || "" : "",
-    className: isEdit ? initialData.className || "Tahun 1" : "Tahun 1",
-    imageUrl: initialImgUrl,
-  });
-  const [imageSourceMode, setImageSourceMode] = useState<"upload" | "link">(
-    isInitialHttpLink ? "link" : "upload"
-  );
-  const [rawLinkInput, setRawLinkInput] = useState(
-    isInitialHttpLink ? initialImgUrl : ""
-  );
-  const [isProcessingImage, setIsProcessingImage] = useState(false);
-  const [previewError, setPreviewError] = useState(false);
 
 
   const classes = [
@@ -6204,6 +6602,30 @@ function ArtworkFormModal({
     "Tahun 5",
     "Tahun 6",
   ];
+
+  const normalizedInitialClass = isEdit
+    ? classes.find(
+        (c) =>
+          c.toLowerCase() === String(initialData.className || "").trim().toLowerCase()
+      ) || String(initialData.className || "Tahun 1").trim()
+    : "Tahun 1";
+
+
+  const [formData, setFormData] = useState({
+    title: isEdit ? String(initialData.title || "") : "",
+    studentName: isEdit ? String(initialData.studentName || "") : "",
+    className: normalizedInitialClass || "Tahun 1",
+    field: isEdit ? normalizePsvField(initialData.field) : "Menggambar",
+    imageUrl: initialImgUrl,
+  });
+  const [imageSourceMode, setImageSourceMode] = useState<"upload" | "link">(
+    isInitialHttpLink ? "link" : "upload"
+  );
+  const [rawLinkInput, setRawLinkInput] = useState(
+    isInitialHttpLink ? initialImgUrl : ""
+  );
+  const [isProcessingImage, setIsProcessingImage] = useState(false);
+  const [previewError, setPreviewError] = useState(false);
 
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -6376,22 +6798,46 @@ function ArtworkFormModal({
           </div>
 
 
-          <div>
-            <label className="block text-sm font-bold text-slate-700 mb-1">
-              Kelas
-            </label>
-            <select
-              name="className"
-              value={formData.className}
-              onChange={handleChange}
-              className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all font-medium bg-white"
-            >
-              {classes.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-1">
+                Kelas
+              </label>
+              <select
+                name="className"
+                value={formData.className}
+                onChange={handleChange}
+                className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all font-medium bg-white"
+              >
+                {!classes.includes(formData.className) && formData.className && (
+                  <option value={formData.className}>{formData.className}</option>
+                )}
+                {classes.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-1">
+                Bidang Karya (DSKP)
+              </label>
+              <select
+                name="field"
+                value={formData.field}
+                onChange={handleChange}
+                required
+                className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all font-medium bg-white"
+              >
+                {PSV_FIELDS.map((fld) => (
+                  <option key={fld} value={fld}>
+                    {fld}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
 
