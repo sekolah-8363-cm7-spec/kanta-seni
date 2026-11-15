@@ -1722,13 +1722,18 @@ export default function App() {
                 .animate-shrink-5s { animation: shrinkBar5s 5s linear forwards; }
 
                 
+                
+
+            
                 @media print {
+                    @page {
+                        size: A4 portrait;
+                        margin: 10mm;
+                    }
                     body {
                         -webkit-print-color-adjust: exact !important;
                         print-color-adjust: exact !important;
                         background: white !important;
-                    }
-                    body * {
                         visibility: hidden;
                     }
                     #printable-lists-area, #printable-lists-area * {
@@ -1738,27 +1743,44 @@ export default function App() {
                         position: absolute;
                         left: 0;
                         top: 0;
-                        width: 100%;
+                        width: 100% !important;
                         background: white !important;
                         padding: 0 !important;
                         box-shadow: none !important;
                         border: none !important;
                     }
+                    /* Remove overflow that breaks pages */
+                    .overflow-x-auto, .overflow-hidden, .overflow-y-auto {
+                        overflow: visible !important;
+                        overflow-x: visible !important;
+                        overflow-y: visible !important;
+                    }
                     .no-print {
                         display: none !important;
                     }
-                    /* Add table fixes for PDF saving */
+                    /* Table fixes for PDF saving */
                     table {
                         width: 100% !important;
-                        page-break-inside: auto;
+                        table-layout: auto !important;
+                        border-collapse: collapse !important;
+                        page-break-inside: auto !important;
                     }
                     tr {
-                        page-break-inside: avoid;
-                        page-break-after: auto;
+                        page-break-inside: avoid !important;
+                        page-break-after: auto !important;
+                    }
+                    thead {
+                        display: table-header-group !important;
+                    }
+                    tfoot {
+                        display: table-footer-group !important;
+                    }
+                    td, th {
+                        word-break: break-word !important;
+                        white-space: normal !important;
                     }
                 }
-
-            `}</style>
+`}</style>
 
       {/* --- HEADER --- */}
       <header className="bg-white/95 backdrop-blur-md shadow-md sticky top-0 z-40 border-b-4 border-yellow-400 transition-all no-print">
@@ -4044,7 +4066,7 @@ function StaffDashboardPanel({
                               {art.title}
                             </td>
                             <td className="py-2.5 px-4 text-center font-black text-amber-600">
-                              {art.likes?.length || 0} â˜…
+                              {art.likes?.length || 0} <Star className="w-3.5 h-3.5 inline-block text-amber-500 fill-current ml-1" />
                             </td>
                           </tr>
                         ))
@@ -4114,7 +4136,7 @@ function StaffDashboardPanel({
                                 {critic.commentsCount}
                               </td>
                               <td className="py-2.5 px-4 text-center font-black text-amber-600">
-                                {critic.likesCount} â˜…
+                                {critic.likesCount} <Star className="w-3.5 h-3.5 inline-block text-amber-500 fill-current ml-1" />
                               </td>
                             </tr>
                           )
