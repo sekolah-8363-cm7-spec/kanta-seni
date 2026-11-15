@@ -1726,6 +1726,13 @@ export default function App() {
 
             
                 
+                
+                @media screen {
+                    .hide-on-screen {
+                        display: none !important;
+                    }
+                }
+
                 @media print {
                     @page {
                         size: A4 portrait;
@@ -2766,11 +2773,11 @@ export default function App() {
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs md:text-sm">
           <div className="flex items-center gap-2 font-bold text-blue-900">
             <Palette className="w-4 h-4 text-blue-600" />
-            <span>Kanta Seni â€” Misi Eksplorasi &amp; Jejak Bintang</span>
+            <span>Kanta Seni - Misi Eksplorasi & Jejak Bintang</span>
           </div>
           <div className="text-center sm:text-right font-semibold text-slate-500">
             &copy; {new Date().getFullYear()}{" "}
-            <span className="font-black text-blue-800">E&amp;J Studio</span>.
+            <span className="font-black text-blue-800">E&J Studio</span>.
             Hak Cipta Terpelihara.
           </div>
         </div>
@@ -3966,8 +3973,8 @@ function StaffDashboardPanel({
                       GALERI KANTA SENI
                     </h2>
                     <p className="text-xs text-blue-100 font-semibold mt-1">
-                      Misi Eksplorasi &amp; Jejak Bintang â€” Rekod Pelukis Cilik
-                      &amp; Pengkritik
+                      Misi Eksplorasi & Jejak Bintang â€” Rekod Pelukis Cilik
+                      & Pengkritik
                     </p>
                   </div>
                 </div>
@@ -4167,14 +4174,14 @@ function StaffDashboardPanel({
               <div className="pt-4 border-t-2 border-dashed border-slate-300 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6 text-xs text-slate-600">
                 <div>
                   <p className="font-bold text-blue-900">
-                    Kanta Seni â€” Sistem Galeri Maya &amp; Apresiasi PSV
+                    Kanta Seni - Sistem Galeri Maya & Apresiasi PSV
                   </p>
                   <p className="text-slate-500 mt-0.5">
-                    &copy; {new Date().getFullYear()} E&amp;J Studio. Hak Cipta
+                    &copy; {new Date().getFullYear()} E&J Studio. Hak Cipta
                     Terpelihara.
                   </p>
                 </div>
-                <div className="w-56 pt-6 border-b border-slate-400 text-center">
+                <div className="w-56 pt-6 border-b border-slate-400 text-center hide-on-screen">
                   <span className="font-bold text-slate-700 block">
                     Pengesahan Guru / Pentadbir
                   </span>
@@ -4287,7 +4294,7 @@ function StaffDashboardPanel({
                 className="bg-blue-700 hover:bg-blue-800 text-white font-black px-6 py-3 rounded-xl shadow-md transition-all flex items-center gap-2 text-sm"
               >
                 <UserPlus className="w-4 h-4" />
-                Simpan &amp; Daftar Guru
+                Simpan & Daftar Guru
               </button>
             </div>
           </form>
