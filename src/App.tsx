@@ -2486,7 +2486,7 @@ export default function App() {
                     {isCurrentPassportVip ? (
                       <span className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-500 text-slate-950 px-3 py-1 rounded-full shadow-sm">
                         <Crown className="w-3.5 h-3.5 fill-current" />
-                        PASPORT VIP â€¢ {activePassport.className.toUpperCase()}
+                        PASPORT VIP - {activePassport.className.toUpperCase()}
                       </span>
                     ) : (
                       <span className="text-xs font-extrabold uppercase tracking-wider bg-yellow-400 text-blue-900 px-3 py-0.5 rounded-full">
@@ -3979,24 +3979,22 @@ function StaffDashboardPanel({
                   </div>
                 </div>
 
-                <div className="bg-blue-950/70 border border-yellow-400/60 rounded-2xl px-4 py-2.5 text-xs space-y-1">
-                  <div className="flex items-center justify-between gap-4">
-                    <span className="text-blue-200">Tempoh / Sesi:</span>
-                    <span className="font-black text-yellow-300">
+                <div className="bg-blue-950/70 border border-yellow-400/60 rounded-2xl px-4 py-3 text-xs w-full sm:w-64 mt-4 sm:mt-0">
+                  <div className="grid grid-cols-[100px_1fr] gap-x-2 gap-y-1.5 items-center">
+                    <span className="text-blue-200 font-medium">Sesi:</span>
+                    <span className="font-black text-yellow-300 text-right">
                       {printYearFilter === "Semua"
                         ? "Semua Sesi"
                         : `Tahun ${printYearFilter}`}
                     </span>
-                  </div>
-                  <div className="flex items-center justify-between gap-4">
-                    <span className="text-blue-200">Kelas / Kategori:</span>
-                    <span className="font-black text-yellow-300">
+                    
+                    <span className="text-blue-200 font-medium">Kategori:</span>
+                    <span className="font-black text-yellow-300 text-right truncate">
                       {printClassFilter}
                     </span>
-                  </div>
-                  <div className="flex items-center justify-between gap-4">
-                    <span className="text-blue-200">Tarikh Cetakan:</span>
-                    <span className="font-bold text-white">
+                    
+                    <span className="text-blue-200 font-medium">Tarikh:</span>
+                    <span className="font-bold text-white text-right">
                       {new Date().toLocaleDateString("ms-MY")}
                     </span>
                   </div>
