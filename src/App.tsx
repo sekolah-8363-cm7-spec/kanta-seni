@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   Compass,
   Star,
@@ -1873,7 +1873,11 @@ export default function App() {
         <div className="flex flex-col items-center">
           <div className="relative mb-4">
             <div className="absolute inset-0 bg-yellow-400 rounded-full blur-xl opacity-50 animate-ping"></div>
-            <Compass className="text-blue-600 w-16 h-16 animate-spin relative z-10" />
+            <img
+              src="/logo.png"
+              alt="Logo Kanta Seni"
+              className="w-20 h-20 object-contain rounded-2xl shadow-lg animate-bounce relative z-10 bg-white p-1.5"
+            />
           </div>
           <h2 className="text-2xl font-bold text-blue-800 animate-pulse">
             Sedang Memuatkan Kanta Seni...
@@ -2042,8 +2046,12 @@ export default function App() {
                 setActiveTab("laman-utama");
               }}
             >
-              <div className="bg-blue-600 p-2 rounded-xl mr-3 shadow-sm transform -rotate-3 group-hover:rotate-12 group-hover:scale-110 transition-all duration-300">
-                <Compass className="text-yellow-300 w-8 h-8 group-hover:rotate-45 transition-transform duration-500" />
+              <div className="bg-white p-1.5 rounded-xl mr-3 shadow-sm border-2 border-yellow-400 transform -rotate-3 group-hover:rotate-6 group-hover:scale-110 transition-all duration-300 overflow-hidden">
+                <img
+                  src="/logo.png"
+                  alt="Logo Kanta Seni"
+                  className="w-9 h-9 object-contain"
+                />
               </div>
               <div>
                 <h1 className="text-xl md:text-2xl font-extrabold text-blue-900 tracking-tight leading-tight group-hover:text-blue-700 transition-colors">
@@ -2115,19 +2123,21 @@ export default function App() {
                   }`}
                   title="Klik untuk lihat status Pasport"
                 >
-                  {isCurrentPassportVip ? (
-                    <Crown className="w-4 h-4 mr-1.5 text-yellow-400 fill-current animate-pulse" />
-                  ) : (
-                    <Award className="w-4 h-4 mr-1.5 text-green-600 animate-pulse" />
-                  )}
+                  <span className="relative inline-flex items-center mr-1.5">
+                    <Award
+                      className={`w-4 h-4 animate-pulse ${
+                        isCurrentPassportVip ? "text-yellow-400" : "text-green-600"
+                      }`}
+                    />
+                    {isCurrentPassportVip && (
+                      <span className="ml-1 bg-black text-yellow-400 border border-yellow-400 text-[8px] font-black px-1 py-0.2 rounded-full uppercase tracking-wider leading-none">
+                        VIP
+                      </span>
+                    )}
+                  </span>
                   <span className="truncate max-w-[100px]">
                     {activePassport.fullName}
                   </span>
-                  {isCurrentPassportVip && (
-                    <span className="ml-1 bg-yellow-400 text-slate-950 text-[10px] font-black px-1.5 py-0.5 rounded-full">
-                      VIP
-                    </span>
-                  )}
                   <span
                     className={`ml-1.5 px-2 py-0.5 rounded-full font-black ${
                       isCurrentPassportVip
@@ -2769,8 +2779,7 @@ export default function App() {
                   {/* Baris 1: Lencana Pasport & Baki Kuota */}
                   <div className="flex flex-wrap items-center justify-between gap-2.5 pb-4 mb-4 border-b border-white/15 relative z-10">
                     {isCurrentPassportVip ? (
-                      <span className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-500 text-slate-950 px-3.5 py-1.5 rounded-full shadow-sm">
-                        <Crown className="w-3.5 h-3.5 fill-current" />
+                      <span className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider bg-black text-yellow-400 border border-yellow-400 px-3.5 py-1.5 rounded-full shadow-sm">
                         PASPORT VIP • {activePassport.className.toUpperCase()}
                       </span>
                     ) : (
@@ -3031,14 +3040,18 @@ export default function App() {
                         <div className="flex flex-wrap items-center justify-between gap-2 mb-2.5">
                           <div className="flex items-center gap-2.5">
                             <span
-                              className={`w-8 h-8 rounded-full border-2 flex items-center justify-center font-black text-xs shrink-0 shadow-sm ${badgeBg}`}
+                              className={`relative w-8 h-8 rounded-full border-2 flex items-center justify-center font-black text-xs shrink-0 shadow-sm ${badgeBg}`}
                             >
                               #{index + 1}
+                              {critic.isVip && (
+                                <span className="absolute -bottom-1.5 -right-1.5 bg-black text-yellow-400 border border-yellow-400 text-[7px] font-black px-1 py-[0.5px] rounded-full uppercase leading-none">
+                                  VIP
+                                </span>
+                              )}
                             </span>
                             <div>
                               <div className="font-extrabold text-slate-800 text-sm md:text-base flex items-center gap-1.5 flex-wrap">
                                 <span>{critic.displayName}</span>
-                                {critic.isVip && <span className="bg-yellow-400 text-black text-[10px] font-bold px-1.5 py-0.5 rounded-md ml-1">VIP</span>}
                                 {index === 0 && (
                                   <Crown className="w-4 h-4 text-yellow-500 fill-current animate-crown" />
                                 )}
@@ -3115,7 +3128,11 @@ export default function App() {
       <footer className="bg-white border-t-4 border-yellow-400 text-slate-600 py-5 px-4 pb-24 md:pb-5 mt-auto no-print">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs md:text-sm">
           <div className="flex items-center gap-2 font-bold text-blue-900">
-            <Palette className="w-4 h-4 text-blue-600" />
+            <img
+              src="/logo.png"
+              alt="Logo Kanta Seni"
+              className="w-5 h-5 object-contain rounded"
+            />
             <span>Kanta Seni - Misi Eksplorasi & Jejak Bintang</span>
           </div>
           <div className="text-center sm:text-right font-semibold text-slate-500">
@@ -3276,7 +3293,7 @@ export default function App() {
       )}
 
 
-      {/* MODAL SENARAI PEMBERI BINTANG GAYA FACEBOOK (IKON CROWN SAHAJA UNTUK VIP) (z-[65]) */}
+      {/* MODAL SENARAI PEMBERI BINTANG GAYA FACEBOOK (LENCANA VIP HITAM & BINGKAI KUNING PADA AVATAR) (z-[65]) */}
       {starListModalData && (
         <div
           onClick={() => {
@@ -3333,19 +3350,14 @@ export default function App() {
                           {g.initial}
                         </div>
                         {g.isVip && (
-                          <span className="absolute -top-1.5 -right-1.5 bg-slate-900 text-yellow-300 border border-yellow-400 rounded-full p-0.5 shadow-xs">
-                            <Crown className="w-2.5 h-2.5 fill-current" />
+                          <span className="absolute -bottom-1 -right-1.5 bg-black text-yellow-400 border border-yellow-400 text-[8px] font-black px-1 py-[1px] rounded-full uppercase leading-none shadow-xs">
+                            VIP
                           </span>
                         )}
                       </div>
                       <div>
                         <div className="font-bold text-slate-800 text-sm flex items-center gap-1.5 flex-wrap">
                           <span>{g.name}</span>
-                          {g.isVip && (
-                            <span className="bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-500 text-slate-950 border border-amber-600 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider shadow-2xs">
-                              VIP
-                            </span>
-                          )}
                         </div>
                       </div>
                     </div>
@@ -3512,8 +3524,8 @@ function StarGiversAvatars({
           >
             {g.initial}
             {g.isVip && (
-              <span className="absolute -top-1.5 -right-1 bg-slate-950 text-yellow-300 rounded-full p-[1px] border border-yellow-400">
-                <Crown className="w-2 h-2 fill-current" />
+              <span className="absolute -bottom-1 -right-1.5 bg-black text-yellow-400 border border-yellow-400 rounded-full px-1 py-[0.5px] text-[6.5px] font-black uppercase leading-none shadow-2xs">
+                VIP
               </span>
             )}
           </span>
@@ -4371,35 +4383,11 @@ function StaffDashboardPanel({
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
                 <div className="flex items-center gap-3.5">
                   <div className="bg-white p-1.5 rounded-2xl border-2 border-yellow-400 shadow-md shrink-0">
-                    <svg
-                      viewBox="0 0 64 64"
-                      className="w-11 h-11"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <rect width="64" height="64" rx="14" fill="#1E3A8A" />
-                      <circle
-                        cx="32"
-                        cy="32"
-                        r="24"
-                        stroke="#FACC15"
-                        strokeWidth="2.2"
-                        strokeDasharray="4 3"
-                      />
-                      <path
-                        d="M32 14C21.5 14 14 21.5 14 31.5C14 39.2 19.8 44 26 44C28.3 44 29.8 42.5 29.8 40.5C29.8 39.6 29.4 38.8 28.9 38.2C28.4 37.6 28.1 36.9 28.1 36C28.1 34 29.7 32.4 31.7 32.4H35.5C43.2 32.4 50 26.8 50 19.5C50 15.8 41.8 14 32 14Z"
-                        fill="#FEF08A"
-                      />
-                      <circle cx="22" cy="25" r="2.6" fill="#EF4444" />
-                      <circle cx="29" cy="20" r="2.6" fill="#3B82F6" />
-                      <circle cx="38" cy="21" r="2.6" fill="#10B981" />
-                      <path
-                        d="M44 37L46.2 41.8L51.5 42.4L47.5 46L48.6 51.2L44 48.5L39.4 51.2L40.5 46L36.5 42.4L41.8 41.8L44 37Z"
-                        fill="#FACC15"
-                        stroke="#1E3A8A"
-                        strokeWidth="1.2"
-                      />
-                    </svg>
+                    <img
+                      src="/logo.png"
+                      alt="Logo Kanta Seni"
+                      className="w-11 h-11 object-contain"
+                    />
                   </div>
                   <div>
                     <div className="inline-block bg-yellow-400 text-blue-900 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider mb-1">
@@ -5478,8 +5466,8 @@ function ArtworkCard({
                             {authorDisplay.charAt(0).toUpperCase()}
                           </div>
                           {commentIsVip && (
-                            <span className="absolute -top-1.5 -right-1 bg-slate-950 text-yellow-300 rounded-full p-[1.5px] border border-yellow-400">
-                              <Crown className="w-2.5 h-2.5 fill-current" />
+                            <span className="absolute -bottom-1 -right-1.5 bg-black text-yellow-400 border border-yellow-400 rounded-full px-1 py-[0.5px] text-[7px] font-black uppercase leading-none shadow-2xs">
+                              VIP
                             </span>
                           )}
                         </div>
@@ -5490,11 +5478,6 @@ function ArtworkCard({
                               ? ` (${comment.authorClass})`
                               : ""}
                           </span>
-                          {commentIsVip && (
-                            <span className="bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-500 text-slate-950 border border-amber-600 text-[9px] font-black px-1.5 py-0.2 rounded-full uppercase tracking-wider">
-                              VIP
-                            </span>
-                          )}
                         </div>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
@@ -6082,8 +6065,8 @@ function ArtworkLightboxModal({
                             {authorDisplay.charAt(0).toUpperCase()}
                           </div>
                           {commentIsVip && (
-                            <span className="absolute -top-1.5 -right-1 bg-slate-950 text-yellow-300 rounded-full p-[1.5px] border border-yellow-400">
-                              <Crown className="w-2.5 h-2.5 fill-current" />
+                            <span className="absolute -bottom-1 -right-1.5 bg-black text-yellow-400 border border-yellow-400 rounded-full px-1 py-[0.5px] text-[7px] font-black uppercase leading-none shadow-2xs">
+                              VIP
                             </span>
                           )}
                         </div>
@@ -6094,11 +6077,6 @@ function ArtworkLightboxModal({
                               ? ` (${comment.authorClass})`
                               : ""}
                           </span>
-                          {commentIsVip && (
-                            <span className="bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-500 text-slate-950 border border-amber-600 text-[9px] font-black px-1.5 py-0.2 rounded-full uppercase tracking-wider">
-                              VIP
-                            </span>
-                          )}
                         </div>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
@@ -6488,72 +6466,77 @@ function ArtworkFormModal({
                       key={formData.imageUrl}
                       src={formData.imageUrl}
                       alt="Pratonton Karya"
-                      onError={() => setPreviewError(true)}
-                      className="w-full max-h-56 object-contain mx-auto"
+                      className="w-full h-44 object-contain"
                     />
-                    <div className="bg-green-600 text-white text-xs text-center py-1 font-extrabold">
-                      Pratonton
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        SoundFX.click();
+                        setRawLinkInput("");
+                        setFormData((prev) => ({ ...prev, imageUrl: "" }));
+                      }}
+                      className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full hover:bg-red-600 shadow-md transition-transform hover:scale-110"
+                      title="Buang Gambar"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
                   </div>
                 )}
               </div>
             ) : (
-              <div className="space-y-3 bg-blue-50/60 p-4 rounded-2xl border-2 border-blue-100">
-                <div>
-                  <label className="block text-xs font-extrabold text-blue-900 mb-1">
-                    Tampal Pautan (Link) Gambar Baharu:
-                  </label>
+              <div className="space-y-3">
+                <div className="relative">
                   <input
                     type="url"
                     value={rawLinkInput}
                     onChange={handleLinkChange}
                     required={!formData.imageUrl}
-                    placeholder="https://... (Google Drive / Pautan Imej)"
-                    className="w-full bg-white border-2 border-blue-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-blue-500 font-medium"
+                    placeholder="Tampal pautan Google Drive / URL gambar di sini..."
+                    className="w-full border-2 border-slate-200 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all font-medium"
                   />
-                  <p className="text-[11px] text-slate-500 mt-1.5 leading-snug">
-                    Sokong pautan terus gambar (`.jpg`, `.png`, `.webp`) atau
-                    pautan perkongsian <strong>Google Drive</strong> (pastikan
-                    tetapan Drive ialah <em>Anyone with the link</em>).
-                  </p>
+                  <Link2 className="w-4 h-4 text-blue-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 </div>
+                <p className="text-[11px] text-slate-500 leading-snug">
+                  Menyokong pautan terus gambar (`.jpg`, `.png`) dan pautan
+                  perkongsian <span className="font-bold">Google Drive</span>{" "}
+                  (pastikan tetapan capaian fail ialah{" "}
+                  <span className="italic">Anyone with the link</span>).
+                </p>
 
 
                 {formData.imageUrl && (
-                  <div className="bg-white p-2.5 rounded-xl border border-blue-200 space-y-2">
-                    <div className="bg-slate-900 rounded-lg overflow-hidden">
+                  <div className="rounded-2xl overflow-hidden border-4 border-yellow-400 shadow-md relative bg-slate-900 animate-pop-up">
+                    {previewError ? (
+                      <div className="p-6 text-center text-xs text-red-300 font-semibold">
+                        Gambar gagal dimuatkan daripada pautan ini. Sila
+                        pastikan pautan boleh diakses umum (Public).
+                      </div>
+                    ) : (
                       <img
                         key={formData.imageUrl}
                         src={formData.imageUrl}
-                        alt="Pratonton Link"
+                        alt="Pratonton Link Karya"
                         onError={() => setPreviewError(true)}
-                        onLoad={() => setPreviewError(false)}
-                        className="w-full max-h-48 object-contain mx-auto"
+                        className="w-full h-44 object-contain"
                       />
-                    </div>
-                    <div className="text-xs text-center">
-                      {previewError ? (
-                        <span className="text-red-600 font-bold">
-                          Gambar tidak dapat dimuatkan. Pastikan link boleh
-                          diakses secara umum (Public).
-                        </span>
-                      ) : (
-                        <span className="text-green-700 font-bold">
-                          Pratonton gambar berjaya dimuatkan mengikut saiz asal!
-                        </span>
-                      )}
-                    </div>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        SoundFX.click();
+                        setRawLinkInput("");
+                        setPreviewError(false);
+                        setFormData((prev) => ({ ...prev, imageUrl: "" }));
+                      }}
+                      className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full hover:bg-red-600 shadow-md transition-transform hover:scale-110"
+                      title="Padam Link"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
                   </div>
                 )}
               </div>
             )}
-
-
-            <p className="text-xs text-slate-500 mt-2 flex items-center">
-              <Compass className="w-3 h-3 mr-1 shrink-0" />
-              Gambar dipaparkan mengikut saiz & nisbah asal agar kekal jelas
-              apabila di-zoom.
-            </p>
           </div>
 
 
@@ -6568,7 +6551,11 @@ function ArtworkFormModal({
             <button
               type="submit"
               disabled={isProcessingImage || !formData.imageUrl}
-              className="flex-2 w-2/3 px-4 py-3 bg-yellow-400 hover:bg-yellow-300 disabled:opacity-50 disabled:cursor-not-allowed text-blue-900 font-black rounded-xl shadow-[0_4px_0_rgb(180,83,9)] hover:translate-y-1 hover:shadow-[0_2px_0_rgb(180,83,9)] transition-all"
+              className={`w-2/3 px-4 py-3 font-black rounded-xl transition-all disabled:opacity-50 ${
+                isEdit
+                  ? "bg-blue-800 hover:bg-blue-900 text-yellow-300 shadow-[0_4px_0_rgb(15,23,42)] hover:translate-y-0.5"
+                  : "bg-yellow-400 hover:bg-yellow-300 text-blue-900 shadow-[0_4px_0_rgb(180,83,9)] hover:translate-y-0.5"
+              }`}
             >
               {isEdit ? "Simpan Perubahan" : "Pamerkan Karya!"}
             </button>
