@@ -3959,7 +3959,7 @@ function StaffDashboardPanel({
             id="printable-lists-area"
             className="rounded-3xl border-4 border-blue-900 overflow-hidden bg-white shadow-sm"
           >
-            <div className="bg-gradient-to-r from-blue-800 via-blue-700 to-blue-900 text-white p-6 border-b-4 border-yellow-400 relative overflow-hidden">
+            <div className="bg-gradient-to-r from-blue-800 via-blue-700 to-blue-900 text-white p-6 border-b-4 border-yellow-400 relative overflow-hidden hide-on-screen">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
                 <div className="flex items-center gap-3.5">
                   <div className="bg-yellow-400 text-blue-900 p-3 rounded-2xl border-2 border-white shadow-md">
@@ -3967,13 +3967,13 @@ function StaffDashboardPanel({
                   </div>
                   <div>
                     <div className="inline-block bg-yellow-400 text-blue-900 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider mb-1">
-                      SLIP REKOD RASMI â€¢ PAMERAN MAYA PSV
+                      SLIP REKOD RASMI - PAMERAN MAYA PSV
                     </div>
                     <h2 className="text-2xl font-black tracking-tight leading-none">
                       GALERI KANTA SENI
                     </h2>
                     <p className="text-xs text-blue-100 font-semibold mt-1">
-                      Misi Eksplorasi & Jejak Bintang â€” Rekod Pelukis Cilik
+                      Misi Eksplorasi & Jejak Bintang - Rekod Pelukis Cilik
                       & Pengkritik
                     </p>
                   </div>
@@ -4171,7 +4171,7 @@ function StaffDashboardPanel({
                 </div>
               </div>
 
-              <div className="pt-4 border-t-2 border-dashed border-slate-300 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6 text-xs text-slate-600">
+              <div className="pt-4 border-t-2 border-dashed border-slate-300 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6 text-xs text-slate-600 hide-on-screen">
                 <div>
                   <p className="font-bold text-blue-900">
                     Kanta Seni - Sistem Galeri Maya & Apresiasi PSV
