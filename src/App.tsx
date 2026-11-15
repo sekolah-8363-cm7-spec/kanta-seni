@@ -2428,7 +2428,7 @@ export default function App() {
                     {isCurrentPassportVip ? (
                       <span className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-500 text-slate-950 px-3 py-1 rounded-full shadow-sm">
                         <Crown className="w-3.5 h-3.5 fill-current" />
-                        PASPORT VIP • {activePassport.className.toUpperCase()}
+                        PASPORT VIP â€¢ {activePassport.className.toUpperCase()}
                       </span>
                     ) : (
                       <span className="text-xs font-extrabold uppercase tracking-wider bg-yellow-400 text-blue-900 px-3 py-0.5 rounded-full">
@@ -2460,7 +2460,7 @@ export default function App() {
                     }`}
                   >
                     {activePassport.className}{" "}
-                    {activePassport.email ? `• ${activePassport.email}` : ""}
+                    {activePassport.email ? `â€¢ ${activePassport.email}` : ""}
                   </p>
                 </div>
               )}
@@ -2717,7 +2717,7 @@ export default function App() {
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs md:text-sm">
           <div className="flex items-center gap-2 font-bold text-blue-900">
             <Palette className="w-4 h-4 text-blue-600" />
-            <span>Kanta Seni — Misi Eksplorasi &amp; Jejak Bintang</span>
+            <span>Kanta Seni â€” Misi Eksplorasi &amp; Jejak Bintang</span>
           </div>
           <div className="text-center sm:text-right font-semibold text-slate-500">
             &copy; {new Date().getFullYear()}{" "}
@@ -3782,7 +3782,7 @@ function StaffDashboardPanel({
                                   {c.authorClass ? `(${c.authorClass})` : ""}
                                   {c.timestamp && (
                                     <span className="text-slate-400 font-normal ml-2">
-                                      • {formatTimeAgo(c.timestamp)}
+                                      â€¢ {formatTimeAgo(c.timestamp)}
                                     </span>
                                   )}
                                 </div>
@@ -3911,13 +3911,13 @@ function StaffDashboardPanel({
                   </div>
                   <div>
                     <div className="inline-block bg-yellow-400 text-blue-900 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider mb-1">
-                      SLIP REKOD RASMI • PAMERAN MAYA PSV
+                      SLIP REKOD RASMI â€¢ PAMERAN MAYA PSV
                     </div>
                     <h2 className="text-2xl font-black tracking-tight leading-none">
                       GALERI KANTA SENI
                     </h2>
                     <p className="text-xs text-blue-100 font-semibold mt-1">
-                      Misi Eksplorasi &amp; Jejak Bintang — Rekod Pelukis Cilik
+                      Misi Eksplorasi &amp; Jejak Bintang â€” Rekod Pelukis Cilik
                       &amp; Pengkritik
                     </p>
                   </div>
@@ -4034,7 +4034,7 @@ function StaffDashboardPanel({
                               {art.title}
                             </td>
                             <td className="py-2.5 px-4 text-center font-black text-amber-600">
-                              {art.likes?.length || 0} ★
+                              {art.likes?.length || 0} â˜…
                             </td>
                           </tr>
                         ))
@@ -4104,7 +4104,7 @@ function StaffDashboardPanel({
                                 {critic.commentsCount}
                               </td>
                               <td className="py-2.5 px-4 text-center font-black text-amber-600">
-                                {critic.likesCount} ★
+                                {critic.likesCount} â˜…
                               </td>
                             </tr>
                           )
@@ -4118,7 +4118,7 @@ function StaffDashboardPanel({
               <div className="pt-4 border-t-2 border-dashed border-slate-300 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6 text-xs text-slate-600">
                 <div>
                   <p className="font-bold text-blue-900">
-                    Kanta Seni — Sistem Galeri Maya &amp; Apresiasi PSV
+                    Kanta Seni â€” Sistem Galeri Maya &amp; Apresiasi PSV
                   </p>
                   <p className="text-slate-500 mt-0.5">
                     &copy; {new Date().getFullYear()} E&amp;J Studio. Hak Cipta
@@ -4270,7 +4270,7 @@ function StaffDashboardPanel({
                         <span className="font-mono font-bold text-slate-700">
                           {t.username}
                         </span>{" "}
-                        • Password:{" "}
+                        â€¢ Password:{" "}
                         <span className="font-mono font-bold text-slate-700">
                           {t.password}
                         </span>
@@ -4465,7 +4465,7 @@ function PassportRegistrationModal({
                 isSelectedVip ? "text-amber-200" : "text-blue-100"
               }`}
             >
-              3 karya setiap pasport • Boleh daftar semula jika sudah tamat
+              3 karya setiap pasport â€¢ Boleh daftar semula jika sudah tamat
             </p>
           </div>
           <button
