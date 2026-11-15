@@ -1368,7 +1368,7 @@ export default function App() {
   };
 
 
-  const handleEditArtwork = (updatedData: {
+  const handleEditArtwork = async (updatedData: {
     title: string;
     studentName: string;
     className: string;
@@ -1376,8 +1376,7 @@ export default function App() {
   }) => {
     if (!editingArtwork || !loggedInStaff) return;
 
-
-    const cleanImageUrl = updatedData.imageUrl.trim();
+    const cleanImageUrl = formatDirectImageUrl(updatedData.imageUrl.trim());
     const updatedArt = {
       ...editingArtwork,
       title: updatedData.title.trim(),
@@ -1387,36 +1386,35 @@ export default function App() {
       updatedAt: Date.now(),
     };
 
-
     setArtworks((prev) =>
       prev.map((art) =>
-        String(art.id) === String(updatedArt.id) ? updatedArt : art
+        String(art.id).trim() === String(updatedArt.id).trim()
+          ? updatedArt
+          : art
       )
     );
 
-
     if (
       selectedArtwork &&
-      String(selectedArtwork.id) === String(updatedArt.id)
+      String(selectedArtwork.id).trim() === String(updatedArt.id).trim()
     ) {
       setSelectedArtwork(updatedArt);
     }
-
-
-    sendToSheet("edit", {
-      id: String(updatedArt.id).trim(),
-      title: updatedArt.title,
-      studentName: updatedArt.studentName,
-      className: updatedArt.className,
-      imageUrl: updatedArt.imageUrl,
-    });
-
 
     setEditingArtwork(null);
     SoundFX.success();
     showTimedNotice(
       `Maklumat & gambar karya "${updatedArt.title}" berjaya dikemas kini ke pangkalan data!`
     );
+
+    await sendToSheet("update", updatedArt);
+    await sendToSheet("edit", {
+      id: String(updatedArt.id).trim(),
+      title: updatedArt.title,
+      studentName: updatedArt.studentName,
+      className: updatedArt.className,
+      imageUrl: updatedArt.imageUrl,
+    });
   };
 
 
@@ -1805,6 +1803,48 @@ export default function App() {
   });
 
 
+  // --- PENORMALAN TAJUK KARYA (KALIS HURUF BESAR/KECIL & SIMBOL) ---
+  const normalizeTitleKey = (title: string): string => {
+    if (!title) return "tanpa-tajuk";
+    const cleaned = title
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+    return cleaned || "tanpa-tajuk";
+  };
+
+  // --- KUMPULKAN KARYA MENGIKUT TAJUK YANG SAMA ---
+  const groupedArtworks = useMemo(() => {
+    const groupsMap = new Map<
+      string,
+      {
+        key: string;
+        displayTitle: string;
+        items: any[];
+      }
+    >();
+
+    filteredArtworks.forEach((art) => {
+      const key = normalizeTitleKey(art.title);
+      if (!groupsMap.has(key)) {
+        const cleanDisplay =
+          String(art.title || "")
+            .replace(/[^a-zA-Z0-9\s]/g, " ")
+            .replace(/\s+/g, " ")
+            .trim() || "Tanpa Tajuk";
+        groupsMap.set(key, {
+          key,
+          displayTitle: toTitleCase(cleanDisplay),
+          items: [],
+        });
+      }
+      groupsMap.get(key)!.items.push(art);
+    });
+
+    return Array.from(groupsMap.values());
+  }, [filteredArtworks]);
+
   const selectedMonthLabel =
     MONTH_OPTIONS.find((m) => m.value === selectedMonth)?.label || "";
 
@@ -1859,6 +1899,17 @@ export default function App() {
                 @keyframes brushStroke {
                     0%, 100% { transform: translate(0px, 0px) rotate(-8deg) scale(1); }
                     50% { transform: translate(8px, -10px) rotate(10deg) scale(1.06); }
+                }
+                @keyframes artistDrawing {
+                    0% { transform: translate(0px, 0px) rotate(-12deg) scale(1); }
+                    20% { transform: translate(14px, -6px) rotate(4deg) scale(1.08); }
+                    40% { transform: translate(4px, 8px) rotate(-15deg) scale(1.02); }
+                    60% { transform: translate(18px, 4px) rotate(8deg) scale(1.1); }
+                    80% { transform: translate(6px, -8px) rotate(-6deg) scale(1.04); }
+                    100% { transform: translate(0px, 0px) rotate(-12deg) scale(1); }
+                }
+                .animate-artist-drawing {
+                    animation: artistDrawing 4.2s ease-in-out infinite;
                 }
                 @keyframes popInUp {
                     0% { opacity: 0; transform: translateY(24px) scale(0.96); }
@@ -2227,18 +2278,25 @@ export default function App() {
           >
             {/* HERO SECTION */}
             <section className="relative bg-gradient-to-br from-blue-700 via-blue-700 to-blue-800 text-white overflow-hidden py-16 md:py-20 rounded-3xl shadow-xl border-b-8 border-yellow-400 animate-pop-up">
-              <Palette className="absolute top-7 left-7 md:top-10 md:left-12 text-yellow-300 w-12 h-12 md:w-16 md:h-16 opacity-75 animate-float-slow pointer-events-none" />
-              <Brush className="absolute top-10 right-8 md:top-14 md:right-14 text-amber-300 w-11 h-11 md:w-14 md:h-14 opacity-70 animate-brush-stroke pointer-events-none" />
-              <PenTool className="hidden sm:block absolute top-1/2 left-8 -translate-y-1/2 text-sky-200 w-10 h-10 opacity-45 animate-float-reverse pointer-events-none" />
+              <Palette className="absolute top-6 left-6 md:top-9 md:left-12 text-yellow-300 w-16 h-16 md:w-20 md:h-20 opacity-75 animate-float-slow pointer-events-none" />
+              <Brush className="absolute top-8 right-8 md:top-12 md:right-16 text-amber-300 w-12 h-12 md:w-16 md:h-16 opacity-80 animate-artist-drawing pointer-events-none" />
+              <PenTool
+                className="hidden sm:block absolute top-1/2 left-6 md:left-10 -translate-y-1/2 text-sky-200 w-8 h-8 md:w-9 md:h-9 opacity-60 animate-artist-drawing pointer-events-none"
+                style={{ animationDelay: "0.6s" }}
+              />
               <Shapes
-                className="absolute bottom-8 left-12 md:bottom-10 md:left-24 text-yellow-200 w-11 h-11 md:w-14 md:h-14 opacity-50 animate-float-reverse pointer-events-none"
+                className="absolute bottom-7 left-10 md:bottom-10 md:left-24 text-yellow-200 w-10 h-10 md:w-12 md:h-12 opacity-55 animate-float-reverse pointer-events-none"
                 style={{ animationDelay: "0.8s" }}
               />
               <Frame
-                className="absolute bottom-8 right-10 md:bottom-12 md:right-20 text-yellow-300 w-12 h-12 md:w-16 md:h-16 opacity-60 animate-float-slow pointer-events-none"
+                className="absolute bottom-6 right-8 md:bottom-10 md:right-20 text-yellow-300 w-14 h-14 md:w-20 md:h-20 opacity-60 animate-float-slow pointer-events-none"
                 style={{ animationDelay: "1.3s" }}
               />
-              <Sparkles className="hidden sm:block absolute top-1/2 right-10 -translate-y-1/2 text-yellow-200 w-9 h-9 opacity-60 animate-pulse pointer-events-none" />
+              <Sparkles className="absolute top-1/3 right-1/4 text-yellow-200 w-6 h-6 md:w-7 md:h-7 opacity-70 animate-pulse pointer-events-none" />
+              <Sparkles
+                className="hidden sm:block absolute bottom-1/3 left-1/4 text-sky-200 w-7 h-7 opacity-55 animate-pulse pointer-events-none"
+                style={{ animationDelay: "1s" }}
+              />
 
 
               <div className="max-w-4xl mx-auto text-center relative z-10 px-4">
@@ -2593,49 +2651,77 @@ export default function App() {
                 </button>
               </div>
             ) : (
-              <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6">
-                {filteredArtworks.map((artwork, idx) => (
-                  <ArtworkCard
-                    key={`${artwork.id}-${artwork.updatedAt || ""}`}
-                    index={idx}
-                    artwork={artwork}
-                    artworkYear={getArtworkYear(artwork.createdAt)}
-                    activeUserKey={activeUserKey}
-                    activePassport={activePassport}
-                    vipRegistry={criticCategoryRegistry}
-                    isStaffLoggedIn={!!loggedInStaff}
-                    onLike={() => toggleLike(artwork.id, artwork.likes || [])}
-                    onOpenStarList={(givers: StarGiverItem[]) => {
-                      SoundFX.click();
-                      setStarListModalData({
-                        title: artwork.title,
-                        givers,
-                      });
-                    }}
-                    onComment={(text: string, quizAnswers?: any) =>
-                      addComment(
-                        artwork.id,
-                        text,
-                        artwork.comments || [],
-                        quizAnswers
-                      )
-                    }
-                    onDeleteComment={(commentObj: any) =>
-                      handleDeleteCommentWithPenalty(artwork.id, commentObj)
-                    }
-                    onRequestEdit={() => {
-                      SoundFX.click();
-                      setEditingArtwork(artwork);
-                    }}
-                    onRequestDelete={() => {
-                      SoundFX.alert();
-                      setArtworkToDelete(artwork);
-                    }}
-                    onOpenPreview={() => {
-                      SoundFX.click();
-                      setSelectedArtwork(artwork);
-                    }}
-                  />
+              <div className="space-y-10">
+                {groupedArtworks.map((group) => (
+                  <div
+                    key={group.key}
+                    className="bg-white/75 backdrop-blur-xs p-5 md:p-6 rounded-3xl border-2 border-blue-100 shadow-sm"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2 pb-3.5 mb-6 border-b-2 border-yellow-300">
+                      <div className="flex items-center gap-2.5">
+                        <span className="bg-blue-700 text-yellow-300 p-2 rounded-xl shadow-2xs">
+                          <Palette className="w-5 h-5" />
+                        </span>
+                        <h4 className="text-xl md:text-2xl font-black text-blue-950 tracking-tight">
+                          {group.displayTitle}
+                        </h4>
+                      </div>
+                      <span className="bg-yellow-400 text-blue-950 text-xs font-black px-3.5 py-1 rounded-full border border-blue-900/20">
+                        {group.items.length} Karya
+                      </span>
+                    </div>
+
+                    <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6">
+                      {group.items.map((artwork, idx) => (
+                        <ArtworkCard
+                          key={`${artwork.id}-${artwork.updatedAt || ""}`}
+                          index={idx}
+                          artwork={artwork}
+                          artworkYear={getArtworkYear(artwork.createdAt)}
+                          activeUserKey={activeUserKey}
+                          activePassport={activePassport}
+                          vipRegistry={criticCategoryRegistry}
+                          isStaffLoggedIn={!!loggedInStaff}
+                          onLike={() =>
+                            toggleLike(artwork.id, artwork.likes || [])
+                          }
+                          onOpenStarList={(givers: StarGiverItem[]) => {
+                            SoundFX.click();
+                            setStarListModalData({
+                              title: artwork.title,
+                              givers,
+                            });
+                          }}
+                          onComment={(text: string, quizAnswers?: any) =>
+                            addComment(
+                              artwork.id,
+                              text,
+                              artwork.comments || [],
+                              quizAnswers
+                            )
+                          }
+                          onDeleteComment={(commentObj: any) =>
+                            handleDeleteCommentWithPenalty(
+                              artwork.id,
+                              commentObj
+                            )
+                          }
+                          onRequestEdit={() => {
+                            SoundFX.click();
+                            setEditingArtwork(artwork);
+                          }}
+                          onRequestDelete={() => {
+                            SoundFX.alert();
+                            setArtworkToDelete(artwork);
+                          }}
+                          onOpenPreview={() => {
+                            SoundFX.click();
+                            setSelectedArtwork(artwork);
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </div>
                 ))}
               </div>
             )}
@@ -3253,10 +3339,12 @@ export default function App() {
                         )}
                       </div>
                       <div>
-                        <div className="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+                        <div className="font-bold text-slate-800 text-sm flex items-center gap-1.5 flex-wrap">
                           <span>{g.name}</span>
                           {g.isVip && (
-                            <Crown className="w-4 h-4 text-amber-500 fill-current shrink-0" />
+                            <span className="bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-500 text-slate-950 border border-amber-600 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider shadow-2xs">
+                              VIP
+                            </span>
                           )}
                         </div>
                       </div>
@@ -4282,8 +4370,36 @@ function StaffDashboardPanel({
             <div className="bg-gradient-to-r from-blue-800 via-blue-700 to-blue-900 text-white p-6 border-b-4 border-yellow-400 relative overflow-hidden hide-on-screen">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
                 <div className="flex items-center gap-3.5">
-                  <div className="bg-blue-600 p-3 rounded-2xl border-2 border-yellow-400 shadow-md">
-                    <Compass className="text-yellow-300 w-8 h-8" />
+                  <div className="bg-white p-1.5 rounded-2xl border-2 border-yellow-400 shadow-md shrink-0">
+                    <svg
+                      viewBox="0 0 64 64"
+                      className="w-11 h-11"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <rect width="64" height="64" rx="14" fill="#1E3A8A" />
+                      <circle
+                        cx="32"
+                        cy="32"
+                        r="24"
+                        stroke="#FACC15"
+                        strokeWidth="2.2"
+                        strokeDasharray="4 3"
+                      />
+                      <path
+                        d="M32 14C21.5 14 14 21.5 14 31.5C14 39.2 19.8 44 26 44C28.3 44 29.8 42.5 29.8 40.5C29.8 39.6 29.4 38.8 28.9 38.2C28.4 37.6 28.1 36.9 28.1 36C28.1 34 29.7 32.4 31.7 32.4H35.5C43.2 32.4 50 26.8 50 19.5C50 15.8 41.8 14 32 14Z"
+                        fill="#FEF08A"
+                      />
+                      <circle cx="22" cy="25" r="2.6" fill="#EF4444" />
+                      <circle cx="29" cy="20" r="2.6" fill="#3B82F6" />
+                      <circle cx="38" cy="21" r="2.6" fill="#10B981" />
+                      <path
+                        d="M44 37L46.2 41.8L51.5 42.4L47.5 46L48.6 51.2L44 48.5L39.4 51.2L40.5 46L36.5 42.4L41.8 41.8L44 37Z"
+                        fill="#FACC15"
+                        stroke="#1E3A8A"
+                        strokeWidth="1.2"
+                      />
+                    </svg>
                   </div>
                   <div>
                     <div className="inline-block bg-yellow-400 text-blue-900 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider mb-1">
@@ -5367,14 +5483,18 @@ function ArtworkCard({
                             </span>
                           )}
                         </div>
-                        <div className="font-bold text-blue-900 text-xs flex items-center flex-wrap gap-1">
+                        <div className="font-bold text-blue-900 text-xs flex items-center flex-wrap gap-1.5">
                           <span>
                             {authorDisplay}
                             {comment.authorClass
                               ? ` (${comment.authorClass})`
                               : ""}
                           </span>
-                          
+                          {commentIsVip && (
+                            <span className="bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-500 text-slate-950 border border-amber-600 text-[9px] font-black px-1.5 py-0.2 rounded-full uppercase tracking-wider">
+                              VIP
+                            </span>
+                          )}
                         </div>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
@@ -5967,14 +6087,18 @@ function ArtworkLightboxModal({
                             </span>
                           )}
                         </div>
-                        <div className="font-bold text-blue-900 text-xs flex items-center flex-wrap gap-1">
+                        <div className="font-bold text-blue-900 text-xs flex items-center flex-wrap gap-1.5">
                           <span>
                             {authorDisplay}
                             {comment.authorClass
                               ? ` (${comment.authorClass})`
                               : ""}
                           </span>
-                          
+                          {commentIsVip && (
+                            <span className="bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-500 text-slate-950 border border-amber-600 text-[9px] font-black px-1.5 py-0.2 rounded-full uppercase tracking-wider">
+                              VIP
+                            </span>
+                          )}
                         </div>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
@@ -6106,11 +6230,18 @@ function ArtworkFormModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.imageUrl) {
+    const finalUrl =
+      imageSourceMode === "link"
+        ? formatDirectImageUrl((rawLinkInput || formData.imageUrl).trim())
+        : formData.imageUrl.trim();
+    if (!finalUrl) {
       SoundFX.alert();
       return;
     }
-    onSubmit(formData);
+    onSubmit({
+      ...formData,
+      imageUrl: finalUrl,
+    });
   };
 
 
@@ -6360,8 +6491,8 @@ function ArtworkFormModal({
                       onError={() => setPreviewError(true)}
                       className="w-full max-h-56 object-contain mx-auto"
                     />
-                    <div className="bg-green-600 text-white text-[11px] text-center py-1 font-extrabold">
-                      PRATONTON GAMBAR SEMASA (NISBAH ASAL)
+                    <div className="bg-green-600 text-white text-xs text-center py-1 font-extrabold">
+                      Pratonton
                     </div>
                   </div>
                 )}
