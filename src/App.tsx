@@ -1725,40 +1725,57 @@ export default function App() {
                 
 
             
+                
                 @media print {
                     @page {
                         size: A4 portrait;
                         margin: 10mm;
                     }
+                    /* Matikan semua animasi & transform yang mengganggu aliran (flow) pembahagian muka surat */
+                    * {
+                        animation: none !important;
+                        transform: none !important;
+                        transition: none !important;
+                    }
+                    
                     body {
                         -webkit-print-color-adjust: exact !important;
                         print-color-adjust: exact !important;
                         background: white !important;
-                        visibility: hidden;
                     }
-                    #printable-lists-area, #printable-lists-area * {
-                        visibility: visible;
+                    
+                    .no-print {
+                        display: none !important;
                     }
-                    #printable-lists-area {
-                        position: absolute;
-                        left: 0;
-                        top: 0;
-                        width: 100% !important;
-                        background: white !important;
-                        padding: 0 !important;
-                        box-shadow: none !important;
-                        border: none !important;
+                    
+                    /* Reset semua "parent layout" kepada blok biasa (static) supaya browser boleh paginasi jadual ke bawah */
+                    html, body, #root, main, section, .min-h-screen, .flex-1 {
+                        height: auto !important;
+                        min-height: 0 !important;
+                        overflow: visible !important;
+                        position: static !important;
+                        display: block !important;
                     }
-                    /* Remove overflow that breaks pages */
+                    
+                    /* Bebaskan kawasan cetakan daripada sebarang had overflow */
                     .overflow-x-auto, .overflow-hidden, .overflow-y-auto {
                         overflow: visible !important;
                         overflow-x: visible !important;
                         overflow-y: visible !important;
                     }
-                    .no-print {
-                        display: none !important;
+                    
+                    /* Kawasan jadual/slip - TIDAK BOLEH menggunakan 'position: absolute', ini punca ia tersekat pada 1 muka surat */
+                    #printable-lists-area {
+                        position: static !important;
+                        width: 100% !important;
+                        display: block !important;
+                        background: white !important;
+                        padding: 0 !important;
+                        box-shadow: none !important;
+                        border: none !important;
                     }
-                    /* Table fixes for PDF saving */
+                    
+                    /* Set Format Jadual PDF */
                     table {
                         width: 100% !important;
                         table-layout: auto !important;
