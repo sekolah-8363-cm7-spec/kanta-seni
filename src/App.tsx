@@ -1,104 +1,66 @@
-<!DOCTYPE html>
-<html lang="ms">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kanta Seni - Misi Eksplorasi & Jejak Bintang</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
-</head>
-<body class="bg-sky-50">
-  <div id="root"></div>
+﻿import React, { useState, useEffect, useMemo, useRef } from "react";
+import {
+  Compass,
+  Star,
+  Image as ImageIcon,
+  MessageCircle,
+  Plus,
+  User,
+  Send,
+  X,
+  Filter,
+  AlertTriangle,
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
+  Award,
+  CheckCircle2,
+  Lock,
+  Crown,
+  BarChart3,
+  Sparkles,
+  Shield,
+  Printer,
+  Trash2,
+  UserPlus,
+  Settings,
+  LogOut,
+  KeyRound,
+  Users,
+  Palette,
+  Eye,
+  EyeOff,
+  Brush,
+  PenTool,
+  Shapes,
+  Frame,
+  HelpCircle,
+  RefreshCw,
+  ChevronRight,
+  Link2,
+  Upload,
+  Pencil,
+  Calendar,
+  Move,
+  Volume2,
+  VolumeX,
+  DoorOpen,
+  MoreHorizontal,
+  CloudCheck,
+  Loader2,
+} from "lucide-react";
 
-  <script type="text/babel" data-presets="react,typescript">
-    const { useState, useEffect, useMemo, useRef } = React;
-
-    // Penjana komponen ikon Lucide secara dinamik supaya semua ikon berfungsi dalam HTML standalone
-    const createLucideComponent = (iconName) => {
-      return function LucideIcon({ className = "", style = {}, ...props }) {
-        const spanRef = useRef(null);
-        useEffect(() => {
-          if (spanRef.current && window.lucide && window.lucide.icons) {
-            const pascalToKebab = iconName
-              .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
-              .replace(/([A-Z])([A-Z][a-z])/g, "$1-$2")
-              .toLowerCase();
-            const iconDef = window.lucide.icons[iconName] || window.lucide.icons[pascalToKebab];
-            if (iconDef && typeof window.lucide.createElement === "function") {
-              spanRef.current.innerHTML = "";
-              const svg = window.lucide.createElement(iconDef);
-              if (className) svg.setAttribute("class", className);
-              Object.entries(style || {}).forEach(([k, v]) => {
-                svg.style[k] = v;
-              });
-              spanRef.current.appendChild(svg);
-            }
-          }
-        }, [className, JSON.stringify(style)]);
-        return <span ref={spanRef} className="inline-flex items-center justify-center shrink-0" {...props} />;
-      };
-    };
-
-    const Compass = createLucideComponent("Compass");
-    const Star = createLucideComponent("Star");
-    const ImageIcon = createLucideComponent("Image");
-    const MessageCircle = createLucideComponent("MessageCircle");
-    const Plus = createLucideComponent("Plus");
-    const User = createLucideComponent("User");
-    const Send = createLucideComponent("Send");
-    const X = createLucideComponent("X");
-    const Filter = createLucideComponent("Filter");
-    const AlertTriangle = createLucideComponent("AlertTriangle");
-    const ZoomIn = createLucideComponent("ZoomIn");
-    const ZoomOut = createLucideComponent("ZoomOut");
-    const RotateCcw = createLucideComponent("RotateCcw");
-    const Award = createLucideComponent("Award");
-    const CheckCircle2 = createLucideComponent("CheckCircle2");
-    const Lock = createLucideComponent("Lock");
-    const Crown = createLucideComponent("Crown");
-    const BarChart3 = createLucideComponent("BarChart3");
-    const Sparkles = createLucideComponent("Sparkles");
-    const Shield = createLucideComponent("Shield");
-    const Printer = createLucideComponent("Printer");
-    const Trash2 = createLucideComponent("Trash2");
-    const UserPlus = createLucideComponent("UserPlus");
-    const Settings = createLucideComponent("Settings");
-    const LogOut = createLucideComponent("LogOut");
-    const KeyRound = createLucideComponent("KeyRound");
-    const Users = createLucideComponent("Users");
-    const Palette = createLucideComponent("Palette");
-    const Eye = createLucideComponent("Eye");
-    const EyeOff = createLucideComponent("EyeOff");
-    const Brush = createLucideComponent("Brush");
-    const PenTool = createLucideComponent("PenTool");
-    const Shapes = createLucideComponent("Shapes");
-    const Frame = createLucideComponent("Frame");
-    const HelpCircle = createLucideComponent("HelpCircle");
-    const RefreshCw = createLucideComponent("RefreshCw");
-    const ChevronRight = createLucideComponent("ChevronRight");
-    const Link2 = createLucideComponent("Link2");
-    const Upload = createLucideComponent("Upload");
-    const Pencil = createLucideComponent("Pencil");
-    const Calendar = createLucideComponent("Calendar");
-    const Move = createLucideComponent("Move");
-    const Volume2 = createLucideComponent("Volume2");
-    const VolumeX = createLucideComponent("VolumeX");
-    const DoorOpen = createLucideComponent("DoorOpen");
-    const MoreHorizontal = createLucideComponent("MoreHorizontal");
-    const CloudCheck = createLucideComponent("CloudCheck");
-    const Loader2 = createLucideComponent("Loader2");
 
 // --- URL Google Apps Script Anda ---
 const SCRIPT_URL =
   "https://script.google.com/macros/s/AKfycbyFr90-D1q5IcmIi-tI60BCSZ1gk7nySgSXPN44WBcoDVp0RK2BBhvWaLoLe5k1p_Z1/exec";
 
+
 // --- SISTEM KESAN BUNYI INTERAKTIF (WEB AUDIO API) ---
 class SoundFX {
   private static ctx: AudioContext | null = null;
   public static enabled = true;
+
 
   private static getContext(): AudioContext | null {
     if (!this.enabled || typeof window === "undefined") return null;
@@ -119,6 +81,7 @@ class SoundFX {
     }
   }
 
+
   private static playTone(
     freq: number,
     duration: number,
@@ -129,27 +92,34 @@ class SoundFX {
     const ctx = this.getContext();
     if (!ctx) return;
 
+
     const now = ctx.currentTime + delay;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
 
+
     osc.type = type;
     osc.frequency.setValueAtTime(freq, now);
+
 
     gain.gain.setValueAtTime(0.001, now);
     gain.gain.exponentialRampToValueAtTime(gainVal, now + 0.02);
     gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
 
+
     osc.connect(gain);
     gain.connect(ctx.destination);
+
 
     osc.start(now);
     osc.stop(now + duration + 0.02);
   }
 
+
   static click() {
     this.playTone(620, 0.07, "sine", 0, 0.08);
   }
+
 
   static star() {
     this.playTone(587.33, 0.16, "triangle", 0, 0.14);
@@ -157,16 +127,19 @@ class SoundFX {
     this.playTone(1174.66, 0.3, "sine", 0.16, 0.12);
   }
 
+
   static success() {
     this.playTone(523.25, 0.15, "sine", 0, 0.13);
     this.playTone(659.25, 0.15, "sine", 0.09, 0.13);
     this.playTone(783.99, 0.28, "sine", 0.18, 0.15);
   }
 
+
   static comment() {
     this.playTone(440, 0.1, "sine", 0, 0.1);
     this.playTone(660, 0.18, "sine", 0.07, 0.12);
   }
+
 
   static welcome() {
     this.playTone(523.25, 0.18, "triangle", 0, 0.13);
@@ -175,20 +148,24 @@ class SoundFX {
     this.playTone(1046.5, 0.42, "sine", 0.33, 0.15);
   }
 
+
   static isAudioRunning(): boolean {
     return Boolean(this.ctx && this.ctx.state === "running");
   }
+
 
   static alert() {
     this.playTone(330, 0.16, "sawtooth", 0, 0.08);
     this.playTone(261.63, 0.22, "sawtooth", 0.12, 0.08);
   }
 
+
   static exitPrompt() {
     this.playTone(493.88, 0.18, "sine", 0, 0.12);
     this.playTone(392.0, 0.28, "sine", 0.14, 0.12);
   }
 }
+
 
 // --- Senarai Bulan Rasmi ---
 const MONTH_OPTIONS = [
@@ -207,12 +184,14 @@ const MONTH_OPTIONS = [
   { value: "12", label: "Disember" },
 ];
 
+
 // --- Helper: Semak Status VIP (Guru atau PIBG) ---
 const isVipCategory = (className?: string): boolean => {
   if (!className) return false;
   const clean = className.trim().toLowerCase();
   return clean === "guru" || clean === "pibg";
 };
+
 
 // --- Palet Warna Avatar Pelbagai ---
 const AVATAR_COLOR_PALETTE = [
@@ -226,6 +205,7 @@ const AVATAR_COLOR_PALETTE = [
   "from-sky-500 to-indigo-600 text-white",
 ];
 
+
 const getAvatarColorClass = (name: string, isVip: boolean): string => {
   if (isVip) {
     return "from-amber-300 via-yellow-400 to-amber-600 text-slate-950 ring-2 ring-yellow-300";
@@ -238,10 +218,12 @@ const getAvatarColorClass = (name: string, isVip: boolean): string => {
   return AVATAR_COLOR_PALETTE[index];
 };
 
+
 // --- Helper: Tukar pautan Google Drive biasa kepada pautan paparan gambar terus ---
 const formatDirectImageUrl = (rawUrl: string): string => {
   const url = rawUrl.trim();
   if (!url) return "";
+
 
   const driveFileMatch = url.match(
     /drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/
@@ -250,6 +232,7 @@ const formatDirectImageUrl = (rawUrl: string): string => {
     return `https://lh3.googleusercontent.com/d/${driveFileMatch[1]}=s1600`;
   }
 
+
   const driveIdMatch = url.match(
     /drive\.google\.com\/(?:open|uc)\?.*id=([a-zA-Z0-9_-]+)/
   );
@@ -257,8 +240,10 @@ const formatDirectImageUrl = (rawUrl: string): string => {
     return `https://lh3.googleusercontent.com/d/${driveIdMatch[1]}=s1600`;
   }
 
+
   return url;
 };
+
 
 // --- BANK SOALAN APRESIASI PSV (TAHAP 1 & TAHAP 2) ---
 interface AppreciationQuestion {
@@ -267,6 +252,7 @@ interface AppreciationQuestion {
   question: string;
   options: string[];
 }
+
 
 const APPRECIATION_QUESTIONS_TAHAP_1: AppreciationQuestion[] = [
   {
@@ -327,6 +313,7 @@ const APPRECIATION_QUESTIONS_TAHAP_1: AppreciationQuestion[] = [
     ],
   },
 ];
+
 
 const APPRECIATION_QUESTIONS_TAHAP_2: AppreciationQuestion[] = [
   {
@@ -389,6 +376,7 @@ const APPRECIATION_QUESTIONS_TAHAP_2: AppreciationQuestion[] = [
   },
 ];
 
+
 const getStageFromClass = (className?: string): "tahap1" | "tahap2" => {
   if (!className) return "tahap2";
   if (["Tahun 1", "Tahun 2", "Tahun 3"].includes(className)) {
@@ -396,6 +384,7 @@ const getStageFromClass = (className?: string): "tahap1" | "tahap2" => {
   }
   return "tahap2";
 };
+
 
 const pickThreeRandomQuestions = (
   stage: "tahap1" | "tahap2"
@@ -406,8 +395,10 @@ const pickThreeRandomQuestions = (
       : APPRECIATION_QUESTIONS_TAHAP_2;
   const shuffled = [...pool].sort(() => Math.random() - 0.5);
 
+
   const picked: AppreciationQuestion[] = [];
   const usedCategories = new Set<string>();
+
 
   for (const q of shuffled) {
     if (!usedCategories.has(q.category) && picked.length < 3) {
@@ -416,6 +407,7 @@ const pickThreeRandomQuestions = (
     }
   }
 
+
   for (const q of shuffled) {
     if (picked.length >= 3) break;
     if (!picked.some((item) => item.id === q.id)) {
@@ -423,13 +415,16 @@ const pickThreeRandomQuestions = (
     }
   }
 
+
   return picked;
 };
+
 
 // --- Helper: Format Masa Komen (Gaya Facebook) ---
 const formatTimeAgo = (timestamp: number) => {
   if (!timestamp) return "";
   const seconds = Math.floor((Date.now() - timestamp) / 1000);
+
 
   let interval = Math.floor(seconds / 31536000);
   if (interval >= 1)
@@ -439,6 +434,7 @@ const formatTimeAgo = (timestamp: number) => {
       year: "numeric",
     });
 
+
   interval = Math.floor(seconds / 86400);
   if (interval === 1) return "Semalam";
   if (interval > 1)
@@ -447,14 +443,18 @@ const formatTimeAgo = (timestamp: number) => {
       month: "short",
     });
 
+
   interval = Math.floor(seconds / 3600);
   if (interval >= 1) return interval + " jam lalu";
+
 
   interval = Math.floor(seconds / 60);
   if (interval >= 1) return interval + " minit lalu";
 
+
   return "Baru sahaja";
 };
+
 
 // --- Helper: Dapatkan Tahun daripada Timestamp ---
 const getArtworkYear = (createdAt: any) => {
@@ -465,6 +465,7 @@ const getArtworkYear = (createdAt: any) => {
     : dateObj.getFullYear().toString();
 };
 
+
 // --- Helper: Dapatkan Bulan (1-12) daripada Timestamp ---
 const getArtworkMonth = (createdAt: any): string => {
   if (!createdAt) return (new Date().getMonth() + 1).toString();
@@ -474,19 +475,22 @@ const getArtworkMonth = (createdAt: any): string => {
     : (dateObj.getMonth() + 1).toString();
 };
 
+
 const toTitleCase = (str: string) =>
   str.replace(
     /\w\S*/g,
     (txt) => txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase()
   );
 
-interface StarGiverItem {
+
+export interface StarGiverItem {
   key: string;
   name: string;
   initial: string;
   isVip: boolean;
   roleLabel?: string;
 }
+
 
 // --- Helper: Ekstrak Senarai Nama & Status VIP Pemberi Bintang ---
 const parseStarGivers = (
@@ -500,6 +504,7 @@ const parseStarGivers = (
       const rawName = likeKey.replace("passport-", "").trim();
       const norm = rawName.toLowerCase().replace(/\s+/g, " ");
 
+
       const matchedComment = Array.isArray(comments)
         ? comments.find(
             (c) =>
@@ -508,15 +513,18 @@ const parseStarGivers = (
           )
         : null;
 
+
       const displayName = matchedComment
         ? matchedComment.authorName.trim()
         : toTitleCase(rawName);
       const initial = (displayName.charAt(0) || "P").toUpperCase();
 
+
       const detectedClass =
         matchedComment?.authorClass || vipRegistry[norm] || "";
       const isVip =
         Boolean(matchedComment?.isVip) || isVipCategory(detectedClass);
+
 
       return {
         key: likeKey,
@@ -535,12 +543,14 @@ const parseStarGivers = (
   });
 };
 
-function App() {
+
+export default function App() {
   const [artworks, setArtworks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingArtwork, setEditingArtwork] = useState<any>(null);
   const [activeTab, setActiveTab] = useState("laman-utama");
+
 
   // --- Status Segerak Awan (Cloud Sync Status) ---
   const [syncState, setSyncState] = useState<"idle" | "saving" | "saved">(
@@ -549,20 +559,24 @@ function App() {
   const pendingWritesRef = useRef(0);
   const hasPlayedStartupWelcomeRef = useRef(false);
 
+
   // --- Kawalan Bunyi (Sound Effects) ---
   const [soundEnabled, setSoundEnabled] = useState<boolean>(() => {
     const saved = localStorage.getItem("kantaseni_sound_enabled");
     return saved !== "false";
   });
 
+
   useEffect(() => {
     SoundFX.enabled = soundEnabled;
     localStorage.setItem("kantaseni_sound_enabled", String(soundEnabled));
   }, [soundEnabled]);
 
+
   // --- BUNYI SAMBUTAN LAMAN UTAMA SELEPAS SKRIN LOADING SELESAI ---
   useEffect(() => {
     if (loading || hasPlayedStartupWelcomeRef.current) return;
+
 
     const unlockAndPlayWelcome = () => {
       if (hasPlayedStartupWelcomeRef.current) return;
@@ -572,6 +586,7 @@ function App() {
       window.removeEventListener("keydown", unlockAndPlayWelcome);
       window.removeEventListener("touchstart", unlockAndPlayWelcome);
     };
+
 
     const initTimer = setTimeout(() => {
       SoundFX.welcome();
@@ -584,6 +599,7 @@ function App() {
       }
     }, 180);
 
+
     return () => {
       clearTimeout(initTimer);
       window.removeEventListener("pointerdown", unlockAndPlayWelcome);
@@ -592,8 +608,10 @@ function App() {
     };
   }, [loading]);
 
+
   // --- Modal Pengesahan Keluar Tersuai ---
   const [isExitConfirmModalOpen, setIsExitConfirmModalOpen] = useState(false);
+
 
   // Hanya beri amaran pelayar JIKA ada proses penghantaran data ke Google Sheets belum selesai
   useEffect(() => {
@@ -609,11 +627,14 @@ function App() {
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, []);
 
+
   // --- State Pengesahan Padam Karya (Hanya untuk Admin & Guru) ---
   const [artworkToDelete, setArtworkToDelete] = useState<any>(null);
 
+
   // --- State Pop-up & Zoom Karya ---
   const [selectedArtwork, setSelectedArtwork] = useState<any>(null);
+
 
   // --- State Pop-up Senarai Pemberi Bintang (Gaya Facebook) ---
   const [starListModalData, setStarListModalData] = useState<{
@@ -621,15 +642,18 @@ function App() {
     givers: StarGiverItem[];
   } | null>(null);
 
+
   // --- State Penapis (Filter) Galeri ---
   const [selectedYear, setSelectedYear] = useState("Semua");
   const [selectedMonth, setSelectedMonth] = useState("Semua");
   const [selectedClass, setSelectedClass] = useState("Semua");
 
+
   // --- State Penapis Graf Pengkritik ---
   const [criticMetricFilter, setCriticMetricFilter] = useState<
     "semua" | "komen" | "bintang"
   >("semua");
+
 
   // --- STATE ADMIN & GURU (MENTOR) ---
   const [isStaffLoginModalOpen, setIsStaffLoginModalOpen] = useState(false);
@@ -646,6 +670,7 @@ function App() {
       return { username: "admin", password: "kantaseni2026" };
     }
   });
+
 
   const [teachersList, setTeachersList] = useState<
     Array<{
@@ -664,6 +689,7 @@ function App() {
     }
   });
 
+
   const [loggedInStaff, setLoggedInStaff] = useState<{
     role: "admin" | "guru";
     name: string;
@@ -677,6 +703,7 @@ function App() {
     }
   });
 
+
   useEffect(() => {
     localStorage.setItem(
       "kantaseni_admin_creds",
@@ -684,12 +711,14 @@ function App() {
     );
   }, [adminCredentials]);
 
+
   useEffect(() => {
     localStorage.setItem(
       "kantaseni_teachers_list",
       JSON.stringify(teachersList)
     );
   }, [teachersList]);
+
 
   useEffect(() => {
     if (loggedInStaff) {
@@ -702,15 +731,18 @@ function App() {
     }
   }, [loggedInStaff]);
 
+
   // --- State Notifikasi Auto-Tutup 5 Saat ---
   const [noticeObj, setNoticeObj] = useState<{
     id: number;
     message: string;
   } | null>(null);
 
+
   const showTimedNotice = (message: string) => {
     setNoticeObj({ id: Date.now(), message });
   };
+
 
   useEffect(() => {
     if (!noticeObj) return;
@@ -719,6 +751,7 @@ function App() {
     }, 5000);
     return () => clearTimeout(timer);
   }, [noticeObj]);
+
 
   // --- Rekod Kategori/VIP Setiap Pengguna Berdaftar ---
   const [criticCategoryRegistry, setCriticCategoryRegistry] = useState<
@@ -732,6 +765,7 @@ function App() {
     }
   });
 
+
   useEffect(() => {
     localStorage.setItem(
       "kantaseni_critic_categories",
@@ -739,11 +773,13 @@ function App() {
     );
   }, [criticCategoryRegistry]);
 
+
   // --- State Pasport Pengkritik & Aliran Auto-Kembali ke Karya ---
   const [isPassportModalOpen, setIsPassportModalOpen] = useState(false);
   const [pendingActionArtworkId, setPendingActionArtworkId] = useState<
     string | null
   >(null);
+
 
   // --- KAWALAN BUTANG BACK (TELEFON / TABLET / LAPTOP) DENGAN AMARAN KELUAR ---
   const uiStateRef = useRef({
@@ -757,6 +793,7 @@ function App() {
     starListModalData,
     isExitConfirmModalOpen,
   });
+
 
   useEffect(() => {
     uiStateRef.current = {
@@ -782,8 +819,10 @@ function App() {
     isExitConfirmModalOpen,
   ]);
 
+
   useEffect(() => {
     if (typeof window === "undefined") return;
+
 
     // Pasang penanda sejarah (history state) supaya butang Back dapat dipintas
     window.history.pushState(
@@ -792,8 +831,10 @@ function App() {
       window.location.href
     );
 
+
     const handlePopState = () => {
       const state = uiStateRef.current;
+
 
       // Kekalkan sentinel sejarah supaya pengguna tidak terus terkeluar dari aplikasi
       window.history.pushState(
@@ -801,6 +842,7 @@ function App() {
         "",
         window.location.href
       );
+
 
       // 1. Jika ada modal sedang terbuka, tutup modal dahulu dengan kemas
       if (state.isExitConfirmModalOpen) {
@@ -845,6 +887,7 @@ function App() {
         return;
       }
 
+
       // 2. Jika sedang berada di tab Galeri / Sudut Apresiasi / Admin, kembali ke Laman Utama
       if (state.activeTab !== "laman-utama") {
         SoundFX.click();
@@ -852,14 +895,17 @@ function App() {
         return;
       }
 
+
       // 3. Jika sudah di Laman Utama dan tiada modal terbuka, paparkan amaran pengesahan keluar!
       SoundFX.exitPrompt();
       setIsExitConfirmModalOpen(true);
     };
 
+
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
   }, []);
+
 
   const [activePassport, setActivePassport] = useState<any>(() => {
     try {
@@ -876,6 +922,7 @@ function App() {
     }
   });
 
+
   const [passportSessionsCount, setPassportSessionsCount] = useState<
     Record<string, number>
   >(() => {
@@ -887,6 +934,7 @@ function App() {
     }
   });
 
+
   const [visitorId] = useState(() => {
     let id = localStorage.getItem("kantaseni_visitor_id");
     if (!id) {
@@ -895,6 +943,7 @@ function App() {
     }
     return id;
   });
+
 
   useEffect(() => {
     if (activePassport && activePassport.usedCount < 3) {
@@ -907,12 +956,14 @@ function App() {
     }
   }, [activePassport]);
 
+
   useEffect(() => {
     localStorage.setItem(
       "kantaseni_passport_sessions",
       JSON.stringify(passportSessionsCount)
     );
   }, [passportSessionsCount]);
+
 
   // --- Tarik Data Karya & Data Staf dari Google Sheets ---
   useEffect(() => {
@@ -926,6 +977,7 @@ function App() {
         console.error("Ralat memuat turun data karya:", error);
         setLoading(false);
       });
+
 
     fetch(`${SCRIPT_URL}?type=staff`)
       .then((res) => res.json())
@@ -945,6 +997,7 @@ function App() {
         console.error("Ralat memuat turun data guru:", error);
       });
   }, []);
+
 
   // --- Penghantaran Data ke Google Sheets dengan Penjejak Status Segerak ---
   const sendToSheet = async (action: string, payload: any) => {
@@ -971,8 +1024,10 @@ function App() {
     }
   };
 
+
   const normalizeName = (name: string) =>
     name.trim().toLowerCase().replace(/\s+/g, " ");
+
 
   // --- SEMAKAN REKOD GLOBAL NAMA ---
   const getGlobalHistoryByName = (fullName: string) => {
@@ -985,9 +1040,11 @@ function App() {
       };
     }
 
+
     const targetUserKey = `passport-${norm}`;
     const starredSet = new Set<string>();
     const commentedSet = new Set<string>();
+
 
     artworks.forEach((art) => {
       if (Array.isArray(art.likes) && art.likes.includes(targetUserKey)) {
@@ -1003,10 +1060,12 @@ function App() {
       }
     });
 
+
     const recordedSessions = passportSessionsCount[norm] || 0;
     const inferredSessions = Math.floor(
       Math.max(starredSet.size, commentedSet.size) / 3
     );
+
 
     return {
       starredArtworkIds: Array.from(starredSet),
@@ -1014,6 +1073,7 @@ function App() {
       totalSessionsCompleted: Math.max(recordedSessions, inferredSessions),
     };
   };
+
 
   // --- SENARAI LENGKAP PENGKRITIK (UNTUK GRAF & CETAKAN ADMIN/GURU) ---
   const allRegisteredCritics = useMemo(() => {
@@ -1031,8 +1091,10 @@ function App() {
       }
     > = {};
 
+
     artworks.forEach((art) => {
       const artYear = getArtworkYear(art.createdAt);
+
 
       if (Array.isArray(art.comments)) {
         art.comments.forEach((c: any) => {
@@ -1066,6 +1128,7 @@ function App() {
         });
       }
 
+
       if (Array.isArray(art.likes)) {
         art.likes.forEach((likeKey: string) => {
           if (typeof likeKey === "string" && likeKey.startsWith("passport-")) {
@@ -1092,6 +1155,7 @@ function App() {
       }
     });
 
+
     return Object.values(criticMap).map((item) => ({
       ...item,
       yearsList: Array.from(item.yearsActive),
@@ -1099,6 +1163,7 @@ function App() {
       totalPoints: item.commentsCount + item.likesCount,
     }));
   }, [artworks, criticCategoryRegistry]);
+
 
   // --- PENGIRAAN DATA GRAF PENGKRITIK AKTIF ---
   const activeCriticsLeaderboard = useMemo(() => {
@@ -1120,8 +1185,10 @@ function App() {
       .slice(0, 6);
   }, [allRegisteredCritics, criticMetricFilter]);
 
+
   const maxCriticScore =
     activeCriticsLeaderboard.length > 0 ? activeCriticsLeaderboard[0].score : 1;
+
 
   // --- PENDAFTARAN PASPORT (TERMASUK TEMA VIP UNTUK GURU & PIBG) ---
   const handleRegisterPassport = (formData: {
@@ -1134,13 +1201,16 @@ function App() {
     const { totalSessionsCompleted } = getGlobalHistoryByName(cleanName);
     const vipStatus = isVipCategory(formData.className);
 
+
     const sessionNumber = totalSessionsCompleted + 1;
     const isRenewal = totalSessionsCompleted > 0;
+
 
     setCriticCategoryRegistry((prev) => ({
       ...prev,
       [norm]: formData.className,
     }));
+
 
     const newPassport = {
       sessionId: `${norm}-${Date.now()}`,
@@ -1156,13 +1226,16 @@ function App() {
       issuedAt: Date.now(),
     };
 
+
     setActivePassport(newPassport);
     setIsPassportModalOpen(false);
     SoundFX.success();
 
+
     const vipTag = vipStatus
       ? ` [VIP ${formData.className.toUpperCase()}]`
       : "";
+
 
     if (pendingActionArtworkId) {
       const targetArt = artworks.find((a) => a.id === pendingActionArtworkId);
@@ -1187,6 +1260,7 @@ function App() {
       );
     }
 
+
     return {
       success: true,
       isRenewal,
@@ -1195,6 +1269,7 @@ function App() {
       remainingQuota: 3,
     };
   };
+
 
   // --- PENGGUNAAN KUOTA PASPORT SEMASA (3 KARYA SETIAP PASPORT; AUTO-TUTUP BILA HABIS) ---
   const recordPassportUsageForArtwork = (
@@ -1211,12 +1286,14 @@ function App() {
       return false;
     }
 
+
     const sessionInteracted = new Set<string>(
       activePassport.sessionInteractedArtworkIds || []
     );
     const sessionCommented = new Set<string>(
       activePassport.sessionCommentedArtworkIds || []
     );
+
 
     if (actionType === "comment" && sessionCommented.has(artworkId)) {
       SoundFX.alert();
@@ -1225,6 +1302,7 @@ function App() {
       );
       return false;
     }
+
 
     if (!sessionInteracted.has(artworkId) && sessionInteracted.size >= 3) {
       SoundFX.alert();
@@ -1237,13 +1315,16 @@ function App() {
       return false;
     }
 
+
     sessionInteracted.add(artworkId);
     if (actionType === "comment") {
       sessionCommented.add(artworkId);
     }
 
+
     const updatedUsedCount = sessionInteracted.size;
     const norm = normalizeName(activePassport.fullName);
+
 
     if (updatedUsedCount >= 3) {
       setPassportSessionsCount((prev) => ({
@@ -1263,8 +1344,10 @@ function App() {
       });
     }
 
+
     return true;
   };
+
 
   // --- Actions: Tambah & Edit Karya ---
   const handleAddArtwork = (newArtwork: any) => {
@@ -1284,6 +1367,7 @@ function App() {
     );
   };
 
+
   const handleEditArtwork = (updatedData: {
     title: string;
     studentName: string;
@@ -1291,6 +1375,7 @@ function App() {
     imageUrl: string;
   }) => {
     if (!editingArtwork || !loggedInStaff) return;
+
 
     const cleanImageUrl = updatedData.imageUrl.trim();
     const updatedArt = {
@@ -1302,11 +1387,13 @@ function App() {
       updatedAt: Date.now(),
     };
 
+
     setArtworks((prev) =>
       prev.map((art) =>
         String(art.id) === String(updatedArt.id) ? updatedArt : art
       )
     );
+
 
     if (
       selectedArtwork &&
@@ -1314,6 +1401,7 @@ function App() {
     ) {
       setSelectedArtwork(updatedArt);
     }
+
 
     sendToSheet("edit", {
       id: String(updatedArt.id).trim(),
@@ -1323,12 +1411,14 @@ function App() {
       imageUrl: updatedArt.imageUrl,
     });
 
+
     setEditingArtwork(null);
     SoundFX.success();
     showTimedNotice(
       `Maklumat & gambar karya "${updatedArt.title}" berjaya dikemas kini ke pangkalan data!`
     );
   };
+
 
   // --- FUNGSI BINTANG (1 NAMA = 1 BINTANG SAHAJA PADA KARYA SAMA) ---
   const toggleLike = (artworkId: string, currentLikes: string[]) => {
@@ -1342,9 +1432,11 @@ function App() {
       return;
     }
 
+
     const norm = normalizeName(activePassport.fullName);
     const userKey = `passport-${norm}`;
     const hasAlreadyStarredThisArtwork = currentLikes.includes(userKey);
+
 
     if (hasAlreadyStarredThisArtwork) {
       SoundFX.alert();
@@ -1354,6 +1446,7 @@ function App() {
       return;
     }
 
+
     if (activePassport.className) {
       setCriticCategoryRegistry((prev) => ({
         ...prev,
@@ -1361,11 +1454,14 @@ function App() {
       }));
     }
 
+
     const allowed = recordPassportUsageForArtwork(artworkId, "star");
     if (!allowed) return;
 
+
     SoundFX.star();
     const newLikes = [...currentLikes, userKey];
+
 
     setArtworks((prev) =>
       prev.map((art) => {
@@ -1385,6 +1481,7 @@ function App() {
     );
   };
 
+
   // --- FUNGSI KOMEN ---
   const addComment = (
     artworkId: string,
@@ -1396,6 +1493,7 @@ function App() {
     const hasQuizAnswers = Array.isArray(quizAnswers) && quizAnswers.length > 0;
     if (!cleanFreeText && !hasQuizAnswers) return;
 
+
     if (!activePassport) {
       SoundFX.alert();
       setPendingActionArtworkId(artworkId);
@@ -1406,9 +1504,11 @@ function App() {
       return;
     }
 
+
     const norm = normalizeName(activePassport.fullName);
     const vipStatus =
       Boolean(activePassport.isVip) || isVipCategory(activePassport.className);
+
 
     if (activePassport.className) {
       setCriticCategoryRegistry((prev) => ({
@@ -1417,10 +1517,13 @@ function App() {
       }));
     }
 
+
     const allowed = recordPassportUsageForArtwork(artworkId, "comment");
     if (!allowed) return;
 
+
     SoundFX.comment();
+
 
     const quizFormatted = hasQuizAnswers
       ? quizAnswers
@@ -1433,11 +1536,13 @@ function App() {
           .join("\n\n")
       : "";
 
+
     const formattedText = hasQuizAnswers
       ? cleanFreeText
         ? `${quizFormatted}\n\nUlasan Tambahan: ${cleanFreeText}`
         : quizFormatted
       : cleanFreeText;
+
 
     const newComment = {
       id: Date.now().toString(),
@@ -1449,6 +1554,7 @@ function App() {
       text: formattedText,
       timestamp: Date.now(),
     };
+
 
     setArtworks((prev) =>
       prev.map((art) => {
@@ -1471,6 +1577,7 @@ function App() {
     );
   };
 
+
   // --- FUNGSI MODERASI ADMIN & GURU: PADAM KOMEN + PENALTI BINTANG AUTOMATIK ---
   const handleDeleteCommentWithPenalty = (
     artworkId: string,
@@ -1484,6 +1591,7 @@ function App() {
           );
           let updatedLikes = [...(art.likes || [])];
           let starPenalized = false;
+
 
           if (commentObj.authorName) {
             const targetPassportKey = `passport-${normalizeName(
@@ -1505,6 +1613,7 @@ function App() {
             starPenalized = true;
           }
 
+
           const updated = {
             ...art,
             comments: updatedComments,
@@ -1518,6 +1627,7 @@ function App() {
             setSelectedArtwork(updated);
           }
 
+
           SoundFX.alert();
           showTimedNotice(
             starPenalized
@@ -1525,12 +1635,14 @@ function App() {
               : `Komen oleh "${commentObj.authorName}" telah dipadam.`
           );
 
+
           return updated;
         }
         return art;
       })
     );
   };
+
 
   // --- FUNGSI MODERASI ADMIN & GURU: PADAM BINTANG SECARA MANUAL ---
   const handleRemoveSingleStar = (
@@ -1560,6 +1672,7 @@ function App() {
     );
   };
 
+
   const confirmDeleteArtwork = () => {
     if (!artworkToDelete || !loggedInStaff) return;
     const targetId = String(artworkToDelete.id).trim();
@@ -1576,6 +1689,7 @@ function App() {
     showTimedNotice(`Karya "${deletedTitle}" telah berjaya dipadam.`);
   };
 
+
   // --- FUNGSI LOG MASUK STAFF ---
   const handleStaffLogin = async (
     usernameInput: string,
@@ -1584,8 +1698,10 @@ function App() {
     const cleanUser = usernameInput.trim();
     const cleanPass = passwordInput.trim();
 
+
     let latestTeachers = teachersList;
     let latestAdmin = adminCredentials;
+
 
     try {
       const res = await fetch(`${SCRIPT_URL}?type=staff`);
@@ -1602,6 +1718,7 @@ function App() {
       console.error("Ralat semak akaun guru dari awan:", err);
     }
 
+
     if (
       cleanUser === latestAdmin.username &&
       cleanPass === latestAdmin.password
@@ -1616,6 +1733,7 @@ function App() {
       SoundFX.success();
       return { success: true };
     }
+
 
     const matchedTeacher = latestTeachers.find(
       (t) =>
@@ -1634,12 +1752,14 @@ function App() {
       return { success: true };
     }
 
+
     SoundFX.alert();
     return {
       success: false,
       message: "Nama pengguna (Username) atau kata laluan salah!",
     };
   };
+
 
   const handleStaffLogout = () => {
     SoundFX.exitPrompt();
@@ -1652,6 +1772,7 @@ function App() {
     showTimedNotice("Anda telah log keluar daripada Panel Kawalan.");
   };
 
+
   const currentYear = new Date().getFullYear().toString();
   const availableYears = Array.from(
     new Set([
@@ -1659,6 +1780,7 @@ function App() {
       ...artworks.map((art) => getArtworkYear(art.createdAt)),
     ])
   ).sort((a, b) => Number(b) - Number(a));
+
 
   const classOptions = [
     "Semua",
@@ -1669,6 +1791,7 @@ function App() {
     "Tahun 5",
     "Tahun 6",
   ];
+
 
   // --- PENAPISAN KARYA MENGIKUT TAHUN, BULAN & KELAS ---
   const filteredArtworks = artworks.filter((art) => {
@@ -1681,23 +1804,28 @@ function App() {
     return matchYear && matchMonth && matchClass;
   });
 
+
   const selectedMonthLabel =
     MONTH_OPTIONS.find((m) => m.value === selectedMonth)?.label || "";
+
 
   const activeUserKey = activePassport
     ? `passport-${normalizeName(activePassport.fullName)}`
     : visitorId;
+
 
   const isCurrentPassportVip = Boolean(
     activePassport &&
       (activePassport.isVip || isVipCategory(activePassport.className))
   );
 
+
   // --- PENGIRAAN TOP 3 ARTIS BULANAN ---
   const top3Artworks = [...artworks]
     .sort((a, b) => (b.likes?.length || 0) - (a.likes?.length || 0))
     .slice(0, 3)
     .filter((art) => art.likes && art.likes.length > 0);
+
 
   if (loading) {
     return (
@@ -1714,6 +1842,7 @@ function App() {
       </div>
     );
   }
+
 
   return (
     <div className="min-h-screen bg-sky-50 font-sans text-slate-800 overflow-x-hidden relative flex flex-col">
@@ -1762,11 +1891,20 @@ function App() {
                 .animate-star-pop { animation: starPop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1); }
                 .animate-shrink-5s { animation: shrinkBar5s 5s linear forwards; }
 
+
+                
+                
+
+
+            
+                
+                
                 @media screen {
                     .hide-on-screen {
                         display: none !important;
                     }
                 }
+
 
                 @media print {
                     @page {
@@ -1779,17 +1917,17 @@ function App() {
                         transform: none !important;
                         transition: none !important;
                     }
-
+                    
                     body {
                         -webkit-print-color-adjust: exact !important;
                         print-color-adjust: exact !important;
                         background: white !important;
                     }
-
+                    
                     .no-print {
                         display: none !important;
                     }
-
+                    
                     /* Reset semua "parent layout" kepada blok biasa (static) supaya browser boleh paginasi jadual ke bawah */
                     html, body, #root, main, section, .min-h-screen, .flex-1 {
                         height: auto !important;
@@ -1798,14 +1936,14 @@ function App() {
                         position: static !important;
                         display: block !important;
                     }
-
+                    
                     /* Bebaskan kawasan cetakan daripada sebarang had overflow */
                     .overflow-x-auto, .overflow-hidden, .overflow-y-auto {
                         overflow: visible !important;
                         overflow-x: visible !important;
                         overflow-y: visible !important;
                     }
-
+                    
                     /* Kawasan jadual/slip - TIDAK BOLEH menggunakan 'position: absolute', ini punca ia tersekat pada 1 muka surat */
                     #printable-lists-area {
                         position: static !important;
@@ -1816,7 +1954,7 @@ function App() {
                         box-shadow: none !important;
                         border: none !important;
                     }
-
+                    
                     /* Set Format Jadual PDF */
                     table {
                         width: 100% !important;
@@ -1840,6 +1978,7 @@ function App() {
                     }
                 }
 `}</style>
+
 
       {/* --- HEADER --- */}
       <header className="bg-white/95 backdrop-blur-md shadow-md sticky top-0 z-40 border-b-4 border-yellow-400 transition-all no-print">
@@ -1865,6 +2004,7 @@ function App() {
               </div>
             </div>
 
+
             <div className="flex items-center space-x-2 md:space-x-2.5">
               {/* PENUNJUK STATUS SEGERAK PANGKALAN DATA (CLOUD SYNC) */}
               {syncState === "saving" && (
@@ -1879,6 +2019,7 @@ function App() {
                   <span className="hidden sm:inline">Tersimpan</span>
                 </div>
               )}
+
 
               {/* BUTANG TOGGLE BUNYI (SOUND FX) */}
               <button
@@ -1907,6 +2048,7 @@ function App() {
                   <VolumeX className="w-4 h-4" />
                 )}
               </button>
+
 
               {/* STATUS PASPORT (HANYA PAPAR JIKA MASIH AKTIF & BELUM HABIS) */}
               {activePassport && activePassport.usedCount < 3 ? (
@@ -1958,6 +2100,7 @@ function App() {
                 </button>
               )}
 
+
               <nav className="hidden md:flex space-x-1.5">
                 {["Laman Utama", "Galeri Seni", "Sudut Apresiasi"].map(
                   (item) => {
@@ -1966,6 +2109,7 @@ function App() {
                       activeTab === tabKey ||
                       (tabKey === "galeri-seni" && activeTab === "galeri") ||
                       (tabKey === "laman-utama" && activeTab === "laman-utama");
+
 
                     return (
                       <button
@@ -1988,6 +2132,7 @@ function App() {
                   }
                 )}
               </nav>
+
 
               {/* BUTANG LOG MASUK / PANEL ADMIN & GURU */}
               {loggedInStaff ? (
@@ -2022,6 +2167,7 @@ function App() {
                 </button>
               )}
 
+
               {/* BUTANG KELUAR APLIKASI DENGAN PENGESAHAN */}
               <button
                 onClick={() => {
@@ -2038,6 +2184,7 @@ function App() {
           </div>
         </div>
       </header>
+
 
       {/* NOTIFIKASI SISTEM (AUTO-TUTUP TEPAT 5 SAAT) */}
       {noticeObj && (
@@ -2069,6 +2216,7 @@ function App() {
         </div>
       )}
 
+
       {/* --- MAIN CONTENT AREA --- */}
       <main className="flex-1 pb-12 flex flex-col">
         {/* LAMAN UTAMA */}
@@ -2091,6 +2239,7 @@ function App() {
                 style={{ animationDelay: "1.3s" }}
               />
               <Sparkles className="hidden sm:block absolute top-1/2 right-10 -translate-y-1/2 text-yellow-200 w-9 h-9 opacity-60 animate-pulse pointer-events-none" />
+
 
               <div className="max-w-4xl mx-auto text-center relative z-10 px-4">
                 <div className="inline-flex items-center gap-2 bg-yellow-400 text-blue-900 font-extrabold px-6 py-2 rounded-full mb-6 transform -rotate-2 hover:rotate-0 transition-transform duration-300 shadow-lg border-2 border-white text-sm md:text-base">
@@ -2118,6 +2267,7 @@ function App() {
               </div>
             </section>
 
+
             {/* ARTIS BULANAN SECTION */}
             <section
               className="bg-white rounded-3xl p-6 md:p-10 border-4 border-yellow-400 shadow-xl relative overflow-hidden mb-8 animate-pop-up"
@@ -2125,6 +2275,7 @@ function App() {
             >
               <div className="absolute top-0 right-0 bg-yellow-100 w-40 h-40 transform translate-x-20 -translate-y-20 rotate-45 rounded-3xl"></div>
               <div className="absolute bottom-0 left-0 bg-blue-50 w-32 h-32 transform -translate-x-16 translate-y-16 rotate-45 rounded-full"></div>
+
 
               <div className="text-center mb-10 relative z-10">
                 <h3 className="text-3xl md:text-4xl font-black text-blue-900 flex items-center justify-center mb-3">
@@ -2136,6 +2287,7 @@ function App() {
                   Top 3 Karya Paling Banyak Menerima Bintang Apresiasi!
                 </p>
               </div>
+
 
               {top3Artworks.length === 0 ? (
                 <div className="text-center bg-slate-50 p-8 rounded-2xl border-2 border-dashed border-slate-300 relative z-10">
@@ -2187,6 +2339,7 @@ function App() {
                     </div>
                   )}
 
+
                   {top3Artworks[0] && (
                     <div
                       onClick={() => {
@@ -2231,6 +2384,7 @@ function App() {
                     </div>
                   )}
 
+
                   {top3Artworks[2] && (
                     <div
                       onClick={() => {
@@ -2273,6 +2427,7 @@ function App() {
           </div>
         )}
 
+
         {/* GALLERY SECTION */}
         {activeTab === "galeri" && (
           <section
@@ -2295,6 +2450,7 @@ function App() {
                 {filteredArtworks.length} Karya Dipaparkan
               </div>
             </div>
+
 
             {/* --- BAR PENAPIS (FILTER): TAHUN, BULAN & KELAS --- */}
             <div className="bg-white p-4 md:p-5 rounded-2xl shadow-sm border-2 border-blue-100 mb-8 space-y-4">
@@ -2322,6 +2478,7 @@ function App() {
                     </select>
                   </div>
 
+
                   <div className="flex items-center gap-2.5">
                     <div className="flex items-center text-blue-900 font-bold text-sm shrink-0">
                       <Calendar className="w-4 h-4 mr-1.5 text-blue-600" />
@@ -2344,6 +2501,7 @@ function App() {
                   </div>
                 </div>
 
+
                 {(selectedYear !== "Semua" ||
                   selectedMonth !== "Semua" ||
                   selectedClass !== "Semua") && (
@@ -2360,6 +2518,7 @@ function App() {
                   </button>
                 )}
               </div>
+
 
               <div className="flex items-center gap-2 flex-wrap pt-3 border-t border-slate-100">
                 <span className="text-blue-900 font-bold text-sm mr-1">
@@ -2383,6 +2542,7 @@ function App() {
                 ))}
               </div>
             </div>
+
 
             {/* --- PAPARAN KARYA --- */}
             {artworks.length === 0 ? (
@@ -2482,6 +2642,7 @@ function App() {
           </section>
         )}
 
+
         {/* SUDUT APRESIASI SECTION */}
         {activeTab === "sudut-apresiasi" && (
           <section
@@ -2490,6 +2651,7 @@ function App() {
           >
             <div className="bg-white p-8 rounded-3xl shadow-xl border-4 border-yellow-400 relative overflow-hidden text-center">
               <div className="absolute top-0 right-0 bg-yellow-400 w-32 h-32 transform translate-x-16 -translate-y-16 rotate-45"></div>
+
 
               <h3 className="text-3xl font-black text-blue-900 mb-4 relative z-10">
                 Pasport Pengkritik Cilik
@@ -2501,22 +2663,24 @@ function App() {
                 pasport baharu semula.
               </p>
 
+
               {/* KAD PASPORT AKTIF (TEMA BIASA ATAU TEMA VIP GURU/PIBG) */}
               {activePassport && activePassport.usedCount < 3 && (
                 <div
                   className={`max-w-lg mx-auto mb-8 p-6 sm:p-7 rounded-3xl shadow-xl text-left relative z-10 overflow-hidden animate-pop-up ${
                     isCurrentPassportVip
                       ? "bg-gradient-to-br from-slate-950 via-amber-950 to-slate-900 text-yellow-100 border-4 border-yellow-400"
-                      : "bg-gradient-to-r from-blue-600 to-blue-800 text-white border-2 border-yellow-400"
+                      : "bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 text-white border-2 border-yellow-400"
                   }`}
                 >
                   {isCurrentPassportVip && (
                     <>
-                      <Crown className="absolute -bottom-3 -right-3 w-28 h-28 text-yellow-400/15 rotate-12 pointer-events-none" />
-                      <Sparkles className="absolute top-3 right-3 w-5 h-5 text-yellow-400 animate-pulse pointer-events-none" />
+                      <Crown className="absolute -bottom-4 -right-4 w-32 h-32 text-yellow-400/15 rotate-12 pointer-events-none" />
+                      <Sparkles className="absolute top-4 right-4 w-5 h-5 text-yellow-400 animate-pulse pointer-events-none" />
                     </>
                   )}
 
+                  {/* Baris 1: Lencana Pasport & Baki Kuota */}
                   <div className="flex flex-wrap items-center justify-between gap-2.5 pb-4 mb-4 border-b border-white/15 relative z-10">
                     {isCurrentPassportVip ? (
                       <span className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-500 text-slate-950 px-3.5 py-1.5 rounded-full shadow-sm">
@@ -2524,7 +2688,8 @@ function App() {
                         PASPORT VIP • {activePassport.className.toUpperCase()}
                       </span>
                     ) : (
-                      <span className="inline-flex items-center text-xs font-extrabold uppercase tracking-wider bg-yellow-400 text-blue-900 px-3.5 py-1 rounded-full shadow-sm">
+                      <span className="inline-flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wider bg-yellow-400 text-blue-950 px-3.5 py-1 rounded-full shadow-sm">
+                        <Award className="w-3.5 h-3.5" />
                         PASPORT #{activePassport.sessionNumber || 1} AKTIF
                       </span>
                     )}
@@ -2532,57 +2697,75 @@ function App() {
                     <span
                       className={`text-xs font-extrabold px-3 py-1 rounded-full ${
                         isCurrentPassportVip
-                          ? "bg-yellow-400/15 text-yellow-300 border border-yellow-400/40"
-                          : "bg-blue-950/50 text-blue-100 border border-blue-400/30"
+                          ? "bg-amber-500/20 text-yellow-300 border border-yellow-400/40"
+                          : "bg-blue-950/60 text-yellow-300 border border-blue-400/30"
                       }`}
                     >
                       Baki Kuota: {3 - activePassport.usedCount} / 3 Karya
                     </span>
                   </div>
 
-                  <div className="space-y-2.5 relative z-10">
-                    <div>
+                  {/* Baris 2: Nama Pemegang Pasport */}
+                  <div className="mb-4 relative z-10">
+                    <span
+                      className={`block text-[10px] font-bold uppercase tracking-widest mb-1 ${
+                        isCurrentPassportVip ? "text-amber-300/80" : "text-blue-200"
+                      }`}
+                    >
+                      Nama Pengkritik Berdaftar
+                    </span>
+                    <h4
+                      className={`text-xl sm:text-2xl font-black leading-snug break-words ${
+                        isCurrentPassportVip ? "text-yellow-300" : "text-white"
+                      }`}
+                    >
+                      {activePassport.fullName}
+                    </h4>
+                  </div>
+
+                  {/* Baris 3: Kategori / Kelas & E-mel dalam Kotak Berasingan */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1 relative z-10">
+                    <div
+                      className={`px-3.5 py-2 rounded-xl border ${
+                        isCurrentPassportVip
+                          ? "bg-white/5 border-yellow-400/25"
+                          : "bg-blue-950/40 border-blue-400/25"
+                      }`}
+                    >
                       <span
-                        className={`text-[10px] font-bold uppercase tracking-widest block mb-0.5 ${
+                        className={`block text-[10px] font-bold uppercase tracking-wider ${
                           isCurrentPassportVip ? "text-amber-300/80" : "text-blue-200"
                         }`}
                       >
-                        Pemegang Pasport
+                        Kelas / Kategori
                       </span>
-                      <h4
-                        className={`text-xl sm:text-2xl font-black leading-snug tracking-tight ${
-                          isCurrentPassportVip ? "text-yellow-300" : "text-white"
-                        }`}
-                      >
-                        {activePassport.fullName}
-                      </h4>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-2 pt-1">
-                      <span
-                        className={`text-xs font-bold px-3 py-1 rounded-lg ${
-                          isCurrentPassportVip
-                            ? "bg-amber-900/60 text-amber-100 border border-amber-500/30"
-                            : "bg-white/15 text-white"
-                        }`}
-                      >
+                      <span className="text-sm font-extrabold block mt-0.5">
                         {activePassport.className}
                       </span>
-                      {activePassport.email && (
-                        <span
-                          className={`text-xs font-medium px-3 py-1 rounded-lg break-all ${
-                            isCurrentPassportVip
-                              ? "bg-slate-900/70 text-amber-200 border border-amber-500/20"
-                              : "bg-blue-950/40 text-blue-100"
-                          }`}
-                        >
-                          {activePassport.email}
-                        </span>
-                      )}
+                    </div>
+
+                    <div
+                      className={`px-3.5 py-2 rounded-xl border ${
+                        isCurrentPassportVip
+                          ? "bg-white/5 border-yellow-400/25"
+                          : "bg-blue-950/40 border-blue-400/25"
+                      }`}
+                    >
+                      <span
+                        className={`block text-[10px] font-bold uppercase tracking-wider ${
+                          isCurrentPassportVip ? "text-amber-300/80" : "text-blue-200"
+                        }`}
+                      >
+                        E-mel
+                      </span>
+                      <span className="text-sm font-semibold block mt-0.5 truncate">
+                        {activePassport.email || "Tiada rekod e-mel"}
+                      </span>
                     </div>
                   </div>
                 </div>
               )}
+
 
               <div className="relative z-10 mb-5">
                 <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-900 px-4 py-1.5 rounded-full text-xs md:text-sm font-black uppercase tracking-wider border border-blue-200">
@@ -2594,6 +2777,7 @@ function App() {
                   anda di galeri:
                 </p>
               </div>
+
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
                 <div
@@ -2638,6 +2822,7 @@ function App() {
                 </div>
               </div>
 
+
               <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10">
                 <button
                   onClick={() => {
@@ -2648,6 +2833,7 @@ function App() {
                 >
                   Kembali ke Galeri <Compass className="ml-2 w-5 h-5" />
                 </button>
+
 
                 <button
                   onClick={() => {
@@ -2661,6 +2847,7 @@ function App() {
                 </button>
               </div>
             </div>
+
 
             {/* --- GRAF PENGKRITIK AKTIF --- */}
             <div
@@ -2682,6 +2869,7 @@ function App() {
                     bintang dan ulasan!
                   </p>
                 </div>
+
 
                 <div className="flex bg-slate-100 p-1 rounded-xl self-start md:self-auto">
                   {[
@@ -2707,6 +2895,7 @@ function App() {
                 </div>
               </div>
 
+
               {activeCriticsLeaderboard.length === 0 ? (
                 <div className="text-center bg-slate-50 p-8 rounded-2xl border-2 border-dashed border-slate-200">
                   <BarChart3 className="w-12 h-12 text-slate-300 mx-auto mb-3 animate-float-slow" />
@@ -2726,6 +2915,7 @@ function App() {
                       Math.round((critic.score / maxCriticScore) * 100)
                     );
 
+
                     const barStyle =
                       index === 0
                         ? "from-yellow-400 to-amber-500 border-yellow-600"
@@ -2735,6 +2925,7 @@ function App() {
                         ? "from-orange-300 to-orange-400 border-orange-500"
                         : "from-blue-400 to-blue-600 border-blue-700";
 
+
                     const badgeBg =
                       index === 0
                         ? "bg-yellow-400 text-blue-900 border-yellow-500"
@@ -2743,6 +2934,7 @@ function App() {
                         : index === 2
                         ? "bg-orange-200 text-orange-900 border-orange-300"
                         : "bg-blue-100 text-blue-800 border-blue-200";
+
 
                     return (
                       <div
@@ -2773,6 +2965,7 @@ function App() {
                             </div>
                           </div>
 
+
                           <div className="flex items-center gap-2 text-xs font-bold">
                             <span className="inline-flex items-center gap-1 bg-white border border-slate-200 text-blue-700 px-2.5 py-1 rounded-full shadow-2xs">
                               <MessageCircle className="w-3.5 h-3.5 text-blue-500" />
@@ -2784,6 +2977,7 @@ function App() {
                             </span>
                           </div>
                         </div>
+
 
                         <div className="w-full bg-slate-200/80 h-5 rounded-full overflow-hidden p-0.5 shadow-inner">
                           <div
@@ -2809,6 +3003,7 @@ function App() {
           </section>
         )}
 
+
         {/* --- PANEL KAWALAN ADMIN & GURU (MENTOR) --- */}
         {activeTab === "panel-admin" && loggedInStaff && (
           <StaffDashboardPanel
@@ -2829,6 +3024,7 @@ function App() {
         )}
       </main>
 
+
       {/* --- FOOTER HAK CIPTA E&J STUDIO --- */}
       <footer className="bg-white border-t-4 border-yellow-400 text-slate-600 py-5 px-4 pb-24 md:pb-5 mt-auto no-print">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs md:text-sm">
@@ -2843,6 +3039,7 @@ function App() {
           </div>
         </div>
       </footer>
+
 
       {/* FLOATING ACTION BUTTON - HANYA PAPAR DI TAB GALERI */}
       {activeTab === "galeri" && (
@@ -2859,6 +3056,7 @@ function App() {
           </button>
         </div>
       )}
+
 
       {/* MOBILE BOTTOM NAV */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex justify-around p-2 z-40 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] no-print">
@@ -2906,6 +3104,7 @@ function App() {
         )}
       </div>
 
+
       {/* MODAL LOG MASUK ADMIN / GURU */}
       {isStaffLoginModalOpen && (
         <StaffLoginModal
@@ -2916,6 +3115,7 @@ function App() {
           onLogin={handleStaffLogin}
         />
       )}
+
 
       {/* ADD ARTWORK MODAL */}
       {isAddModalOpen && (
@@ -2929,6 +3129,7 @@ function App() {
         />
       )}
 
+
       {/* EDIT ARTWORK MODAL */}
       {editingArtwork && loggedInStaff && (
         <ArtworkFormModal
@@ -2941,6 +3142,7 @@ function App() {
           onSubmit={handleEditArtwork}
         />
       )}
+
 
       {/* MODAL POP-UP & ZOOM + DRAG KARYA (z-50) */}
       {selectedArtwork && (
@@ -2987,6 +3189,7 @@ function App() {
         />
       )}
 
+
       {/* MODAL SENARAI PEMBERI BINTANG GAYA FACEBOOK (IKON CROWN SAHAJA UNTUK VIP) (z-[65]) */}
       {starListModalData && (
         <div
@@ -3022,6 +3225,7 @@ function App() {
                 <X className="w-5 h-5" />
               </button>
             </div>
+
 
             <div className="max-h-72 overflow-y-auto divide-y divide-slate-100 p-2">
               {starListModalData.givers.map((g, idx) => {
@@ -3069,6 +3273,7 @@ function App() {
         </div>
       )}
 
+
       {/* MODAL DAFTAR PENGKRITIK (PASPORT) - LAPISAN HADAPAN (z-[70]) */}
       {isPassportModalOpen && (
         <PassportRegistrationModal
@@ -3089,6 +3294,7 @@ function App() {
           }}
         />
       )}
+
 
       {/* MODAL PENGESAHAN PADAM KARYA (HANYA ADMIN & GURU) (z-[70]) */}
       {artworkToDelete && loggedInStaff && (
@@ -3131,6 +3337,7 @@ function App() {
           </div>
         </div>
       )}
+
 
       {/* MODAL PENGESAHAN KELUAR DARIPADA SISTEM KANTA SENI (z-[75]) */}
       {isExitConfirmModalOpen && (
@@ -3177,7 +3384,9 @@ function App() {
   );
 }
 
+
 // --- SUB-COMPONENTS ---
+
 
 // --- AVATAR HURUF PELBAGAI WARNA & SIMBOL DOT (...) SELEPAS 3 BINTANG ---
 function StarGiversAvatars({
@@ -3189,8 +3398,10 @@ function StarGiversAvatars({
 }) {
   if (!givers || givers.length === 0) return null;
 
+
   const visibleGivers = givers.slice(0, 3);
   const hasMoreThanThree = givers.length > 3;
+
 
   return (
     <button
@@ -3232,6 +3443,7 @@ function StarGiversAvatars({
   );
 }
 
+
 function PassportQuizBox({
   stage,
   questions,
@@ -3255,6 +3467,7 @@ function PassportQuizBox({
   const selectedAnswer = answers[currentIndex] || "";
   const answeredCount = Object.values(answers).filter(Boolean).length;
   const allAnswered = answeredCount === questions.length;
+
 
   return (
     <div className="bg-gradient-to-br from-blue-50 to-amber-50 border-2 border-yellow-400 rounded-2xl p-3.5 mb-3 shadow-sm animate-pop-up text-left">
@@ -3293,6 +3506,7 @@ function PassportQuizBox({
         </div>
       </div>
 
+
       <div className="flex items-center gap-1.5 mb-2.5">
         {questions.map((q, idx) => {
           const isDone = Boolean(answers[idx]);
@@ -3322,6 +3536,7 @@ function PassportQuizBox({
         })}
       </div>
 
+
       <div className="flex items-center justify-between text-[11px] font-bold text-blue-800 mb-1">
         <span>
           Soalan {currentIndex + 1} daripada {questions.length}
@@ -3331,9 +3546,11 @@ function PassportQuizBox({
         </span>
       </div>
 
+
       <p className="text-xs font-extrabold text-blue-950 mb-2.5 leading-snug">
         {activeQuestion.question}
       </p>
+
 
       <div className="space-y-1.5">
         {activeQuestion.options.map((opt, idx) => {
@@ -3375,6 +3592,7 @@ function PassportQuizBox({
         })}
       </div>
 
+
       <div className="mt-2.5 flex items-center justify-between text-[11px] font-medium">
         {allAnswered ? (
           <span className="text-green-700 font-bold flex items-center gap-1">
@@ -3390,6 +3608,7 @@ function PassportQuizBox({
     </div>
   );
 }
+
 
 function StaffLoginModal({
   onClose,
@@ -3407,6 +3626,7 @@ function StaffLoginModal({
   const [error, setError] = useState("");
   const [isChecking, setIsChecking] = useState(false);
 
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -3417,6 +3637,7 @@ function StaffLoginModal({
       setError(res.message || "Log masuk gagal.");
     }
   };
+
 
   return (
     <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center z-[70] p-4">
@@ -3440,6 +3661,7 @@ function StaffLoginModal({
           </button>
         </div>
 
+
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           {error && (
             <div className="bg-red-100 border-l-4 border-red-500 text-red-800 p-3 rounded-r-xl text-xs font-bold flex items-center gap-2 animate-pop-up">
@@ -3447,6 +3669,7 @@ function StaffLoginModal({
               <span>{error}</span>
             </div>
           )}
+
 
           <div>
             <label className="block text-sm font-bold text-slate-800 mb-1">
@@ -3464,6 +3687,7 @@ function StaffLoginModal({
               className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-100 transition-all font-medium"
             />
           </div>
+
 
           <div>
             <label className="block text-sm font-bold text-slate-800 mb-1">
@@ -3501,6 +3725,7 @@ function StaffLoginModal({
             </div>
           </div>
 
+
           <div className="pt-2 flex space-x-3">
             <button
               type="button"
@@ -3524,6 +3749,7 @@ function StaffLoginModal({
   );
 }
 
+
 function StaffDashboardPanel({
   loggedInStaff,
   artworks,
@@ -3544,8 +3770,10 @@ function StaffDashboardPanel({
     "moderasi" | "senarai" | "guru" | "tetapan"
   >("moderasi");
 
+
   const [printYearFilter, setPrintYearFilter] = useState("Semua");
   const [printClassFilter, setPrintClassFilter] = useState("Semua");
+
 
   const printClassOptions = [
     "Semua",
@@ -3560,6 +3788,7 @@ function StaffDashboardPanel({
     "Lain-lain",
   ];
 
+
   const filteredArtistsForPrint = useMemo(() => {
     return artworks.filter((art: any) => {
       const artYear = getArtworkYear(art.createdAt);
@@ -3570,6 +3799,7 @@ function StaffDashboardPanel({
       return matchYear && matchClass;
     });
   }, [artworks, printYearFilter, printClassFilter]);
+
 
   const filteredCriticsForPrint = useMemo(() => {
     return allRegisteredCritics.filter((critic: any) => {
@@ -3583,21 +3813,25 @@ function StaffDashboardPanel({
     });
   }, [allRegisteredCritics, printYearFilter, printClassFilter]);
 
+
   const [teacherName, setTeacherName] = useState("");
   const [teacherUser, setTeacherUser] = useState("");
   const [teacherPass, setTeacherPass] = useState("");
   const [showTeacherPass, setShowTeacherPass] = useState(false);
   const [teacherClass, setTeacherClass] = useState("Semua Kelas");
 
+
   const [newAdminUser, setNewAdminUser] = useState(adminCredentials.username);
   const [newAdminPass, setNewAdminPass] = useState(adminCredentials.password);
   const [showAdminPass, setShowAdminPass] = useState(false);
+
 
   const handleAddTeacher = (e: React.FormEvent) => {
     e.preventDefault();
     if (!isAdmin) return;
     if (!teacherName.trim() || !teacherUser.trim() || !teacherPass.trim())
       return;
+
 
     const duplicate =
       teacherUser.trim().toLowerCase() ===
@@ -3607,6 +3841,7 @@ function StaffDashboardPanel({
           t.username.toLowerCase() === teacherUser.trim().toLowerCase()
       );
 
+
     if (duplicate) {
       SoundFX.alert();
       onShowNotice(
@@ -3614,6 +3849,7 @@ function StaffDashboardPanel({
       );
       return;
     }
+
 
     const newTeacher = {
       id: Date.now().toString(),
@@ -3623,12 +3859,14 @@ function StaffDashboardPanel({
       classAssigned: teacherClass,
     };
 
+
     const updatedTeachers = [...teachersList, newTeacher];
     setTeachersList(updatedTeachers);
     sendToSheet("syncStaff", {
       teachers: updatedTeachers,
       adminCreds: adminCredentials,
     });
+
 
     setTeacherName("");
     setTeacherUser("");
@@ -3638,6 +3876,7 @@ function StaffDashboardPanel({
       `Akaun Guru Mentor (${newTeacher.fullName}) berjaya didaftarkan & diselaraskan ke semua peranti!`
     );
   };
+
 
   const handleDeleteTeacher = (id: string) => {
     if (!isAdmin) return;
@@ -3650,6 +3889,7 @@ function StaffDashboardPanel({
     SoundFX.alert();
     onShowNotice("Akaun guru telah dipadam.");
   };
+
 
   const handleUpdateAdminCreds = (e: React.FormEvent) => {
     e.preventDefault();
@@ -3668,10 +3908,12 @@ function StaffDashboardPanel({
     onShowNotice("Tetapan Username & Password Admin berjaya dikemas kini!");
   };
 
+
   const handlePrintLists = () => {
     SoundFX.click();
     window.print();
   };
+
 
   const formatStarLabel = (starKey: string) => {
     if (typeof starKey === "string" && starKey.startsWith("passport-")) {
@@ -3679,6 +3921,7 @@ function StaffDashboardPanel({
     }
     return starKey;
   };
+
 
   return (
     <section className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 mt-8 space-y-6 animate-pop-up">
@@ -3704,6 +3947,7 @@ function StaffDashboardPanel({
           </div>
         </div>
 
+
         <button
           onClick={onLogout}
           className="self-start md:self-auto bg-red-500 hover:bg-red-600 text-white font-bold px-5 py-2.5 rounded-xl shadow-md flex items-center gap-2 transition-all active:scale-95"
@@ -3712,6 +3956,7 @@ function StaffDashboardPanel({
           Log Keluar
         </button>
       </div>
+
 
       <div className="flex flex-wrap gap-2 bg-white p-2 rounded-2xl shadow-sm border-2 border-blue-100 no-print">
         <button
@@ -3729,6 +3974,7 @@ function StaffDashboardPanel({
           Moderasi Komen & Bintang
         </button>
 
+
         <button
           onClick={() => {
             SoundFX.click();
@@ -3743,6 +3989,7 @@ function StaffDashboardPanel({
           <Users className="w-4 h-4" />
           Senarai Nama & Cetak
         </button>
+
 
         {isAdmin && (
           <>
@@ -3760,6 +4007,7 @@ function StaffDashboardPanel({
               <UserPlus className="w-4 h-4" />
               Daftar Guru Mentor ({teachersList.length})
             </button>
+
 
             <button
               onClick={() => {
@@ -3779,6 +4027,7 @@ function StaffDashboardPanel({
         )}
       </div>
 
+
       {/* 1. TAB MODERASI KOMEN & BINTANG */}
       {subTab === "moderasi" && (
         <div className="bg-white p-6 md:p-8 rounded-3xl shadow-lg border-2 border-blue-100 space-y-6 animate-pop-up">
@@ -3796,6 +4045,7 @@ function StaffDashboardPanel({
               .
             </p>
           </div>
+
 
           {artworks.length === 0 ? (
             <p className="text-center text-slate-400 py-8 italic">
@@ -3834,6 +4084,7 @@ function StaffDashboardPanel({
                         </div>
                       </div>
 
+
                       <div className="flex items-center gap-3 text-xs font-bold">
                         <span className="bg-amber-100 text-amber-800 px-3 py-1.5 rounded-full flex items-center gap-1">
                           <Star className="w-4 h-4 fill-current text-yellow-500" />
@@ -3845,6 +4096,7 @@ function StaffDashboardPanel({
                         </span>
                       </div>
                     </div>
+
 
                     <div className="mt-4">
                       <h5 className="text-xs font-extrabold uppercase tracking-wider text-slate-500 mb-2">
@@ -3877,6 +4129,7 @@ function StaffDashboardPanel({
                         </div>
                       )}
                     </div>
+
 
                     <div className="mt-4">
                       <h5 className="text-xs font-extrabold uppercase tracking-wider text-slate-500 mb-2">
@@ -3930,6 +4183,7 @@ function StaffDashboardPanel({
         </div>
       )}
 
+
       {/* 2. TAB SENARAI NAMA & CETAK */}
       {subTab === "senarai" && (
         <div className="bg-white p-6 md:p-8 rounded-3xl shadow-lg border-2 border-blue-100 space-y-6 animate-pop-up">
@@ -3944,6 +4198,7 @@ function StaffDashboardPanel({
               </p>
             </div>
 
+
             <button
               onClick={handlePrintLists}
               className="bg-yellow-400 hover:bg-yellow-300 text-blue-900 font-black px-5 py-3 rounded-xl shadow-[0_4px_0_rgb(180,83,9)] hover:translate-y-0.5 transition-all flex items-center gap-2 border-2 border-blue-900 self-start sm:self-auto"
@@ -3952,6 +4207,7 @@ function StaffDashboardPanel({
               Cetak Slip Senarai Nama
             </button>
           </div>
+
 
           <div className="bg-sky-50/80 p-4 md:p-5 rounded-2xl border-2 border-blue-200 space-y-4 no-print">
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -3978,6 +4234,7 @@ function StaffDashboardPanel({
                 ))}
               </div>
 
+
               {(printYearFilter !== "Semua" ||
                 printClassFilter !== "Semua") && (
                 <button
@@ -3992,6 +4249,7 @@ function StaffDashboardPanel({
                 </button>
               )}
             </div>
+
 
             <div className="flex items-center gap-2 flex-wrap pt-2 border-t border-blue-200/70">
               <span className="text-blue-900 font-extrabold text-xs md:text-sm mr-1">
@@ -4015,6 +4273,7 @@ function StaffDashboardPanel({
               ))}
             </div>
           </div>
+
 
           <div
             id="printable-lists-area"
@@ -4040,6 +4299,7 @@ function StaffDashboardPanel({
                   </div>
                 </div>
 
+
                 <div className="bg-blue-950/70 border border-yellow-400/60 rounded-2xl px-4 py-3 text-xs w-full sm:w-64 mt-4 sm:mt-0">
                   <div className="grid grid-cols-[100px_1fr] gap-x-2 gap-y-1.5 items-center">
                     <span className="text-blue-200 font-medium">Sesi:</span>
@@ -4048,12 +4308,12 @@ function StaffDashboardPanel({
                         ? "Semua Sesi"
                         : `Tahun ${printYearFilter}`}
                     </span>
-
+                    
                     <span className="text-blue-200 font-medium">Kategori:</span>
                     <span className="font-black text-yellow-300 text-right truncate">
                       {printClassFilter}
                     </span>
-
+                    
                     <span className="text-blue-200 font-medium">Tarikh:</span>
                     <span className="font-bold text-white text-right">
                       {new Date().toLocaleDateString("ms-MY")}
@@ -4061,6 +4321,7 @@ function StaffDashboardPanel({
                   </div>
                 </div>
               </div>
+
 
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-5 pt-4 border-t border-blue-600/70 text-xs">
                 <div className="bg-white/10 rounded-xl px-3.5 py-2 flex items-center justify-between">
@@ -4090,11 +4351,12 @@ function StaffDashboardPanel({
               </div>
             </div>
 
+
             <div className="p-6 space-y-8 bg-white">
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="text-base md:text-lg font-black text-blue-900 flex items-center gap-2">
-                    <span className="bg-blue-600 text-white p-1.5 rounded-lg">
+                    <span className="bg-blue-600 text-yellow-300 p-1.5 rounded-lg">
                       <Palette className="w-4 h-4" />
                     </span>
                     1. Senarai Nama Pelukis Cilik Berdaftar (
@@ -4159,10 +4421,11 @@ function StaffDashboardPanel({
                 </div>
               </div>
 
+
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="text-base md:text-lg font-black text-blue-900 flex items-center gap-2">
-                    <span className="bg-yellow-400 text-blue-900 p-1.5 rounded-lg">
+                    <span className="bg-blue-600 text-yellow-300 p-1.5 rounded-lg">
                       <Award className="w-4 h-4" />
                     </span>
                     2. Senarai Nama Pengkritik Berdaftar (
@@ -4230,30 +4493,37 @@ function StaffDashboardPanel({
                 </div>
               </div>
 
-              <div className="pt-8 mt-6 border-t-2 border-dashed border-slate-300 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-8 text-xs text-slate-600 hide-on-screen">
-                <div className="space-y-1">
+
+              <div className="pt-6 border-t-2 border-dashed border-slate-300 flex flex-row justify-between items-end gap-8 text-xs text-slate-600 hide-on-screen">
+                <div className="pb-1">
                   <p className="font-bold text-blue-900">
                     Kanta Seni - Sistem Galeri Maya & Apresiasi PSV
                   </p>
-                  <p className="text-slate-500">
+                  <p className="text-slate-500 mt-0.5">
                     &copy; {new Date().getFullYear()} E&J Studio. Hak Cipta
                     Terpelihara.
                   </p>
                 </div>
+
                 <div className="w-64 text-center shrink-0">
-                  <div className="h-16 border-b-2 border-slate-500 mb-2"></div>
-                  <span className="font-extrabold text-slate-800 block">
-                    Pengesahan Guru / Pentadbir
-                  </span>
-                  <span className="text-[10px] text-slate-500 block mt-0.5">
-                    (Tandatangan & Cop Rasmi)
-                  </span>
+                  <p className="text-[11px] font-semibold text-slate-500 mb-14">
+                    Disahkan oleh:
+                  </p>
+                  <div className="border-t-2 border-slate-800 pt-1.5">
+                    <span className="font-black text-slate-800 block uppercase tracking-wide">
+                      Pengesahan Guru / Pentadbir
+                    </span>
+                    <span className="text-[11px] text-slate-500 block mt-0.5">
+                      Tandatangan & Cop Rasmi
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
       )}
+
 
       {/* 3. TAB DAFTAR GURU MENTOR */}
       {subTab === "guru" && isAdmin && (
@@ -4269,6 +4539,7 @@ function StaffDashboardPanel({
               serta mencetak senarai nama.
             </p>
           </div>
+
 
           <form
             onSubmit={handleAddTeacher}
@@ -4287,6 +4558,7 @@ function StaffDashboardPanel({
                 className="w-full bg-white border-2 border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-blue-500"
               />
             </div>
+
 
             <div>
               <label className="block text-xs font-extrabold text-blue-900 mb-1">
@@ -4307,6 +4579,7 @@ function StaffDashboardPanel({
               </select>
             </div>
 
+
             <div>
               <label className="block text-xs font-extrabold text-blue-900 mb-1">
                 Username Log Masuk Guru *
@@ -4320,6 +4593,7 @@ function StaffDashboardPanel({
                 className="w-full bg-white border-2 border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-blue-500"
               />
             </div>
+
 
             <div>
               <label className="block text-xs font-extrabold text-blue-900 mb-1">
@@ -4351,6 +4625,7 @@ function StaffDashboardPanel({
               </div>
             </div>
 
+
             <div className="md:col-span-2 flex justify-end pt-2">
               <button
                 type="submit"
@@ -4361,6 +4636,7 @@ function StaffDashboardPanel({
               </button>
             </div>
           </form>
+
 
           <div>
             <h4 className="text-sm font-extrabold text-slate-700 mb-3">
@@ -4410,6 +4686,7 @@ function StaffDashboardPanel({
         </div>
       )}
 
+
       {/* 4. TAB TETAPAN ADMIN */}
       {subTab === "tetapan" && isAdmin && (
         <div className="bg-white p-6 md:p-8 rounded-3xl shadow-lg border-2 border-blue-100 max-w-xl animate-pop-up">
@@ -4424,6 +4701,7 @@ function StaffDashboardPanel({
             </p>
           </div>
 
+
           <form onSubmit={handleUpdateAdminCreds} className="space-y-4">
             <div>
               <label className="block text-sm font-bold text-slate-800 mb-1">
@@ -4437,6 +4715,7 @@ function StaffDashboardPanel({
                 className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 font-medium"
               />
             </div>
+
 
             <div>
               <label className="block text-sm font-bold text-slate-800 mb-1">
@@ -4467,6 +4746,7 @@ function StaffDashboardPanel({
               </div>
             </div>
 
+
             <button
               type="submit"
               className="w-full py-3.5 px-6 bg-yellow-400 hover:bg-yellow-300 text-blue-900 font-black rounded-xl shadow-[0_4px_0_rgb(180,83,9)] hover:translate-y-0.5 transition-all"
@@ -4479,6 +4759,7 @@ function StaffDashboardPanel({
     </section>
   );
 }
+
 
 // --- MODAL PENDAFTARAN PASPORT (DENGAN PRATONTON KAD VIP GURU & PIBG) ---
 function PassportRegistrationModal({
@@ -4499,6 +4780,7 @@ function PassportRegistrationModal({
     remainingQuota: number;
   } | null>(null);
 
+
   const criticCategories = [
     "Tahun 1",
     "Tahun 2",
@@ -4511,15 +4793,19 @@ function PassportRegistrationModal({
     "Lain-lain",
   ];
 
+
   const isSelectedVip = isVipCategory(className);
+
 
   const { totalSessionsCompleted } = fullName.trim()
     ? getGlobalHistoryByName(fullName)
     : { totalSessionsCompleted: 0 };
 
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg("");
+
 
     if (!fullName.trim()) {
       SoundFX.alert();
@@ -4531,6 +4817,7 @@ function PassportRegistrationModal({
       setErrorMsg("Sila pilih Kelas / Kategori anda.");
       return;
     }
+
 
     const result = onRegister({ fullName, className, email });
     if (!result.success) {
@@ -4545,6 +4832,7 @@ function PassportRegistrationModal({
       });
     }
   };
+
 
   return (
     <div className="fixed inset-0 bg-slate-900/75 backdrop-blur-sm flex items-center justify-center z-[70] p-4">
@@ -4594,6 +4882,7 @@ function PassportRegistrationModal({
             <X className="w-6 h-6" />
           </button>
         </div>
+
 
         {successInfo ? (
           <div className="p-8 text-center animate-pop-up">
@@ -4652,6 +4941,7 @@ function PassportRegistrationModal({
               </div>
             )}
 
+
             {hasPendingArtwork ? (
               <div className="text-xs text-blue-900 font-bold bg-amber-50 px-3 py-2.5 rounded-xl border border-yellow-400">
                 Selepas selesai daftar, anda akan terus dibawa kembali ke karya
@@ -4663,12 +4953,14 @@ function PassportRegistrationModal({
               </div>
             )}
 
+
             {errorMsg && (
               <div className="bg-red-100 border-l-4 border-red-500 text-red-800 p-3 rounded-r-xl text-xs font-bold flex items-start gap-2 animate-pop-up">
                 <Lock className="w-4 h-4 shrink-0 mt-0.5" />
                 <span>{errorMsg}</span>
               </div>
             )}
+
 
             <div>
               <label className="block text-sm font-bold text-slate-800 mb-1">
@@ -4696,6 +4988,7 @@ function PassportRegistrationModal({
               )}
             </div>
 
+
             <div>
               <label className="block text-sm font-bold text-slate-800 mb-1">
                 2. Kelas / Kategori{" "}
@@ -4721,6 +5014,7 @@ function PassportRegistrationModal({
               </select>
             </div>
 
+
             <div>
               <label className="block text-sm font-bold text-slate-800 mb-1">
                 3. Email{" "}
@@ -4736,6 +5030,7 @@ function PassportRegistrationModal({
                 className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all font-medium"
               />
             </div>
+
 
             <div className="pt-3 border-t border-slate-100 flex space-x-3">
               <button
@@ -4767,6 +5062,7 @@ function PassportRegistrationModal({
   );
 }
 
+
 function ArtworkCard({
   artwork,
   artworkYear,
@@ -4787,6 +5083,7 @@ function ArtworkCard({
   const [showComments, setShowComments] = useState(false);
   const [starBurst, setStarBurst] = useState(false);
 
+
   const criticStage = getStageFromClass(activePassport?.className);
   const [isQuizOpen, setIsQuizOpen] = useState(false);
   const [quizQuestions, setQuizQuestions] = useState<AppreciationQuestion[]>(
@@ -4794,6 +5091,7 @@ function ArtworkCard({
   );
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
   const [quizAnswers, setQuizAnswers] = useState<Record<number, string>>({});
+
 
   const likesList = Array.isArray(artwork.likes) ? artwork.likes : [];
   const likesCount = likesList.length;
@@ -4804,11 +5102,13 @@ function ArtworkCard({
     [likesList, commentsList, vipRegistry]
   );
 
+
   const handleLikeClick = () => {
     setStarBurst(true);
     setTimeout(() => setStarBurst(false), 500);
     onLike();
   };
+
 
   const handleToggleQuiz = () => {
     SoundFX.click();
@@ -4824,11 +5124,13 @@ function ArtworkCard({
     }
   };
 
+
   const handleRefreshQuiz = () => {
     setQuizQuestions(pickThreeRandomQuestions(criticStage));
     setCurrentQuestionIdx(0);
     setQuizAnswers({});
   };
+
 
   const handleSelectQuizAnswer = (qIdx: number, answer: string) => {
     setQuizAnswers((prev) => ({ ...prev, [qIdx]: answer }));
@@ -4836,6 +5138,7 @@ function ArtworkCard({
       setCurrentQuestionIdx(qIdx + 1);
     }
   };
+
 
   const answeredQuizList = quizQuestions
     .map((q, idx) =>
@@ -4849,13 +5152,16 @@ function ArtworkCard({
     )
     .filter(Boolean);
 
+
   const canSubmitComment = Boolean(
     commentText.trim() || answeredQuizList.length > 0
   );
 
+
   const handleCommentSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!canSubmitComment) return;
+
 
     onComment(
       commentText,
@@ -4867,10 +5173,12 @@ function ArtworkCard({
     setIsQuizOpen(false);
   };
 
+
   const handleImageError = (e: any) => {
     e.target.src =
       "https://placehold.co/600x400/e2e8f0/475569?text=Gambar+Rosak+atau+Tiada";
   };
+
 
   return (
     <div
@@ -4902,6 +5210,7 @@ function ArtworkCard({
         </div>
       )}
 
+
       <div
         onClick={onOpenPreview}
         title="Klik untuk besarkan, zoom & seret karya"
@@ -4930,6 +5239,7 @@ function ArtworkCard({
         </div>
       </div>
 
+
       <div className="p-5">
         <h4
           onClick={onOpenPreview}
@@ -4941,6 +5251,7 @@ function ArtworkCard({
           <User className="w-4 h-4 mr-1.5" />
           <span>{artwork.studentName}</span>
         </div>
+
 
         <div className="flex items-center justify-between border-t border-slate-100 pt-4 gap-2">
           <div className="flex items-center gap-1.5">
@@ -4965,11 +5276,13 @@ function ArtworkCard({
               <span>{likesCount > 0 ? likesCount : "Bintang"}</span>
             </button>
 
+
             <StarGiversAvatars
               givers={starGivers}
               onOpenStarList={onOpenStarList}
             />
           </div>
+
 
           <button
             onClick={() => {
@@ -4986,6 +5299,7 @@ function ArtworkCard({
         </div>
       </div>
 
+
       {showComments && (
         <div className="bg-slate-50 p-4 border-t border-slate-200 animate-pop-up">
           <div className="flex items-center justify-between mb-3">
@@ -4993,6 +5307,7 @@ function ArtworkCard({
               <Star className="w-3 h-3 mr-1 fill-current text-yellow-400" />
               Sudut Apresiasi
             </div>
+
 
             {activePassport && (
               <button
@@ -5011,6 +5326,7 @@ function ArtworkCard({
             )}
           </div>
 
+
           <div className="max-h-48 overflow-y-auto space-y-3 mb-3 pr-2">
             {commentsList.length === 0 ? (
               <p className="text-sm text-slate-400 italic text-center py-2">
@@ -5026,6 +5342,7 @@ function ArtworkCard({
                   authorDisplay,
                   commentIsVip
                 );
+
 
                 return (
                   <div
@@ -5057,7 +5374,7 @@ function ArtworkCard({
                               ? ` (${comment.authorClass})`
                               : ""}
                           </span>
-
+                          
                         </div>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
@@ -5086,6 +5403,7 @@ function ArtworkCard({
             )}
           </div>
 
+
           {activePassport && isQuizOpen && (
             <PassportQuizBox
               stage={criticStage}
@@ -5102,6 +5420,7 @@ function ArtworkCard({
               }}
             />
           )}
+
 
           <form
             onSubmit={handleCommentSubmit}
@@ -5149,6 +5468,7 @@ function ArtworkCard({
   );
 }
 
+
 // --- MODAL POP-UP & ZOOM + DRAG / PAN GAMBAR KARYA ---
 function ArtworkLightboxModal({
   artwork,
@@ -5171,8 +5491,10 @@ function ArtworkLightboxModal({
   const dragStartRef = useRef({ x: 0, y: 0 });
   const viewportRef = useRef<HTMLDivElement>(null);
 
+
   const [commentText, setCommentText] = useState("");
   const [starBurst, setStarBurst] = useState(false);
+
 
   const criticStage = getStageFromClass(activePassport?.className);
   const [isQuizOpen, setIsQuizOpen] = useState(false);
@@ -5182,17 +5504,20 @@ function ArtworkLightboxModal({
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
   const [quizAnswers, setQuizAnswers] = useState<Record<number, string>>({});
 
+
   useEffect(() => {
     const prevBodyOverflow = document.body.style.overflow;
     const prevHtmlOverflow = document.documentElement.style.overflow;
     document.body.style.overflow = "hidden";
     document.documentElement.style.overflow = "hidden";
 
+
     return () => {
       document.body.style.overflow = prevBodyOverflow;
       document.documentElement.style.overflow = prevHtmlOverflow;
     };
   }, []);
+
 
   const likesList = Array.isArray(artwork.likes) ? artwork.likes : [];
   const likesCount = likesList.length;
@@ -5203,10 +5528,12 @@ function ArtworkLightboxModal({
     [likesList, commentsList, vipRegistry]
   );
 
+
   const handleZoomIn = () => {
     SoundFX.click();
     setZoom((prev) => Math.min(prev + 0.4, 3.5));
   };
+
 
   const handleZoomOut = () => {
     SoundFX.click();
@@ -5219,11 +5546,13 @@ function ArtworkLightboxModal({
     });
   };
 
+
   const handleResetZoom = () => {
     SoundFX.click();
     setZoom(1);
     setPan({ x: 0, y: 0 });
   };
+
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (zoom <= 1) return;
@@ -5236,6 +5565,7 @@ function ArtworkLightboxModal({
     };
   };
 
+
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!isDragging || zoom <= 1) return;
     e.preventDefault();
@@ -5246,11 +5576,13 @@ function ArtworkLightboxModal({
     });
   };
 
+
   const handleMouseUpOrLeave = () => {
     if (isDragging) {
       setIsDragging(false);
     }
   };
+
 
   const handleTouchStart = (e: React.TouchEvent) => {
     if (zoom <= 1 || e.touches.length !== 1) return;
@@ -5263,6 +5595,7 @@ function ArtworkLightboxModal({
     };
   };
 
+
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!isDragging || zoom <= 1 || e.touches.length !== 1) return;
     e.stopPropagation();
@@ -5273,11 +5606,13 @@ function ArtworkLightboxModal({
     });
   };
 
+
   const handleTouchEnd = () => {
     if (isDragging) {
       setIsDragging(false);
     }
   };
+
 
   const handleWheelOnImage = (e: React.WheelEvent) => {
     e.stopPropagation();
@@ -5292,11 +5627,13 @@ function ArtworkLightboxModal({
     }
   };
 
+
   const handleLikeClick = () => {
     setStarBurst(true);
     setTimeout(() => setStarBurst(false), 500);
     onLike();
   };
+
 
   const handleToggleQuiz = () => {
     SoundFX.click();
@@ -5312,11 +5649,13 @@ function ArtworkLightboxModal({
     }
   };
 
+
   const handleRefreshQuiz = () => {
     setQuizQuestions(pickThreeRandomQuestions(criticStage));
     setCurrentQuestionIdx(0);
     setQuizAnswers({});
   };
+
 
   const handleSelectQuizAnswer = (qIdx: number, answer: string) => {
     setQuizAnswers((prev) => ({ ...prev, [qIdx]: answer }));
@@ -5324,6 +5663,7 @@ function ArtworkLightboxModal({
       setCurrentQuestionIdx(qIdx + 1);
     }
   };
+
 
   const answeredQuizList = quizQuestions
     .map((q, idx) =>
@@ -5337,13 +5677,16 @@ function ArtworkLightboxModal({
     )
     .filter(Boolean);
 
+
   const canSubmitComment = Boolean(
     commentText.trim() || answeredQuizList.length > 0
   );
 
+
   const handleCommentSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!canSubmitComment) return;
+
 
     onComment(
       commentText,
@@ -5354,6 +5697,7 @@ function ArtworkLightboxModal({
     setCurrentQuestionIdx(0);
     setIsQuizOpen(false);
   };
+
 
   return (
     <div
@@ -5392,6 +5736,7 @@ function ArtworkLightboxModal({
           </button>
         </div>
 
+
         <div
           ref={viewportRef}
           onWheel={handleWheelOnImage}
@@ -5416,6 +5761,7 @@ function ArtworkLightboxModal({
               <span>Seret (Drag) gambar untuk lihat sudut lain</span>
             </div>
           )}
+
 
           <div
             onClick={() => {
@@ -5442,6 +5788,7 @@ function ArtworkLightboxModal({
               className="max-w-full max-h-[38vh] md:max-h-[76vh] object-contain rounded-lg select-none pointer-events-none shadow-xl"
             />
           </div>
+
 
           <div
             onMouseDown={(e) => e.stopPropagation()}
@@ -5481,6 +5828,7 @@ function ArtworkLightboxModal({
           </div>
         </div>
 
+
         <div className="md:w-2/5 flex-1 min-h-0 flex flex-col overflow-hidden bg-white">
           <div className="p-4 md:p-5 border-b border-slate-100 shrink-0 pr-24 md:pr-28">
             <div className="flex items-center gap-2 mb-2">
@@ -5492,6 +5840,7 @@ function ArtworkLightboxModal({
               </span>
             </div>
 
+
             <h3 className="text-xl md:text-2xl font-black text-slate-800 mb-1 leading-snug">
               {artwork.title}
             </h3>
@@ -5499,6 +5848,7 @@ function ArtworkLightboxModal({
               <User className="w-4 h-4 mr-1.5 text-blue-600" />
               <span>{artwork.studentName}</span>
             </div>
+
 
             <div className="flex items-center justify-between pt-2.5 border-t border-slate-100 gap-2">
               <div className="flex items-center gap-2">
@@ -5518,11 +5868,13 @@ function ArtworkLightboxModal({
                   <span>{likesCount > 0 ? likesCount : "Bintang"}</span>
                 </button>
 
+
                 <StarGiversAvatars
                   givers={starGivers}
                   onOpenStarList={onOpenStarList}
                 />
               </div>
+
 
               <div className="flex items-center space-x-1.5 text-slate-400 font-bold">
                 <MessageCircle className="w-6 h-6" />
@@ -5532,6 +5884,7 @@ function ArtworkLightboxModal({
               </div>
             </div>
           </div>
+
 
           <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-4 md:p-5 bg-slate-50 space-y-3">
             <div className="flex items-center justify-between">
@@ -5556,6 +5909,7 @@ function ArtworkLightboxModal({
               )}
             </div>
 
+
             {activePassport && isQuizOpen && (
               <PassportQuizBox
                 stage={criticStage}
@@ -5573,6 +5927,7 @@ function ArtworkLightboxModal({
               />
             )}
 
+
             {commentsList.length === 0 ? (
               <p className="text-sm text-slate-400 italic text-center py-6">
                 Belum ada ulasan. Jadilah yang pertama memberi pujian!
@@ -5587,6 +5942,7 @@ function ArtworkLightboxModal({
                   authorDisplay,
                   commentIsVip
                 );
+
 
                 return (
                   <div
@@ -5618,7 +5974,7 @@ function ArtworkLightboxModal({
                               ? ` (${comment.authorClass})`
                               : ""}
                           </span>
-
+                          
                         </div>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
@@ -5646,6 +6002,7 @@ function ArtworkLightboxModal({
               })
             )}
           </div>
+
 
           <div className="p-3.5 md:p-4 bg-white border-t border-slate-200 shrink-0">
             <form
@@ -5697,6 +6054,7 @@ function ArtworkLightboxModal({
   );
 }
 
+
 // --- BORANG TAMBAH & EDIT KARYA ---
 function ArtworkFormModal({
   mode = "add",
@@ -5719,6 +6077,7 @@ function ArtworkFormModal({
   const isInitialHttpLink =
     initialImgUrl.startsWith("http://") || initialImgUrl.startsWith("https://");
 
+
   const [formData, setFormData] = useState({
     title: isEdit ? initialData.title || "" : "",
     studentName: isEdit ? initialData.studentName || "" : "",
@@ -5734,6 +6093,7 @@ function ArtworkFormModal({
   const [isProcessingImage, setIsProcessingImage] = useState(false);
   const [previewError, setPreviewError] = useState(false);
 
+
   const classes = [
     "Tahun 1",
     "Tahun 2",
@@ -5742,6 +6102,7 @@ function ArtworkFormModal({
     "Tahun 5",
     "Tahun 6",
   ];
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -5752,17 +6113,21 @@ function ArtworkFormModal({
     onSubmit(formData);
   };
 
+
   const handleChange = (e: any) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+
   const handleImageUpload = (e: any) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+
     setIsProcessingImage(true);
     setPreviewError(false);
+
 
     const reader = new FileReader();
     reader.onload = (event: any) => {
@@ -5772,6 +6137,7 @@ function ArtworkFormModal({
         const MAX_DIMENSION = 1280;
         let width = img.width;
         let height = img.height;
+
 
         if (width > height) {
           if (width > MAX_DIMENSION) {
@@ -5785,6 +6151,7 @@ function ArtworkFormModal({
           }
         }
 
+
         canvas.width = width;
         canvas.height = height;
         const ctx = canvas.getContext("2d");
@@ -5794,12 +6161,14 @@ function ArtworkFormModal({
           ctx.drawImage(img, 0, 0, width, height);
         }
 
+
         let quality = 0.82;
         let compressedDataUrl = canvas.toDataURL("image/jpeg", quality);
         while (compressedDataUrl.length > 48000 && quality > 0.45) {
           quality -= 0.08;
           compressedDataUrl = canvas.toDataURL("image/jpeg", quality);
         }
+
 
         setRawLinkInput("");
         setFormData((prev) => ({ ...prev, imageUrl: compressedDataUrl }));
@@ -5816,6 +6185,7 @@ function ArtworkFormModal({
     reader.readAsDataURL(file);
   };
 
+
   const handleLinkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setRawLinkInput(val);
@@ -5823,6 +6193,7 @@ function ArtworkFormModal({
     const formatted = formatDirectImageUrl(val);
     setFormData((prev) => ({ ...prev, imageUrl: formatted }));
   };
+
 
   return (
     <div className="fixed inset-0 bg-slate-900/65 backdrop-blur-sm flex items-center justify-center z-[70] p-4">
@@ -5854,6 +6225,7 @@ function ArtworkFormModal({
           </button>
         </div>
 
+
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           {isEdit && (
             <div className="bg-amber-50 border-l-4 border-yellow-400 text-amber-900 p-3 rounded-r-xl text-xs font-bold">
@@ -5861,6 +6233,7 @@ function ArtworkFormModal({
               kelas, atau memuat naik gambar / pautan baharu.
             </div>
           )}
+
 
           <div>
             <label className="block text-sm font-bold text-slate-700 mb-1">
@@ -5877,6 +6250,7 @@ function ArtworkFormModal({
             />
           </div>
 
+
           <div>
             <label className="block text-sm font-bold text-slate-700 mb-1">
               Nama Pelukis Cilik
@@ -5891,6 +6265,7 @@ function ArtworkFormModal({
               className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all font-medium"
             />
           </div>
+
 
           <div>
             <label className="block text-sm font-bold text-slate-700 mb-1">
@@ -5910,10 +6285,12 @@ function ArtworkFormModal({
             </select>
           </div>
 
+
           <div>
             <label className="block text-sm font-bold text-slate-700 mb-2">
               Gambar Karya (Pilih Salah Satu Kaedah)
             </label>
+
 
             <div className="grid grid-cols-2 gap-2 bg-slate-100 p-1.5 rounded-2xl mb-3">
               <button
@@ -5950,6 +6327,7 @@ function ArtworkFormModal({
               </button>
             </div>
 
+
             {imageSourceMode === "upload" ? (
               <div className="space-y-3">
                 <label className="block w-full cursor-pointer bg-blue-50 border-2 border-dashed border-blue-300 hover:bg-blue-100 hover:border-blue-400 transition-colors rounded-xl p-4 text-center text-blue-700 font-medium relative overflow-hidden group">
@@ -5971,6 +6349,7 @@ function ArtworkFormModal({
                     required={!formData.imageUrl}
                   />
                 </label>
+
 
                 {formData.imageUrl && (
                   <div className="rounded-2xl overflow-hidden border-4 border-yellow-400 shadow-md relative bg-slate-900 animate-pop-up">
@@ -6008,6 +6387,7 @@ function ArtworkFormModal({
                   </p>
                 </div>
 
+
                 {formData.imageUrl && (
                   <div className="bg-white p-2.5 rounded-xl border border-blue-200 space-y-2">
                     <div className="bg-slate-900 rounded-lg overflow-hidden">
@@ -6037,12 +6417,14 @@ function ArtworkFormModal({
               </div>
             )}
 
+
             <p className="text-xs text-slate-500 mt-2 flex items-center">
               <Compass className="w-3 h-3 mr-1 shrink-0" />
               Gambar dipaparkan mengikut saiz & nisbah asal agar kekal jelas
               apabila di-zoom.
             </p>
           </div>
+
 
           <div className="pt-4 border-t border-slate-100 flex space-x-3">
             <button
@@ -6065,10 +6447,3 @@ function ArtworkFormModal({
     </div>
   );
 }
-
-
-    const root = ReactDOM.createRoot(document.getElementById("root"));
-    root.render(<App />);
-  </script>
-</body>
-</html>
