@@ -2121,7 +2121,7 @@ export default function App() {
     "Tahun 6",
   ];
 
-  // --- PENAPISAN KARYA MENGIKUT TAHUN, BULAN, KELAS & BIDANG DSKP ---
+  // --- PENAPISAN KARYA MENGIKUT TAHUN, BULAN, KELAS & BIDANG SENI VISUAL ---
   const filteredArtworks = artworks.filter((art) => {
     const artYear = getArtworkYear(art.createdAt);
     const artMonth = getArtworkMonth(art.createdAt);
@@ -2145,7 +2145,7 @@ export default function App() {
     return cleaned || "tanpa-tajuk";
   };
 
-  // --- KUMPULKAN KARYA MENGIKUT BIDANG DSKP DAHULU, KEMUDIAN TAJUK YANG SAMA ---
+  // --- KUMPULKAN KARYA MENGIKUT BIDANG SENI VISUAL DAHULU, KEMUDIAN TAJUK YANG SAMA ---
   const groupedArtworksByField = useMemo(() => {
     return PSV_FIELDS.map((fieldName) => {
       const fieldItems = filteredArtworks.filter(
@@ -2908,7 +2908,7 @@ export default function App() {
 
               <div className="flex items-center gap-2 flex-wrap pt-3 border-t border-slate-100">
                 <span className="text-blue-900 font-bold text-sm mr-1">
-                  Bidang Seni:
+                  Bidang Seni Visual:
                 </span>
                 {["Semua", ...PSV_FIELDS].map((fld) => (
                   <button
@@ -3007,7 +3007,7 @@ export default function App() {
                     key={fieldSection.fieldName}
                     className="bg-gradient-to-b from-blue-50/90 to-white p-5 md:p-7 rounded-[2rem] border-4 border-blue-200 shadow-md space-y-6"
                   >
-                    {/* PENGEPALA UTAMA BIDANG DSKP */}
+                    {/* PENGEPALA UTAMA BIDANG SENI VISUAL */}
                     <div className="flex flex-wrap items-center justify-between gap-3 bg-blue-900 text-white px-5 py-4 rounded-2xl border-b-4 border-yellow-400 shadow-sm">
                       <div className="flex items-center gap-3">
                         <div className="bg-yellow-400 text-blue-950 p-2.5 rounded-xl shadow-xs">
@@ -3924,7 +3924,7 @@ function PassportQuizBox({
       <div className="flex items-center justify-between gap-2 mb-2">
         <div className="flex items-center gap-1.5 flex-wrap">
           <span className="bg-blue-900 text-yellow-300 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase">
-            Bidang: {field}
+            Bidang Seni Visual: {field}
           </span>
           <span className="bg-blue-700 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase">
             {stage === "tahap1" ? "Tahap 1 (Thn 1-3)" : "Tahap 2 (Thn 4-6)"}
@@ -4793,7 +4793,7 @@ function StaffDashboardPanel({
                           Kelas
                         </th>
                         <th className="py-2.5 px-2.5 font-black whitespace-nowrap">
-                          Bidang
+                          Bidang Seni Visual
                         </th>
                         <th className="py-2.5 px-2.5 font-black whitespace-nowrap text-center">
                           Sesi
@@ -4928,7 +4928,7 @@ function StaffDashboardPanel({
               <div className="pt-6 border-t-2 border-dashed border-slate-300 flex flex-row justify-between items-end gap-8 text-xs text-slate-600 hide-on-screen">
                 <div className="pb-1">
                   <p className="font-bold text-blue-900">
-                    Kanta Seni - Misi Ekplorasi & Jejak Bintang
+                    Kanta Seni - Sistem Galeri Maya & Apresiasi PSV
                   </p>
                   <p className="text-slate-500 mt-0.5">
                     &copy; {new Date().getFullYear()} E&J Studio. Hak Cipta
@@ -5509,6 +5509,7 @@ function ArtworkCard({
 
   const likesList = Array.isArray(artwork.likes) ? artwork.likes : [];
   const likesCount = likesList.length;
+  const hasAnyStar = likesCount > 0;
   const hasLiked = likesList.includes(activeUserKey);
   const commentsList = Array.isArray(artwork.comments) ? artwork.comments : [];
   const starGivers = useMemo(
@@ -5661,23 +5662,36 @@ function ArtworkCard({
           <div className="flex items-center gap-1.5">
             <button
               onClick={handleLikeClick}
-              className={`flex items-center space-x-1.5 font-bold transition-colors ${
-                hasLiked
-                  ? "text-yellow-500"
-                  : "text-slate-400 hover:text-yellow-500"
+              className={`flex items-center space-x-1.5 font-extrabold transition-all active:scale-95 px-2.5 py-1 rounded-full ${
+                hasAnyStar
+                  ? "text-amber-500 bg-yellow-50/90 border border-yellow-300 shadow-2xs"
+                  : "text-slate-400 hover:text-amber-500 hover:bg-yellow-50/60"
               }`}
               title={
                 hasLiked
-                  ? "Anda telah memberi bintang pada karya ini"
-                  : "Beri Bintang"
+                  ? `Anda dan ${Math.max(
+                      0,
+                      likesCount - 1
+                    )} rakan lain telah memberi bintang`
+                  : hasAnyStar
+                  ? `${likesCount} bintang telah diberikan (Klik untuk beri bintang)`
+                  : "Klik untuk berikan bintang pertama"
               }
             >
               <Star
-                className={`w-6 h-6 ${hasLiked ? "fill-current" : ""} ${
-                  starBurst ? "animate-star-pop" : ""
-                } transition-transform`}
+                className={`w-6 h-6 ${
+                  hasAnyStar
+                    ? "fill-yellow-400 text-amber-500"
+                    : "text-slate-400 group-hover:text-amber-400"
+                } ${starBurst ? "animate-star-pop" : ""} transition-transform`}
               />
-              <span>{likesCount > 0 ? likesCount : "Bintang"}</span>
+              <span
+                className={`text-base ${
+                  hasAnyStar ? "text-amber-600 font-black" : "text-slate-500"
+                }`}
+              >
+                {likesCount}
+              </span>
             </button>
 
             <StarGiversAvatars
@@ -5920,6 +5934,7 @@ function ArtworkLightboxModal({
 
   const likesList = Array.isArray(artwork.likes) ? artwork.likes : [];
   const likesCount = likesList.length;
+  const hasAnyStar = likesCount > 0;
   const hasLiked = likesList.includes(activeUserKey);
   const commentsList = Array.isArray(artwork.comments) ? artwork.comments : [];
   const starGivers = useMemo(
@@ -5930,25 +5945,23 @@ function ArtworkLightboxModal({
   const clampPan = (nextX: number, nextY: number, currentZoom: number) => {
     if (currentZoom <= 1) return { x: 0, y: 0 };
     const rect = viewportRef.current?.getBoundingClientRect();
-    const maxX = rect ? ((currentZoom - 1) * rect.width) / 2 + 80 : 350;
-    const maxY = rect ? ((currentZoom - 1) * rect.height) / 2 + 80 : 350;
+    const maxX = rect ? (rect.width * (currentZoom - 1)) / 2 + 80 : 350;
+    const maxY = rect ? (rect.height * (currentZoom - 1)) / 2 + 80 : 350;
     return {
       x: Math.max(-maxX, Math.min(maxX, nextX)),
       y: Math.max(-maxY, Math.min(maxY, nextY)),
     };
   };
 
-  const applyZoom = (updater: (z: number) => number) => {
-    setZoom((prevZoom) => {
-      const nextZoom = Number(
-        Math.min(3.5, Math.max(0.75, updater(prevZoom))).toFixed(2)
-      );
-      if (nextZoom <= 1) {
+  const applyZoom = (updater: (prev: number) => number) => {
+    setZoom((prev) => {
+      const next = Number(Math.min(3.5, Math.max(1, updater(prev))).toFixed(2));
+      if (next <= 1) {
         setPan({ x: 0, y: 0 });
       } else {
-        setPan((prevPan) => clampPan(prevPan.x, prevPan.y, nextZoom));
+        setPan((p) => clampPan(p.x, p.y, next));
       }
-      return nextZoom;
+      return next;
     });
   };
 
@@ -5956,12 +5969,10 @@ function ArtworkLightboxModal({
     SoundFX.click();
     applyZoom((z) => z + 0.35);
   };
-
   const handleZoomOut = () => {
     SoundFX.click();
     applyZoom((z) => z - 0.35);
   };
-
   const handleResetZoom = () => {
     SoundFX.click();
     setZoom(1);
@@ -5970,6 +5981,7 @@ function ArtworkLightboxModal({
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (zoom <= 1) return;
+    if ((e.target as HTMLElement).closest("button")) return;
     e.preventDefault();
     e.currentTarget.setPointerCapture(e.pointerId);
     setIsDragging(true);
@@ -5981,9 +5993,9 @@ function ArtworkLightboxModal({
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!isDragging || zoom <= 1) return;
-    const rawX = e.clientX - dragStartRef.current.x;
-    const rawY = e.clientY - dragStartRef.current.y;
-    setPan(clampPan(rawX, rawY, zoom));
+    const nextX = e.clientX - dragStartRef.current.x;
+    const nextY = e.clientY - dragStartRef.current.y;
+    setPan(clampPan(nextX, nextY, zoom));
   };
 
   const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -5999,6 +6011,16 @@ function ArtworkLightboxModal({
       e.preventDefault();
       const delta = e.deltaY < 0 ? 0.25 : -0.25;
       applyZoom((z) => z + delta);
+    }
+  };
+
+  const handleDoubleClickImage = () => {
+    SoundFX.click();
+    if (zoom > 1) {
+      setZoom(1);
+      setPan({ x: 0, y: 0 });
+    } else {
+      setZoom(2);
     }
   };
 
@@ -6064,88 +6086,63 @@ function ArtworkLightboxModal({
     setIsQuizOpen(false);
   };
 
+  const handleImageError = (e: any) => {
+    e.target.src =
+      "https://placehold.co/800x600/e2e8f0/475569?text=Gambar+Rosak+atau+Tiada";
+  };
+
   return (
     <div
       onClick={onClose}
-      className="fixed inset-0 bg-slate-900/85 backdrop-blur-sm z-50 overflow-y-auto overscroll-contain p-3 sm:p-5 md:p-6 flex items-start md:items-center justify-center"
+      className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 overflow-y-auto overscroll-contain p-2 sm:p-4 md:p-6 flex items-start md:items-center justify-center"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="bg-white rounded-[1.75rem] md:rounded-[2rem] w-full max-w-5xl md:h-[90vh] md:max-h-[780px] my-auto flex flex-col md:flex-row shadow-2xl border-4 border-yellow-400 animate-modal-enter overflow-hidden md:overflow-hidden"
+        className="bg-white rounded-3xl w-full max-w-5xl my-auto flex flex-col lg:flex-row shadow-2xl border-4 border-yellow-400 animate-modal-enter overflow-hidden"
       >
-        {/* BAHAGIAN KIRI: PAPARAN GAMBAR DENGAN ZOOM & DRAG */}
-        <div className="md:w-3/5 bg-slate-900 relative flex flex-col shrink-0 md:h-full">
-          <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 bg-slate-950/90 text-white border-b border-slate-800 z-10">
-            <div className="flex items-center space-x-2">
-              <span className="bg-yellow-400 text-blue-900 text-xs font-black px-3 py-1 rounded-full uppercase">
-                {artwork.className}
-              </span>
-              <span className="bg-blue-800 text-yellow-300 text-xs font-extrabold px-2.5 py-1 rounded-full">
-                {artworkField}
-              </span>
-              <span className="text-xs font-bold text-slate-300">
-                Tahun {artworkYear}
+        {/* Bahagian Kiri: Kawasan Gambar Interaktif (Zoom + Drag/Pan) */}
+        <div className="w-full lg:w-3/5 bg-slate-900 flex flex-col relative select-none shrink-0">
+          <div className="flex items-center justify-between px-3 sm:px-4 py-2.5 bg-slate-950/80 text-white border-b border-slate-800 z-20">
+            <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold text-slate-300">
+              <Move className="w-3.5 h-3.5 text-yellow-400 shrink-0" />
+              <span>
+                {zoom > 1
+                  ? "Seret gambar untuk lihat bahagian lain"
+                  : "Zum masuk untuk gerakkan gambar"}
               </span>
             </div>
-
-            <div className="flex items-center space-x-1.5">
-              {isStaffLoggedIn && (
-                <>
-                  <button
-                    onClick={onRequestEdit}
-                    className="p-2 bg-blue-700 hover:bg-blue-600 text-yellow-300 rounded-lg transition-colors flex items-center gap-1 text-xs font-bold px-2.5"
-                    title="Edit Maklumat Karya"
-                  >
-                    <Pencil className="w-3.5 h-3.5" />
-                    <span className="hidden sm:inline">Edit</span>
-                  </button>
-                  <button
-                    onClick={onRequestDelete}
-                    className="p-2 bg-red-600 hover:bg-red-500 text-white rounded-lg transition-colors flex items-center gap-1 text-xs font-bold px-2.5"
-                    title="Padam Karya Ini"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    <span className="hidden sm:inline">Padam</span>
-                  </button>
-                  <div className="w-px h-5 bg-slate-700 mx-1"></div>
-                </>
-              )}
-
+            <div className="flex items-center gap-1 sm:gap-1.5">
               <button
+                type="button"
                 onClick={handleZoomOut}
-                disabled={zoom <= 0.75}
-                className="p-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 rounded-lg transition-colors"
+                disabled={zoom <= 1}
+                className="p-1.5 sm:p-2 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-40 transition-colors"
                 title="Kecilkan (Zoom Out)"
               >
                 <ZoomOut className="w-4 h-4" />
               </button>
-              <span className="text-xs font-extrabold px-2 min-w-[3.2rem] text-center text-yellow-300">
+              <span className="text-xs font-extrabold px-2 py-1 bg-slate-800 rounded-md min-w-[3.2rem] text-center text-yellow-400">
                 {Math.round(zoom * 100)}%
               </span>
               <button
+                type="button"
                 onClick={handleZoomIn}
                 disabled={zoom >= 3.5}
-                className="p-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 rounded-lg transition-colors"
+                className="p-1.5 sm:p-2 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-40 transition-colors"
                 title="Besarkan (Zoom In)"
               >
                 <ZoomIn className="w-4 h-4" />
               </button>
-              {zoom !== 1 && (
+              {zoom > 1 && (
                 <button
+                  type="button"
                   onClick={handleResetZoom}
-                  className="p-2 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors text-xs font-bold flex items-center gap-1"
-                  title="Saiz & Kedudukan Asal"
+                  className="p-1.5 sm:p-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition-colors"
+                  title="Saiz Asal"
                 >
                   <RotateCcw className="w-4 h-4" />
                 </button>
               )}
-              <button
-                onClick={onClose}
-                className="md:hidden ml-1 p-2 bg-red-500/90 hover:bg-red-600 text-white rounded-lg transition-colors"
-                title="Tutup"
-              >
-                <X className="w-4 h-4" />
-              </button>
             </div>
           </div>
 
@@ -6156,16 +6153,9 @@ function ArtworkLightboxModal({
             onPointerUp={handlePointerUp}
             onPointerCancel={handlePointerUp}
             onWheel={handleWheelZoom}
-            onDoubleClick={() => {
-              SoundFX.click();
-              if (zoom > 1) {
-                setZoom(1);
-                setPan({ x: 0, y: 0 });
-              } else {
-                setZoom(2);
-              }
-            }}
-            className={`relative flex-1 min-h-[260px] sm:min-h-[340px] md:min-h-0 flex items-center justify-center p-4 bg-[radial-gradient(#334155_1px,transparent_1px)] [background-size:16px_16px] overflow-hidden select-none touch-none ${
+            onDoubleClick={handleDoubleClickImage}
+            style={{ touchAction: zoom > 1 ? "none" : "pan-y" }}
+            className={`w-full h-[42vh] sm:h-[52vh] lg:h-[75vh] overflow-hidden flex items-center justify-center p-3 sm:p-4 relative ${
               zoom > 1
                 ? isDragging
                   ? "cursor-grabbing"
@@ -6177,84 +6167,95 @@ function ArtworkLightboxModal({
               key={artwork.imageUrl}
               src={
                 artwork.imageUrl ||
-                "https://placehold.co/800x600/1e293b/cbd5e1?text=Tiada+Gambar"
+                "https://placehold.co/800x600/e2e8f0/475569?text=Tiada+Gambar"
               }
               alt={artwork.title}
+              onError={handleImageError}
               draggable={false}
-              onClick={() => {
-                if (zoom === 1) {
-                  SoundFX.click();
-                  setZoom(1.75);
-                }
-              }}
               style={{
                 transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`,
                 transformOrigin: "center center",
               }}
-              className={`max-h-[42vh] sm:max-h-[50vh] md:max-h-full max-w-full object-contain rounded-lg shadow-2xl ${
-                isDragging ? "" : "transition-transform duration-200 ease-out"
+              className={`max-h-full max-w-full object-contain rounded-xl shadow-2xl select-none ${
+                isDragging
+                  ? "transition-none"
+                  : "transition-transform duration-200 ease-out"
               }`}
             />
-
-            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-slate-950/80 backdrop-blur-xs text-slate-200 border border-slate-700 px-3 py-1 rounded-full text-[11px] font-bold flex items-center gap-1.5 pointer-events-none shadow-md whitespace-nowrap">
-              <Move className="w-3.5 h-3.5 text-yellow-400" />
-              {zoom > 1
-                ? "Seret gambar untuk gerakkan sudut • Klik 2x untuk asal"
-                : "Klik gambar atau tekan + untuk zoom & gerakkan sudut"}
-            </div>
           </div>
         </div>
 
-        {/* BAHAGIAN KANAN: BUTIRAN KARYA, BINTANG & KOMEN (SCROLL PENUH DI SEMUA SKRIN) */}
-        <div className="md:w-2/5 flex flex-col bg-white border-t-4 md:border-t-0 md:border-l-4 border-yellow-400 md:h-full md:min-h-0">
-          <div className="p-5 sm:p-6 border-b border-slate-100 flex justify-between items-start gap-3 shrink-0">
+        {/* Bahagian Kanan: Maklumat Karya & Ruang Apresiasi */}
+        <div className="w-full lg:w-2/5 flex flex-col bg-white border-t-4 lg:border-t-0 lg:border-l-4 border-blue-100 lg:max-h-[82vh]">
+          <div className="p-4 sm:p-5 border-b border-slate-100 flex items-start justify-between gap-3 bg-sky-50/60 shrink-0">
             <div>
-              <h3 className="text-xl sm:text-2xl font-black text-blue-900 leading-snug">
-                {artwork.title}
-              </h3>
-              <div className="flex items-center text-slate-600 font-semibold text-sm mt-1.5">
-                <User className="w-4 h-4 mr-1.5 text-blue-500" />
-                <span>{artwork.studentName}</span>
-                <span className="mx-2 text-slate-300">•</span>
-                <span className="text-blue-600 font-bold">
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="inline-block bg-yellow-400 text-blue-900 text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">
                   {artwork.className}
                 </span>
-              </div>
-              <div className="mt-2">
-                <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-900 border border-amber-300 text-xs font-extrabold px-3 py-0.5 rounded-full">
-                  <Shapes className="w-3.5 h-3.5 text-amber-700" />
-                  Bidang: {artworkField}
+                <span className="inline-block bg-blue-900 text-yellow-300 text-xs font-extrabold px-2.5 py-1 rounded-full">
+                  {artworkField}
                 </span>
+                <span className="inline-block bg-blue-100 text-blue-900 text-xs font-extrabold px-2.5 py-1 rounded-full">
+                  Tahun {artworkYear}
+                </span>
+              </div>
+              <h3 className="text-lg sm:text-xl md:text-2xl font-black text-blue-950 mt-2 leading-snug">
+                {artwork.title}
+              </h3>
+              <div className="flex items-center text-slate-600 mt-1 font-semibold text-sm">
+                <User className="w-4 h-4 mr-1.5 text-blue-600" />
+                <span>{artwork.studentName}</span>
               </div>
             </div>
 
-            <button
-              onClick={onClose}
-              className="hidden md:flex p-2 bg-slate-100 hover:bg-red-100 hover:text-red-600 text-slate-500 rounded-full transition-colors shrink-0"
-              title="Tutup Paparan"
-            >
-              <X className="w-6 h-6" />
-            </button>
+            <div className="flex items-center gap-1.5 shrink-0">
+              {isStaffLoggedIn && (
+                <>
+                  <button
+                    onClick={onRequestEdit}
+                    title="Edit Maklumat Karya"
+                    className="p-2 bg-blue-100 hover:bg-blue-700 text-blue-800 hover:text-yellow-300 rounded-full transition-colors"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={onRequestDelete}
+                    title="Padam Karya"
+                    className="p-2 bg-red-50 hover:bg-red-500 text-red-500 hover:text-white rounded-full transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </>
+              )}
+              <button
+                onClick={onClose}
+                title="Tutup"
+                className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-full transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
-          <div className="px-5 sm:px-6 py-4 bg-sky-50/70 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2 shrink-0">
+          <div className="px-4 sm:px-5 py-3 border-b border-slate-100 flex items-center justify-between gap-2 bg-white shrink-0">
             <div className="flex items-center gap-2">
               <button
                 onClick={handleLikeClick}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-full font-extrabold text-sm transition-all shadow-sm active:scale-95 ${
-                  hasLiked
-                    ? "bg-yellow-400 text-blue-900 border-2 border-yellow-500"
-                    : "bg-white text-slate-600 hover:bg-yellow-50 border-2 border-slate-200"
+                className={`flex items-center space-x-2 font-extrabold px-3.5 py-2 rounded-full transition-all active:scale-95 ${
+                  hasAnyStar
+                    ? "bg-yellow-50 text-amber-600 border-2 border-yellow-400 shadow-xs"
+                    : "bg-slate-100 text-slate-500 hover:bg-yellow-50 hover:text-amber-600"
                 }`}
               >
                 <Star
                   className={`w-5 h-5 ${
-                    hasLiked ? "fill-current text-blue-900" : "text-yellow-500"
+                    hasAnyStar
+                      ? "fill-yellow-400 text-amber-500"
+                      : "text-slate-400"
                   } ${starBurst ? "animate-star-pop" : ""}`}
                 />
-                <span>
-                  {hasLiked ? "Bintang Diberi" : "Beri Bintang"} ({likesCount})
-                </span>
+                <span>{likesCount}</span>
               </button>
 
               <StarGiversAvatars
@@ -6263,25 +6264,17 @@ function ArtworkLightboxModal({
               />
             </div>
 
-            <div className="text-xs font-bold text-blue-800 flex items-center">
-              <MessageCircle className="w-4 h-4 mr-1 text-blue-500" />
-              {commentsList.length} Ulasan
-            </div>
-          </div>
-
-          {/* SENARAI ULASAN: BOLEH SCROLL DALAM KOTAK PADA DESKTOP, MENGEMBANG PENUH PADA TELEFON */}
-          <div className="p-5 sm:p-6 md:flex-1 md:overflow-y-auto space-y-3 bg-slate-50/50">
-            <div className="flex items-center justify-between">
-              <div className="text-xs font-extrabold text-blue-900 uppercase tracking-wider flex items-center">
-                <Star className="w-3.5 h-3.5 mr-1.5 fill-current text-yellow-400" />
-                Sudut Apresiasi
+            <div className="flex items-center gap-2">
+              <div className="flex items-center space-x-1.5 text-blue-700 font-bold text-sm">
+                <MessageCircle className="w-5 h-5" />
+                <span>{commentsList.length} Ulasan</span>
               </div>
 
               {activePassport && (
                 <button
                   type="button"
                   onClick={handleToggleQuiz}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black transition-all shadow-2xs ${
+                  className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-black transition-all shadow-2xs ${
                     isQuizOpen
                       ? "bg-blue-700 text-yellow-300"
                       : "bg-yellow-400 hover:bg-yellow-300 text-blue-900 border border-blue-900/30"
@@ -6289,16 +6282,18 @@ function ArtworkLightboxModal({
                   title="Jawab 3 soalan rawak mengikut bidang seni & tahap murid"
                 >
                   <HelpCircle className="w-3.5 h-3.5" />
-                  <span>{isQuizOpen ? "Tutup Soalan" : "3 Soalan Seni"}</span>
+                  <span>{isQuizOpen ? "Tutup" : "3 Soalan"}</span>
                 </button>
               )}
             </div>
+          </div>
 
+          <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3 bg-slate-50/70 min-h-[160px]">
             {commentsList.length === 0 ? (
-              <div className="text-center py-8 bg-white rounded-2xl border border-dashed border-slate-200">
-                <p className="text-sm text-slate-400 italic">
-                  Belum ada komen. Berikan kata-kata semangat kepada{" "}
-                  {artwork.studentName}!
+              <div className="text-center py-8 text-slate-400">
+                <MessageCircle className="w-10 h-10 mx-auto mb-2 opacity-30" />
+                <p className="text-sm italic">
+                  Belum ada komen. Jadilah yang pertama memuji karya ini!
                 </p>
               </div>
             ) : (
@@ -6315,10 +6310,10 @@ function ArtworkLightboxModal({
                 return (
                   <div
                     key={comment.id}
-                    className={`p-3.5 rounded-2xl shadow-sm border ${
+                    className={`p-3.5 rounded-2xl shadow-sm border text-sm transition-all ${
                       commentIsVip
-                        ? "bg-gradient-to-r from-amber-50/95 via-yellow-50/80 to-white border-amber-300"
-                        : "bg-white border-slate-100"
+                        ? "bg-gradient-to-r from-amber-50/90 via-yellow-50/70 to-white border-amber-300"
+                        : "bg-white border-slate-100 hover:border-blue-200"
                     }`}
                   >
                     <div className="flex justify-between items-start mb-1 gap-2">
@@ -6335,20 +6330,20 @@ function ArtworkLightboxModal({
                             </span>
                           )}
                         </div>
-                        <span className="font-bold text-blue-900 text-xs flex items-center flex-wrap gap-1.5">
+                        <div className="font-bold text-blue-900 text-xs flex items-center flex-wrap gap-1.5">
                           <span>
                             {authorDisplay}
                             {comment.authorClass
                               ? ` (${comment.authorClass})`
                               : ""}
                           </span>
-                        </span>
+                        </div>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
                         {comment.timestamp && (
-                          <span className="text-[10px] text-slate-400 font-medium">
+                          <div className="text-[10px] text-slate-400 font-medium whitespace-nowrap">
                             {formatTimeAgo(comment.timestamp)}
-                          </span>
+                          </div>
                         )}
                         {isStaffLoggedIn && (
                           <button
@@ -6361,14 +6356,16 @@ function ArtworkLightboxModal({
                         )}
                       </div>
                     </div>
-                    <p className="text-slate-700 text-sm whitespace-pre-line pl-9">
+                    <p className="text-slate-700 leading-relaxed whitespace-pre-line pl-9">
                       {comment.text}
                     </p>
                   </div>
                 );
               })
             )}
+          </div>
 
+          <div className="p-3.5 sm:p-4 bg-white border-t border-slate-200 shrink-0">
             {activePassport && isQuizOpen && (
               <PassportQuizBox
                 stage={criticStage}
@@ -6386,63 +6383,71 @@ function ArtworkLightboxModal({
                 }}
               />
             )}
-          </div>
 
-          <form
-            onSubmit={handleCommentSubmit}
-            className="p-4 bg-white border-t border-slate-200 flex items-center gap-2 shrink-0"
-          >
-            {activePassport && (
-              <button
-                type="button"
-                onClick={handleToggleQuiz}
-                className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all border ${
-                  isQuizOpen
-                    ? "bg-blue-700 text-yellow-300 border-blue-800"
-                    : "bg-yellow-400 hover:bg-yellow-300 text-blue-900 border-blue-900/30"
-                }`}
-                title="Ikon Khas: Jawab 3 Soalan Apresiasi Seni"
-              >
-                <HelpCircle className="w-5 h-5" />
-              </button>
-            )}
-            <input
-              type="text"
-              value={commentText}
-              onChange={(e) => setCommentText(e.target.value)}
-              placeholder={
-                answeredQuizList.length > 0
-                  ? "Tambah ulasan bebas (atau terus hantar)..."
-                  : "Tulis pujian atau ulasan seni..."
-              }
-              className="flex-1 bg-slate-50 border border-slate-300 rounded-full py-2.5 px-4 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-            />
-            <button
-              type="submit"
-              disabled={!canSubmitComment}
-              className="bg-blue-600 hover:bg-blue-700 text-white p-2.5 rounded-full transition-all active:scale-90 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
-              title="Hantar Komen / Jawapan"
+            <form
+              onSubmit={handleCommentSubmit}
+              className="flex items-center relative gap-2"
             >
-              <Send className="w-4 h-4" />
-            </button>
-          </form>
+              {activePassport && (
+                <button
+                  type="button"
+                  onClick={handleToggleQuiz}
+                  className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all border ${
+                    isQuizOpen
+                      ? "bg-blue-700 text-yellow-300 border-blue-800"
+                      : "bg-yellow-400 hover:bg-yellow-300 text-blue-900 border-blue-900/30"
+                  }`}
+                  title="Ikon Khas: Jawab 3 Soalan Apresiasi Seni"
+                >
+                  <HelpCircle className="w-5 h-5" />
+                </button>
+              )}
+              <div className="relative flex-1">
+                <input
+                  type="text"
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  placeholder={
+                    answeredQuizList.length > 0
+                      ? "Tambah ulasan bebas (atau terus hantar)..."
+                      : "Tulis ulasan murni..."
+                  }
+                  className="w-full bg-slate-50 border-2 border-slate-200 rounded-full py-2.5 pl-4 pr-12 text-sm focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
+                />
+                <button
+                  type="submit"
+                  disabled={!canSubmitComment}
+                  className="absolute right-1.5 top-1.5 bottom-1.5 bg-blue-600 text-white w-8 h-8 flex items-center justify-center rounded-full hover:bg-blue-700 active:scale-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  title="Hantar Komen / Jawapan"
+                >
+                  <Send className="w-4 h-4 ml-0.5" />
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-// --- MODAL TAMBAH & EDIT KARYA (MENYOKONG MUAT NAIK GAMBAR TERUS ATAU PAUTAN URL) ---
+// --- BORANG TAMBAH & EDIT KARYA (MENYOKONG MUAT NAIK FAIL GAMBAR TERUS KE GOOGLE DRIVE ATAU PAUTAN URL) ---
 function ArtworkFormModal({
-  mode = "add",
+  mode,
   initialData,
   onClose,
   onSubmit,
 }: {
-  mode?: "add" | "edit";
+  mode: "add" | "edit";
   initialData?: any;
   onClose: () => void;
-  onSubmit: (data: any) => void;
+  onSubmit: (data: {
+    title: string;
+    studentName: string;
+    className: string;
+    field: string;
+    imageUrl: string;
+  }) => void;
 }) {
   const isEdit = mode === "edit";
   const [title, setTitle] = useState(initialData?.title || "");
@@ -6456,151 +6461,224 @@ function ArtworkFormModal({
     normalizePsvField(initialData?.field)
   );
   const [imageUrl, setImageUrl] = useState(initialData?.imageUrl || "");
-  const [imageInputType, setImageInputType] = useState<"upload" | "link">(
-    isEdit && initialData?.imageUrl && !initialData.imageUrl.startsWith("data:")
-      ? "link"
-      : "upload"
+  const [imageInputMode, setImageInputMode] = useState<"upload" | "link">(
+    "upload"
   );
-  const [isCompressing, setIsCompressing] = useState(false);
+  const [selectedFileName, setSelectedFileName] = useState("");
+  const [isUploadingFile, setIsUploadingFile] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+  const [previewError, setPreviewError] = useState(false);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setIsCompressing(true);
+    setUploadError("");
+    setPreviewError(false);
+
+    if (!file.type.startsWith("image/")) {
+      SoundFX.alert();
+      setUploadError(
+        "Sila pilih fail gambar sahaja (JPG, PNG, WEBP atau GIF)."
+      );
+      return;
+    }
+
+    if (file.size > 15 * 1024 * 1024) {
+      SoundFX.alert();
+      setUploadError("Saiz gambar terlalu besar (maksimum 15MB).");
+      return;
+    }
+
+    setSelectedFileName(file.name);
+    setIsUploadingFile(true);
+
     const reader = new FileReader();
-    reader.onload = (event) => {
+    reader.onload = () => {
       const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        const MAX_DIM = 850;
+      img.onload = async () => {
+        const MAX_DIM = 1400;
         let width = img.width;
         let height = img.height;
 
-        if (width > height) {
-          if (width > MAX_DIM) {
+        if (width > MAX_DIM || height > MAX_DIM) {
+          if (width > height) {
             height = Math.round((height * MAX_DIM) / width);
             width = MAX_DIM;
-          }
-        } else {
-          if (height > MAX_DIM) {
+          } else {
             width = Math.round((width * MAX_DIM) / height);
             height = MAX_DIM;
           }
         }
 
+        const canvas = document.createElement("canvas");
         canvas.width = width;
         canvas.height = height;
         const ctx = canvas.getContext("2d");
+
         if (ctx) {
           ctx.drawImage(img, 0, 0, width, height);
-          const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.78);
-          setImageUrl(compressedDataUrl);
-          SoundFX.success();
+          const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.85);
+          const base64Data = compressedDataUrl.split(",")[1];
+
+          try {
+            const response = await fetch(`${SCRIPT_URL}?action=uploadImage`, {
+              method: "POST",
+              body: JSON.stringify({
+                fileName: `${Date.now()}_${file.name.replace(
+                  /\.[^/.]+$/,
+                  ""
+                )}.jpg`,
+                mimeType: "image/jpeg",
+                base64Data,
+              }),
+              headers: {
+                "Content-Type": "text/plain;charset=utf-8",
+              },
+            });
+
+            const resText = await response.text();
+            let resJson: any = {};
+            try {
+              resJson = JSON.parse(resText);
+            } catch {}
+
+            if (resJson && resJson.imageUrl) {
+              setImageUrl(formatDirectImageUrl(resJson.imageUrl));
+              SoundFX.success();
+            } else {
+              setImageUrl(compressedDataUrl);
+              SoundFX.success();
+            }
+          } catch {
+            setImageUrl(compressedDataUrl);
+            SoundFX.success();
+          } finally {
+            setIsUploadingFile(false);
+          }
+        } else {
+          setIsUploadingFile(false);
+          setUploadError("Gagal memproses gambar. Sila cuba fail lain.");
         }
-        setIsCompressing(false);
       };
+
       img.onerror = () => {
-        setIsCompressing(false);
+        setIsUploadingFile(false);
         SoundFX.alert();
+        setUploadError(
+          "Fail gambar rosak atau format tidak disokong oleh pelayar."
+        );
       };
-      img.src = event.target?.result as string;
+
+      img.src = reader.result as string;
     };
+
+    reader.onerror = () => {
+      setIsUploadingFile(false);
+      SoundFX.alert();
+      setUploadError("Gagal membaca fail daripada peranti anda.");
+    };
+
     reader.readAsDataURL(file);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || !studentName.trim()) return;
+    if (isUploadingFile) return;
 
-    const cleanImageUrl = formatDirectImageUrl(imageUrl);
+    const cleanImageUrl = formatDirectImageUrl(imageUrl.trim());
+    if (!title.trim() || !studentName.trim() || !cleanImageUrl) {
+      SoundFX.alert();
+      setUploadError(
+        "Sila lengkapkan tajuk, nama pelukis dan muat naik/masukkan gambar karya."
+      );
+      return;
+    }
 
     onSubmit({
       title: title.trim(),
       studentName: studentName.trim(),
       className,
       field,
-      imageUrl:
-        cleanImageUrl ||
-        "https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&q=80&w=600",
+      imageUrl: cleanImageUrl,
     });
   };
 
+  const previewUrl = formatDirectImageUrl(imageUrl.trim());
+
   return (
-    <div className="fixed inset-0 bg-slate-900/75 backdrop-blur-sm flex items-center justify-center z-[65] p-4 overflow-y-auto">
-      <div className="bg-white rounded-[2rem] w-full max-w-lg overflow-hidden shadow-2xl border-4 border-yellow-400 animate-modal-enter my-auto">
+    <div className="fixed inset-0 bg-slate-900/75 backdrop-blur-sm flex items-center justify-center z-[65] p-3 sm:p-4 overflow-y-auto">
+      <div className="bg-white rounded-[2rem] w-full max-w-md overflow-hidden shadow-2xl border-4 border-yellow-400 animate-modal-enter my-auto max-h-[94vh] flex flex-col">
         <div
-          className={`p-6 flex justify-between items-center text-white relative overflow-hidden ${
+          className={`${
             isEdit ? "bg-blue-900" : "bg-blue-600"
-          }`}
+          } p-5 sm:p-6 flex justify-between items-center text-white relative overflow-hidden shrink-0`}
         >
-          {isEdit ? (
-            <Pencil className="absolute top-2 right-12 w-16 h-16 text-blue-700 opacity-40 animate-float-slow" />
-          ) : (
-            <Palette className="absolute top-2 right-12 w-16 h-16 text-blue-500 opacity-30 animate-float-slow" />
-          )}
-          <h3 className="text-2xl font-black flex items-center relative z-10">
+          <Sparkles className="absolute top-1 right-10 w-16 h-16 text-blue-400 opacity-30 animate-float-slow" />
+          <h3 className="text-xl sm:text-2xl font-black flex items-center relative z-10">
             {isEdit ? (
               <>
-                <Pencil className="mr-2.5 text-yellow-400 w-6 h-6" /> Edit
+                <Pencil className="mr-2 text-yellow-400 w-6 h-6" /> Edit
                 Maklumat Karya
               </>
             ) : (
               <>
-                <Plus className="mr-2 text-yellow-400" /> Daftar Karya
+                <Plus className="mr-2 text-yellow-400 w-7 h-7" /> Daftar Karya
               </>
             )}
           </h3>
           <button
+            type="button"
             onClick={onClose}
-            className="p-2 hover:bg-white/10 rounded-full transition-colors relative z-10"
+            className="p-2 hover:bg-white/15 rounded-full transition-colors relative z-10"
           >
             <X className="w-6 h-6" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-5">
-          {/* 1. Tajuk Karya */}
+        <form
+          onSubmit={handleSubmit}
+          className="p-5 sm:p-6 space-y-4 overflow-y-auto"
+        >
           <div>
-            <label className="block text-sm font-bold text-slate-700 mb-1.5">
-              Tajuk Karya <span className="text-red-500 text-base">*</span>
+            <label className="block text-sm font-bold text-slate-700 mb-1">
+              Tajuk Karya <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
-              placeholder="Cth: Impian ke Angkasa"
-              className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-base text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all font-medium"
+              placeholder="Contoh: Pemandangan Indah di Kampung"
+              className="w-full border-2 border-slate-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all font-medium"
             />
           </div>
 
-          {/* 2. Nama Pelukis Cilik (Ruang Besar Sama Dengan Tajuk Karya) */}
           <div>
-            <label className="block text-sm font-bold text-slate-700 mb-1.5">
-              Nama Pelukis Cilik{" "}
-              <span className="text-red-500 text-base">*</span>
+            <label className="block text-sm font-bold text-slate-700 mb-1">
+              Nama Pelukis Cilik <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               value={studentName}
               onChange={(e) => setStudentName(e.target.value)}
               required
-              placeholder="Cth: Muhammad Amirul Bin Ahmad"
-              className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-base text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all font-medium"
+              placeholder="Contoh: Ahmad Alif"
+              className="w-full border-2 border-slate-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all font-medium"
             />
           </div>
 
-          {/* 3. Kelas & Bidang DSKP PSV */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50/80 p-4 rounded-2xl border border-slate-200/80">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1.5">
-                Kelas / Tahun
+              <label className="block text-sm font-bold text-slate-700 mb-1">
+                Kelas / Tahun <span className="text-red-500">*</span>
               </label>
               <select
                 value={className}
                 onChange={(e) => setClassName(e.target.value)}
-                className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all font-semibold bg-white"
+                className="w-full border-2 border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all font-medium bg-white"
               >
                 <option value="Tahun 1">Tahun 1</option>
                 <option value="Tahun 2">Tahun 2</option>
@@ -6612,14 +6690,13 @@ function ArtworkFormModal({
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1.5">
-                Bidang Seni Visual{" "}
-                <span className="text-red-500 text-base">*</span>
+              <label className="block text-sm font-bold text-slate-700 mb-1">
+                Bidang Seni Visual <span className="text-red-500">*</span>
               </label>
               <select
                 value={field}
-                onChange={(e) => setField(e.target.value as PsvFieldType)}
-                className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all font-semibold bg-white"
+                onChange={(e) => setField(normalizePsvField(e.target.value))}
+                className="w-full border-2 border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all font-medium bg-white"
               >
                 {PSV_FIELDS.map((f) => (
                   <option key={f} value={f}>
@@ -6630,130 +6707,140 @@ function ArtworkFormModal({
             </div>
           </div>
 
-          {/* 4. Gambar Karya */}
+          {/* PILIHAN SUMBER GAMBAR: MUAT NAIK FAIL TERUS ATAU PAUTAN URL */}
           <div>
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-1.5">
               <label className="block text-sm font-bold text-slate-700">
-                Gambar Karya
+                Gambar Karya <span className="text-red-500">*</span>
               </label>
-
-              <div className="flex bg-slate-100 p-1 rounded-xl">
+              <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs font-bold">
                 <button
                   type="button"
                   onClick={() => {
                     SoundFX.click();
-                    setImageInputType("upload");
+                    setImageInputMode("upload");
+                    setUploadError("");
                   }}
-                  className={`px-3 py-1 rounded-lg text-xs font-extrabold flex items-center gap-1 transition-all ${
-                    imageInputType === "upload"
+                  className={`px-2.5 py-1 rounded-md flex items-center gap-1 transition-all ${
+                    imageInputMode === "upload"
                       ? "bg-blue-600 text-white shadow-2xs"
-                      : "text-slate-600 hover:text-blue-800"
+                      : "text-slate-600 hover:text-blue-700"
                   }`}
                 >
-                  <Upload className="w-3.5 h-3.5" />
+                  <Upload className="w-3 h-3" />
                   Muat Naik Fail
                 </button>
                 <button
                   type="button"
                   onClick={() => {
                     SoundFX.click();
-                    setImageInputType("link");
+                    setImageInputMode("link");
+                    setUploadError("");
                   }}
-                  className={`px-3 py-1 rounded-lg text-xs font-extrabold flex items-center gap-1 transition-all ${
-                    imageInputType === "link"
+                  className={`px-2.5 py-1 rounded-md flex items-center gap-1 transition-all ${
+                    imageInputMode === "link"
                       ? "bg-blue-600 text-white shadow-2xs"
-                      : "text-slate-600 hover:text-blue-800"
+                      : "text-slate-600 hover:text-blue-700"
                   }`}
                 >
-                  <Link2 className="w-3.5 h-3.5" />
+                  <Link2 className="w-3 h-3" />
                   Pautan URL
                 </button>
               </div>
             </div>
 
-            {imageInputType === "upload" ? (
-              <div className="border-2 border-dashed border-blue-300 bg-sky-50/70 hover:bg-sky-50 rounded-2xl p-4 text-center transition-colors">
+            {imageInputMode === "upload" ? (
+              <div>
                 <input
+                  ref={fileInputRef}
                   type="file"
                   accept="image/*"
-                  id="artwork-file-upload"
-                  onChange={handleFileUpload}
+                  onChange={handleFileChange}
                   className="hidden"
                 />
-                <label
-                  htmlFor="artwork-file-upload"
-                  className="cursor-pointer flex flex-col items-center justify-center"
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className="border-2 border-dashed border-blue-300 hover:border-blue-500 bg-sky-50/70 hover:bg-sky-100/70 rounded-2xl p-4 text-center cursor-pointer transition-all"
                 >
-                  <div className="bg-blue-600 text-white p-2.5 rounded-full mb-2 shadow-sm">
-                    <Upload className="w-5 h-5" />
-                  </div>
-                  <span className="text-sm font-extrabold text-blue-900">
-                    {isCompressing
-                      ? "Sedang memproses & memampatkan gambar..."
-                      : isEdit
-                      ? "Klik untuk muat naik & ganti gambar baharu"
-                      : "Klik untuk pilih gambar dari peranti / telefon"}
-                  </span>
-                  <span className="text-[11px] text-slate-500 mt-0.5">
-                    Format PNG, JPG, JPEG (Auto-mampat pantas & terus disimpan)
-                  </span>
-                </label>
+                  {isUploadingFile ? (
+                    <div className="py-2 flex flex-col items-center gap-2 text-blue-700">
+                      <RefreshCw className="w-7 h-7 animate-spin text-blue-600" />
+                      <span className="text-xs font-extrabold">
+                        Sedang memproses & memuat naik gambar...
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-1.5">
+                      <div className="bg-blue-600 text-white p-2.5 rounded-full shadow-sm">
+                        <Upload className="w-5 h-5" />
+                      </div>
+                      <span className="text-sm font-extrabold text-blue-900">
+                        {selectedFileName
+                          ? `Fail dipilih: ${selectedFileName}`
+                          : isEdit
+                          ? "Klik untuk muat naik gambar baharu (ganti)"
+                          : "Klik untuk pilih gambar daripada peranti"}
+                      </span>
+                      <span className="text-[11px] text-slate-500 font-medium">
+                        Sokong gambar kamera telefon, JPG, PNG atau WEBP (Max
+                        15MB)
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
             ) : (
               <div>
                 <input
                   type="url"
-                  value={imageUrl.startsWith("data:") ? "" : imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                  placeholder="https://drive.google.com/file/d/... atau https://..."
-                  className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all text-sm"
+                  value={imageUrl}
+                  onChange={(e) => {
+                    setImageUrl(e.target.value);
+                    setPreviewError(false);
+                    setUploadError("");
+                  }}
+                  placeholder="https://drive.google.com/file/d/... atau pautan gambar"
+                  className="w-full border-2 border-slate-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all font-medium text-sm"
                 />
-                <p className="text-xs text-slate-400 mt-1">
-                  Menyokong pautan terus gambar (.jpg/.png) atau pautan
-                  perkongsian Google Drive.
+                <p className="text-xs text-slate-500 mt-1">
+                  * Menyokong pautan Google Drive (pastikan akses{" "}
+                  <span className="font-bold">Anyone with the link</span>) atau
+                  pautan gambar terus.
                 </p>
               </div>
             )}
 
-            {imageUrl && (
-              <div className="mt-3 p-2.5 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3 min-w-0">
-                  <img
-                    src={formatDirectImageUrl(imageUrl)}
-                    alt="Pratonton Karya"
-                    onError={(e: any) => {
-                      e.target.src =
-                        "https://placehold.co/120x120/e2e8f0/475569?text=Pratonton";
-                    }}
-                    className="w-16 h-16 rounded-xl object-cover border-2 border-yellow-400 shrink-0 bg-white"
-                  />
-                  <div className="min-w-0">
-                    <div className="text-xs font-black text-blue-900">
-                      Pratonton Gambar Aktif
-                    </div>
-                    <p className="text-[11px] text-slate-500 truncate">
-                      {imageUrl.startsWith("data:")
-                        ? "Gambar dimuat naik dari peranti"
-                        : imageUrl}
-                    </p>
-                  </div>
+            {uploadError && (
+              <p className="text-xs font-bold text-red-600 mt-1.5 bg-red-50 px-3 py-1.5 rounded-lg border border-red-200">
+                {uploadError}
+              </p>
+            )}
+
+            {/* Pratonton Gambar */}
+            {previewUrl && (
+              <div className="mt-3 bg-slate-50 border-2 border-blue-100 rounded-2xl p-2.5 text-center">
+                <div className="text-[11px] font-extrabold text-blue-800 uppercase tracking-wider mb-1.5">
+                  Pratonton Gambar Karya
                 </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    SoundFX.click();
-                    setImageUrl("");
-                  }}
-                  className="text-xs font-bold text-red-600 hover:bg-red-50 px-2.5 py-1.5 rounded-lg shrink-0"
-                >
-                  Kosongkan
-                </button>
+                {previewError ? (
+                  <div className="text-xs text-red-600 font-bold py-4">
+                    Gambar tidak dapat dipaparkan. Sila semak pautan atau muat
+                    naik fail gambar terus.
+                  </div>
+                ) : (
+                  <img
+                    key={previewUrl}
+                    src={previewUrl}
+                    alt="Pratonton Karya"
+                    onError={() => setPreviewError(true)}
+                    className="max-h-40 mx-auto rounded-xl object-contain shadow-xs border border-slate-200"
+                  />
+                )}
               </div>
             )}
           </div>
 
-          {/* 5. Butang Tindakan */}
-          <div className="pt-4 border-t border-slate-100 flex space-x-3">
+          <div className="pt-3 border-t border-slate-100 flex space-x-3">
             <button
               type="button"
               onClick={onClose}
@@ -6763,14 +6850,18 @@ function ArtworkFormModal({
             </button>
             <button
               type="submit"
-              disabled={isCompressing}
+              disabled={isUploadingFile}
               className={`w-2/3 px-4 py-3 font-black rounded-xl transition-all disabled:opacity-50 ${
                 isEdit
                   ? "bg-blue-800 hover:bg-blue-900 text-yellow-300 shadow-[0_4px_0_rgb(15,23,42)] hover:translate-y-0.5"
                   : "bg-yellow-400 hover:bg-yellow-300 text-blue-900 shadow-[0_4px_0_rgb(180,83,9)] hover:translate-y-0.5"
               }`}
             >
-              {isEdit ? "Simpan Perubahan" : "Pamer Karya!"}
+              {isUploadingFile
+                ? "Memuat Naik..."
+                : isEdit
+                ? "Simpan Perubahan"
+                : "Hantar ke Galeri!"}
             </button>
           </div>
         </form>
