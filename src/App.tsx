@@ -4928,7 +4928,7 @@ function StaffDashboardPanel({
               <div className="pt-6 border-t-2 border-dashed border-slate-300 flex flex-row justify-between items-end gap-8 text-xs text-slate-600 hide-on-screen">
                 <div className="pb-1">
                   <p className="font-bold text-blue-900">
-                    Kanta Seni - Sistem Galeri Maya & Apresiasi PSV
+                    Kanta Seni - Misi Eksplorasi & Jejak Bintang
                   </p>
                   <p className="text-slate-500 mt-0.5">
                     &copy; {new Date().getFullYear()} E&J Studio. Hak Cipta
