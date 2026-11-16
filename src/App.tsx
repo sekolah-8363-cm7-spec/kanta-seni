@@ -605,8 +605,7 @@ const APPRECIATION_QUESTIONS_BY_FIELD: Record<
         id: "bn-t1-teknik-1",
         field: "Binaan",
         category: "Alat, Bahan & Teknik",
-        question:
-          "Apakah bahan kitar semula dan teknik binaan yang digunakan?",
+        question: "Apakah bahan kitar semula dan teknik binaan yang digunakan?",
         options: [
           "Mencantum kotak, gulungan tisu atau botol plastik (teknik asemblaj)",
           "Melipat dan membentuk kertas menjadi objek 3D (teknik origami/lipatan)",
@@ -2135,7 +2134,7 @@ export default function App() {
     "Tahun 6",
   ];
 
-  // --- PENAPISAN KARYA MENGIKUT TAHUN, BULAN, KELAS & BIDANG DSKP ---
+  // --- PENAPISAN KARYA MENGIKUT TAHUN, BULAN, KELAS & BIDANG ---
   const filteredArtworks = artworks.filter((art) => {
     const artYear = getArtworkYear(art.createdAt);
     const artMonth = getArtworkMonth(art.createdAt);
@@ -2159,7 +2158,7 @@ export default function App() {
     return cleaned || "tanpa-tajuk";
   };
 
-  // --- KUMPULKAN KARYA MENGIKUT BIDANG DSKP DAHULU, KEMUDIAN TAJUK YANG SAMA ---
+  // --- KUMPULKAN KARYA MENGIKUT BIDANG DAHULU, KEMUDIAN TAJUK YANG SAMA ---
   const groupedArtworksByField = useMemo(() => {
     return PSV_FIELDS.map((fieldName) => {
       const fieldItems = filteredArtworks.filter(
@@ -2922,7 +2921,7 @@ export default function App() {
 
               <div className="flex items-center gap-2 flex-wrap pt-3 border-t border-slate-100">
                 <span className="text-blue-900 font-bold text-sm mr-1">
-                  Bidang PSV:
+                  Bidang :
                 </span>
                 {["Semua", ...PSV_FIELDS].map((fld) => (
                   <button
@@ -3021,7 +3020,7 @@ export default function App() {
                     key={fieldSection.fieldName}
                     className="bg-gradient-to-b from-blue-50/90 to-white p-5 md:p-7 rounded-[2rem] border-4 border-blue-200 shadow-md space-y-6"
                   >
-                    {/* PENGEPALA UTAMA BIDANG DSKP */}
+                    {/* PENGEPALA UTAMA BIDANG */}
                     <div className="flex flex-wrap items-center justify-between gap-3 bg-blue-900 text-white px-5 py-4 rounded-2xl border-b-4 border-yellow-400 shadow-sm">
                       <div className="flex items-center gap-3">
                         <div className="bg-yellow-400 text-blue-950 p-2.5 rounded-xl shadow-xs">
@@ -3029,7 +3028,7 @@ export default function App() {
                         </div>
                         <div>
                           <span className="text-[10px] font-extrabold uppercase tracking-widest text-yellow-300 block">
-                            Bidang DSKP PSV
+                            Bidang PSV
                           </span>
                           <h4 className="text-xl md:text-2xl font-black tracking-tight">
                             {fieldSection.fieldName}
@@ -6621,7 +6620,7 @@ function ArtworkFormModal({
 
           <div>
             <label className="block text-sm font-bold text-slate-700 mb-1">
-              Bidang Seni (DSKP PSV) *
+              Bidang Seni *
             </label>
             <select
               value={field}
@@ -6714,8 +6713,8 @@ function ArtworkFormModal({
                   className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all text-sm font-medium"
                 />
                 <p className="text-[11px] text-slate-500 mt-1">
-                  Sokong pautan terus gambar atau pautan perkongsian Google Drive
-                  (Anyone with the link).
+                  Sokong pautan terus gambar atau pautan perkongsian Google
+                  Drive (Anyone with the link).
                 </p>
               </div>
             )}
