@@ -1663,7 +1663,7 @@ export default function App() {
     if (actionType === "comment" && sessionCommented.has(artworkId)) {
       SoundFX.alert();
       showTimedNotice(
-        "Anda sudah mengulas karya ini dalam pasport semasa (had 1 komen setiap karya bagi satu pasport). Daftar pasport baharu untuk ulasan seterusnya."
+        "Anda sudah mengulas karya ini dalam pasport semasa (had 1 komen setiap karya bagi satu pasport). Daftar pasport baharu untuk komen seterusnya."
       );
       return false;
     }
@@ -1886,7 +1886,7 @@ export default function App() {
 
     const formattedText = hasQuizAnswers
       ? cleanFreeText
-        ? `${quizFormatted}\n\nUlasan Tambahan: ${cleanFreeText}`
+        ? `${quizFormatted}\n\nKomen Tambahan: ${cleanFreeText}`
         : quizFormatted
       : cleanFreeText;
 
@@ -3330,7 +3330,7 @@ export default function App() {
                   </h3>
                   <p className="text-sm text-slate-500 font-medium mt-1">
                     Penghargaan khas buat pengkritik paling aktif memberi
-                    bintang dan ulasan!
+                    bintang dan komen!
                   </p>
                 </div>
 
@@ -4045,7 +4045,7 @@ function PassportQuizBox({
         {allAnswered ? (
           <span className="text-green-700 font-bold flex items-center gap-1">
             <CheckCircle2 className="w-3.5 h-3.5" />
-            Semua 3 soalan telah dijawab! Tekan Hantar atau tambah ulasan bebas.
+            Semua 3 soalan telah dijawab! Tekan Hantar atau tambah komen bebas.
           </span>
         ) : (
           <span className="text-slate-500">
@@ -5743,7 +5743,7 @@ function ArtworkCard({
           <div className="max-h-48 overflow-y-auto space-y-3 mb-3 pr-2">
             {commentsList.length === 0 ? (
               <p className="text-sm text-slate-400 italic text-center py-2">
-                Belum ada ulasan. Jadilah yang pertama!
+                Belum ada komen. Jadilah yang pertama!
               </p>
             ) : (
               commentsList.map((comment: any) => {
@@ -5857,8 +5857,8 @@ function ArtworkCard({
                 onChange={(e) => setCommentText(e.target.value)}
                 placeholder={
                   answeredQuizList.length > 0
-                    ? "Tambah ulasan bebas (atau terus hantar)..."
-                    : "Tulis ulasan murni..."
+                    ? "Tambah komen bebas (atau terus hantar)..."
+                    : "Tulis komen murni..."
                 }
                 className="w-full bg-white border border-slate-300 rounded-full py-2 pl-4 pr-11 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
               />
@@ -6267,7 +6267,7 @@ function ArtworkLightboxModal({
             <div className="flex items-center gap-2">
               <div className="flex items-center space-x-1.5 text-blue-700 font-bold text-sm">
                 <MessageCircle className="w-5 h-5" />
-                <span>{commentsList.length} Ulasan</span>
+                <span>{commentsList.length} Komen</span>
               </div>
 
               {activePassport && (
@@ -6409,8 +6409,8 @@ function ArtworkLightboxModal({
                   onChange={(e) => setCommentText(e.target.value)}
                   placeholder={
                     answeredQuizList.length > 0
-                      ? "Tambah ulasan bebas (atau terus hantar)..."
-                      : "Tulis ulasan murni..."
+                      ? "Tambah komen bebas (atau terus hantar)..."
+                      : "Tulis komen murni..."
                   }
                   className="w-full bg-slate-50 border-2 border-slate-200 rounded-full py-2.5 pl-4 pr-12 text-sm focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
                 />
