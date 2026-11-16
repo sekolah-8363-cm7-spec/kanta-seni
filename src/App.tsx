@@ -219,7 +219,7 @@ const formatDirectImageUrl = (rawUrl: string): string => {
   return url;
 };
 
-// --- BANK SOALAN APRESIASI PSV KSSR (DSKP TAHUN 1 - TAHUN 6) ---
+// --- BANK SOALAN APRESIASI SENI VISUAL (60 SOALAN LENGKAP: 30 TAHAP 1 & 30 TAHAP 2) ---
 const PSV_FIELDS = [
   "Menggambar",
   "Corak dan Rekaan",
@@ -242,11 +242,14 @@ const normalizePsvField = (rawField?: string): PsvFieldType => {
 };
 
 type AppreciationAspect =
+  | "Hal Benda"
   | "Unsur Seni"
   | "Prinsip Rekaan"
-  | "Hal Benda"
-  | "Alat, Bahan & Teknik"
-  | "Mesej & Nilai";
+  | "Media & Bahan"
+  | "Teknik"
+  | "Mesej"
+  | "Kreativiti"
+  | "Pengkritikan";
 
 interface AppreciationQuestion {
   id: string;
@@ -263,561 +266,789 @@ const APPRECIATION_QUESTIONS_BY_FIELD: Record<
     tahap2: AppreciationQuestion[];
   }
 > = {
+  // A. BIDANG MENGGAMBAR (Tahap 1: 8 Soalan | Tahap 2: 7 Soalan = 15 Soalan)
   Menggambar: {
     tahap1: [
       {
-        id: "mg-t1-unsur-1",
-        field: "Menggambar",
-        category: "Unsur Seni",
-        question:
-          "Apakah unsur warna yang paling jelas kamu lihat dalam gambar ini?",
-        options: [
-          "Warna asas yang terang (merah, biru dan kuning)",
-          "Warna sekunder yang ceria (hijau, jingga dan ungu)",
-          "Gabungan warna panas (cerah) yang menonjolkan gambar",
-          "Gabungan warna sejuk (tenang) seperti biru dan hijau",
-        ],
-      },
-      {
-        id: "mg-t1-unsur-2",
-        field: "Menggambar",
-        category: "Unsur Seni",
-        question:
-          "Apakah jenis garisan dan rupa yang digunakan untuk melukis objek?",
-        options: [
-          "Garisan lurus dan rupa geometri (bulat, segi empat, segi tiga)",
-          "Garisan melengkung, beralun dan rupa organik yang bebas",
-          "Garisan tebal dan nipis yang menjadikan lukisan lebih jelas",
-          "Garisan putus-putus, beralun dan berlingkar yang kreatif",
-        ],
-      },
-      {
-        id: "mg-t1-prinsip-1",
-        field: "Menggambar",
-        category: "Prinsip Rekaan",
-        question:
-          "Bagaimanakah objek utama dalam gambar ini menarik perhatian kamu?",
-        options: [
-          "Objek utama dilukis besar dan berada di tengah kertas (penegasan)",
-          "Warna objek utama berbeza dan kontra dengan warna latar belakang",
-          "Susunan objek di sebelah kiri dan kanan nampak seimbang",
-          "Pelbagai warna dan bentuk menjadikan gambar kelihatan harmoni",
-        ],
-      },
-      {
-        id: "mg-t1-halbenda-1",
+        id: "mg-t1-1",
         field: "Menggambar",
         category: "Hal Benda",
-        question:
-          "Apakah hal benda (objek utama) yang dilukis oleh rakan kamu dalam karya ini?",
+        question: "1. Apakah objek yang kamu nampak dalam karya ini?",
         options: [
-          "Alam semula jadi (pokok, bunga, gunung, laut atau cuaca)",
-          "Hidupan atau haiwan peliharaan yang comel",
-          "Keluarga, rakan-rakan atau aktiviti harian yang menyeronokkan",
-          "Objek buatan manusia (rumah, kenderaan atau alam imaginasi)",
+          "Alam semula jadi seperti pokok, bunga, gunung, awan atau laut",
+          "Hidupan atau haiwan seperti rama-rama, ikan, burung atau kucing",
+          "Keluarga, rakan-rakan atau manusia yang sedang melakukan aktiviti",
+          "Objek buatan manusia seperti rumah, kereta, kapal atau alam fantasi",
         ],
       },
       {
-        id: "mg-t1-teknik-1",
+        id: "mg-t1-2",
         field: "Menggambar",
-        category: "Alat, Bahan & Teknik",
-        question:
-          "Apakah alat, bahan dan teknik asas yang digunakan untuk menghasilkan gambar ini?",
+        category: "Unsur Seni",
+        question: "2. Apakah warna yang terdapat dalam karya ini?",
         options: [
-          "Teknik lukisan menggunakan pensel warna, krayon atau pen",
-          "Teknik catan menggunakan warna air atau warna poster dengan berus",
-          "Teknik kolaj atau montaj melalui tampalan guntingan kertas/gambar",
-          "Teknik resis, gosokan, cetakan atau gurisan yang menarik",
+          "Warna asas yang terang seperti merah, biru dan kuning",
+          "Warna sekunder yang ceria seperti hijau, jingga dan ungu",
+          "Gabungan warna panas (cerah) dan warna sejuk (tenang)",
+          "Pelbagai warna yang harmoni dan menarik perhatian mata",
         ],
       },
       {
-        id: "mg-t1-mesej-1",
+        id: "mg-t1-3",
         field: "Menggambar",
-        category: "Mesej & Nilai",
-        question:
-          "Apakah perasaan atau cerita yang ingin disampaikan oleh gambar ini?",
+        category: "Unsur Seni",
+        question: "3. Apakah jenis garisan yang kamu dapat lihat?",
         options: [
-          "Perasaan gembira, ceria dan seronok berkarya",
-          "Sayang akan keindahan alam sekitar dan hidupan",
-          "Kasih sayang terhadap keluarga dan rakan-rakan",
-          "Daya imaginasi yang kreatif dan berani mencuba",
+          "Garisan lurus, menegak dan melintang pada objek",
+          "Garisan melengkung dan beralun yang lembut",
+          "Garisan beralun, zigzag dan garisan putus-putus",
+          "Gabungan pelbagai jenis garisan tebal dan nipis",
+        ],
+      },
+      {
+        id: "mg-t1-4",
+        field: "Menggambar",
+        category: "Hal Benda",
+        question: "4. Apakah tajuk yang sesuai untuk karya ini?",
+        options: [
+          "Keindahan Alam Semula Jadi di Sekeliling Kita",
+          "Suasana Ceria Bersama Keluarga dan Rakan",
+          "Dunia Haiwan dan Hidupan yang Comel",
+          "Imaginasi Kreatif dan Warna-Warni Kehidupan",
+        ],
+      },
+      {
+        id: "mg-t1-5",
+        field: "Menggambar",
+        category: "Media & Bahan",
+        question:
+          "5. Apakah bahan yang digunakan untuk menghasilkan karya ini?",
+        options: [
+          "Pensel warna, krayon atau pen penanda di atas kertas lukisan",
+          "Warna air atau warna poster menggunakan berus lukisan",
+          "Kertas warna, majalah lama dan gam untuk tampalan (kolaj)",
+          "Gabungan bahan kering (krayon) dan bahan basah (warna air)",
+        ],
+      },
+      {
+        id: "mg-t1-6",
+        field: "Menggambar",
+        category: "Kreativiti",
+        question:
+          "6. Bahagian manakah yang paling kamu suka dalam karya ini? Mengapa?",
+        options: [
+          "Objek utama di bahagian tengah kerana bentuknya sangat kemas dan jelas",
+          "Bahagian latar belakang kerana warnanya sangat cantik dan ceria",
+          "Perincian corak kecil pada objek kerana nampak sangat kreatif",
+          "Keseluruhan gambar kerana susunannya seimbang dan menarik",
+        ],
+      },
+      {
+        id: "mg-t1-7",
+        field: "Menggambar",
+        category: "Mesej",
+        question: "7. Apakah perasaan kamu apabila melihat karya ini?",
+        options: [
+          "Saya berasa sangat gembira dan ceria melihat warna-warnanya",
+          "Saya berasa tenang dan damai seperti berada di alam semula jadi",
+          "Saya berasa teruja dan kagum dengan kreativiti pengkarya",
+          "Saya berasa bangga dan bersemangat untuk melukis juga",
+        ],
+      },
+      {
+        id: "mg-t1-8",
+        field: "Menggambar",
+        category: "Mesej",
+        question: "8. Apakah mesej yang ingin disampaikan melalui karya ini?",
+        options: [
+          "Kita mestilah menyayangi dan menjaga keindahan alam sekitar",
+          "Kasih sayang dan kemesraan bersama keluarga serta rakan-rakan",
+          "Menghargai hidupan dan haiwan peliharaan di sekeliling kita",
+          "Kreativiti dan imaginasi dapat dikongsi melalui lukisan yang indah",
         ],
       },
     ],
     tahap2: [
       {
-        id: "mg-t2-unsur-1",
+        id: "mg-t2-1",
         field: "Menggambar",
         category: "Unsur Seni",
         question:
-          "Bagaimanakah unsur ruang dan ton warna diolah untuk mewujudkan ilusi 3D pada karya 2D ini?",
+          "1. Bagaimanakah penggunaan unsur seni seperti garisan, rupa, warna dan jalinan membantu menghasilkan karya yang menarik?",
         options: [
-          "Pembahagian ruang hadapan, tengah dan belakang melalui perbezaan saiz objek",
-          "Penggunaan ton warna cerah ke gelap (nilai) menimbulkan kesan bentuk",
-          "Olahan jalinan tampak pada permukaan objek menyerlahkan sifat hal benda",
-          "Pertindihan objek dan garisan perspektif mewujudkan ruang dalam",
+          "Olahan ton warna cerah ke gelap mewujudkan kesan bentuk dan pencahayaan yang hidup",
+          "Gabungan garisan dan jalinan tampak memperincikan tekstur permukaan setiap objek",
+          "Rupa organik dan geometri digabungkan dengan seimbang untuk membina struktur gambar",
+          "Kontra warna panas dan sejuk menjadikan subjek utama lebih menonjol berbanding latar",
         ],
       },
       {
-        id: "mg-t2-prinsip-1",
+        id: "mg-t2-2",
         field: "Menggambar",
         category: "Prinsip Rekaan",
         question:
-          "Apakah prinsip rekaan yang paling ketara dalam gubahan komposisi karya ini?",
+          "2. Apakah prinsip rekaan yang paling dominan dalam karya ini? Berikan alasan.",
         options: [
-          "Prinsip penegasan melalui titik fokus dan warna kontra pada subjek utama",
-          "Prinsip imbangan (simetri atau tidak simetri) yang menstabilkan komposisi",
-          "Prinsip kesatuan dan harmoni melalui keselarasan tema serta pilihan warna",
-          "Prinsip kepelbagaian unsur garisan, rupa dan jalinan yang menghidupkan karya",
+          "Penegasan, kerana subjek utama diletakkan di titik fokus dengan warna yang paling terang",
+          "Imbangan (simetri/tidak simetri), kerana taburan objek kiri dan kanan kelihatan stabil",
+          "Kesatuan dan harmoni, kerana semua elemen warna dan bentuk saling melengkapi tema",
+          "Kepelbagaian, kerana penggunaan pelbagai saiz rupa, garisan dan ton warna mengelakkan kebosanan",
         ],
       },
       {
-        id: "mg-t2-halbenda-1",
+        id: "mg-t2-3",
         field: "Menggambar",
-        category: "Hal Benda",
+        category: "Unsur Seni",
         question:
-          "Bagaimanakah pengolahan hal benda (subject matter) dalam karya menggambar ini?",
+          "3. Bagaimanakah pengkarya menggunakan ruang untuk menghasilkan kesan kedalaman dalam karya?",
         options: [
-          "Hal benda alam semula jadi diolah secara realistik dan terperinci",
-          "Hal benda figura manusia dan persekitaran digubah mengikut situasi penceritaan",
-          "Hal benda objek buatan manusia disusun mengikut kadar banding yang tepat",
-          "Hal benda bertemakan fantasi/imaginasi diterjemahkan secara kreatif",
+          "Objek di ruang hadapan dilukis lebih besar dan jelas berbanding objek di ruang belakang",
+          "Penggunaan teknik pertindihan objek mewujudkan jarak antara ruang hadapan, tengah dan belakang",
+          "Perubahan ton warna yang semakin pudar pada latar belakang memberi ilusi perspektif jauh",
+          "Pembahagian garisan ufuk yang kemas memisahkan ruang tanah/air dengan ruang langit",
         ],
       },
       {
-        id: "mg-t2-teknik-1",
+        id: "mg-t2-4",
         field: "Menggambar",
-        category: "Alat, Bahan & Teknik",
+        category: "Media & Bahan",
         question:
-          "Bagaimanakah aplikasi media dan gabungan teknik (teknik campuran) dalam karya ini?",
+          "4. Sejauh manakah pemilihan media dan teknik sesuai dengan tema karya yang dihasilkan?",
         options: [
-          "Gabungan teknik resis (krayon/lilin) dengan sapuan catan warna air",
-          "Gabungan teknik kolaj/montaj dengan lukisan atau cetakan bagi kesan berlapis",
-          "Kawalan media kering/basah (berus, palet, pensel warna) yang kemas dan teliti",
-          "Penerokaan teknik stensilan, percikan atau gurisan menghasilkan kesan khas",
+          "Sangat sesuai kerana kawalan sapuan warna dan teknik berjaya menghidupkan suasana tema",
+          "Sesuai kerana media yang dipilih memudahkan pengkarya menghasilkan kesan jalinan dan ton",
+          "Sangat berkesan kerana gabungan teknik campuran menyerlahkan lagi perincian subjek utama",
+          "Sesuai dengan tahap kemahiran murid dan berjaya menyampaikan idea secara visual",
         ],
       },
       {
-        id: "mg-t2-mesej-1",
+        id: "mg-t2-5",
         field: "Menggambar",
-        category: "Mesej & Nilai",
+        category: "Pengkritikan",
         question:
-          "Apakah mesej tersirat dan nilai murni yang disampaikan oleh pengkarya melalui visual ini?",
+          "5. Apakah kekuatan dan kelemahan yang terdapat pada karya ini?",
         options: [
-          "Kesedaran memelihara kelestarian alam sekitar dan flora fauna",
-          "Semangat perpaduan, keharmonian masyarakat dan cinta akan negara",
-          "Ketekunan, disiplin dan kebebasan berimaginasi dalam menyusun idea visual",
-          "Penghargaan terhadap budaya, warisan dan kehidupan seharian",
+          "Kekuatan pada pemilihan warna yang harmoni dan komposisi kemas; ruang latar boleh diperincikan lagi",
+          "Kekuatan pada lakaran objek yang jelas dan kreatif; kemasan ton cahaya dan bayang boleh ditingkatkan",
+          "Kekuatan pada idea penceritaan yang menarik; kontra antara objek utama dan latar boleh dikuatkan",
+          "Kekuatan pada ketelitian garisan dan jalinan; kebersihan sapuan warna di bahagian tepi boleh diperbaiki",
+        ],
+      },
+      {
+        id: "mg-t2-6",
+        field: "Menggambar",
+        category: "Mesej",
+        question:
+          "6. Apakah mesej atau idea yang ingin disampaikan oleh pengkarya? Adakah mesej tersebut berjaya disampaikan?",
+        options: [
+          "Mesej kelestarian dan keindahan alam sekitar; sangat berjaya disampaikan melalui visual yang segar",
+          "Mesej nilai murni, perpaduan dan kasih sayang; berjaya disampaikan melalui ekspresi dan aksi subjek",
+          "Mesej penghayatan budaya dan warisan; berjaya melalui pemilihan motif serta suasana latar karya",
+          "Mesej imaginasi dan inovasi masa hadapan; berjaya menarik perhatian pemerhati untuk berfikir",
+        ],
+      },
+      {
+        id: "mg-t2-7",
+        field: "Menggambar",
+        category: "Kreativiti",
+        question:
+          "7. Jika kamu menjadi pengkarya, apakah penambahbaikan yang akan kamu lakukan untuk menjadikan karya ini lebih menarik?",
+        options: [
+          "Menambahkan kesan pencahayaan dan bayang-bayang (ton) supaya objek kelihatan lebih 3D",
+          "Memperincikan jalinan tampak pada latar belakang agar ruang kosong kelihatan lebih hidup",
+          "Menguatkan kontra warna pada subjek utama supaya titik tumpu (penegasan) lebih menyerlah",
+          "Menambah elemen sampingan yang menyokong jalan cerita tanpa mengganggu imbangan karya",
         ],
       },
     ],
   },
 
+  // B. BIDANG MEMBUAT CORAK DAN REKAAN (Tahap 1: 7 Soalan | Tahap 2: 7 Soalan = 14 Soalan)
   "Corak dan Rekaan": {
     tahap1: [
       {
-        id: "cr-t1-unsur-1",
-        field: "Corak dan Rekaan",
-        category: "Unsur Seni",
-        question:
-          "Apakah jenis rupa (motif) dan warna yang digunakan untuk membina corak ini?",
-        options: [
-          "Rupa organik seperti bunga, daun dan tumbuhan (motif flora)",
-          "Rupa geometri seperti bulatan, segi tiga dan segi empat",
-          "Campuran pelbagai warna cerah dan kontra yang menarik",
-          "Garisan beralun, lurus dan titik-tik yang disusun kemas",
-        ],
-      },
-      {
-        id: "cr-t1-prinsip-1",
-        field: "Corak dan Rekaan",
-        category: "Prinsip Rekaan",
-        question:
-          "Bagaimanakah prinsip susunan corak ini kelihatan pada mata kamu?",
-        options: [
-          "Susunan motif berulang secara teratur dan kemas (harmoni)",
-          "Corak sebelah kiri dan kanan nampak seimbang (imbangan)",
-          "Warna latar dan warna corak berbeza supaya mudah dilihat (kontra)",
-          "Susunan corak kelihatan bergerak dan beralun (irama)",
-        ],
-      },
-      {
-        id: "cr-t1-halbenda-1",
+        id: "cr-t1-1",
         field: "Corak dan Rekaan",
         category: "Hal Benda",
-        question:
-          "Apakah sumber inspirasi motif (hal benda) yang dapat dikesan pada corak ini?",
+        question: "1. Apakah motif yang terdapat dalam corak ini?",
         options: [
-          "Motif flora (kelopak bunga, daun atau ranting)",
-          "Motif fauna (rama-rama, ikan atau corak haiwan)",
-          "Motif geometri atau garisan bebas yang kreatif",
-          "Kesan alam semula jadi seperti ombak air, awan atau batu marmar",
+          "Motif flora seperti bunga, daun dan ranting tumbuhan",
+          "Motif fauna seperti rama-rama, ikan atau corak haiwan",
+          "Motif geometri seperti bulatan, segi tiga dan segi empat",
+          "Corak bebas seperti titisan warna, tiupan atau alunan air",
         ],
       },
       {
-        id: "cr-t1-teknik-1",
+        id: "cr-t1-2",
         field: "Corak dan Rekaan",
-        category: "Alat, Bahan & Teknik",
-        question:
-          "Bagaimanakah cara atau teknik corak ini dihasilkan oleh pengkarya?",
+        category: "Unsur Seni",
+        question: "2. Apakah warna yang paling menarik dalam corak ini?",
         options: [
-          "Corak terancang: Lukisan, catan atau lipatan dan guntingan",
-          "Corak terancang: Teknik capan (menggunakan pelepah pisang, bendi atau jari)",
-          "Corak tidak terancang: Teknik tiupan (straw), titisan atau renjisan",
-          "Corak tidak terancang: Teknik pualaman atau ikatan dan celupan",
+          "Warna merah dan kuning yang sangat cerah dan ceria",
+          "Warna biru dan hijau yang kelihatan lembut dan tenang",
+          "Campuran pelbagai warna terang yang menyerlahkan motif",
+          "Kontra antara warna motif yang gelap dengan latar yang cerah",
         ],
       },
       {
-        id: "cr-t1-mesej-1",
+        id: "cr-t1-3",
         field: "Corak dan Rekaan",
-        category: "Mesej & Nilai",
-        question:
-          "Apakah kegunaan rekaan produk yang sesuai menggunakan corak cantik ini?",
+        category: "Prinsip Rekaan",
+        question: "3. Adakah motif dalam corak ini berulang?",
         options: [
-          "Kertas pembalut hadiah atau kad ucapan yang ceria",
-          "Penanda buku atau hiasan kulit buku latihan",
-          "Hiasan dinding kelas atau alas meja yang cantik",
-          "Corak pada baju, beg kertas atau kipas tangan",
+          "Ya, motif diulang secara teratur dan kemas dari kiri ke kanan",
+          "Ya, motif disusun berulang dalam barisan atas dan bawah",
+          "Ya, motif berulang dalam bentuk bulatan atau pancaran",
+          "Tidak berulang secara tetap kerana ia corak bebas tidak terancang",
+        ],
+      },
+      {
+        id: "cr-t1-4",
+        field: "Corak dan Rekaan",
+        category: "Unsur Seni",
+        question: "4. Apakah bentuk yang kamu dapat lihat dalam corak ini?",
+        options: [
+          "Bentuk rupa geometri seperti bulatan, bujur dan segi empat",
+          "Bentuk rupa organik seperti kelopak bunga dan dedaun",
+          "Garisan beralun, titik-titik dan bentuk abstrak yang unik",
+          "Gabungan rupa geometri dan rupa organik yang tersusun rapi",
+        ],
+      },
+      {
+        id: "cr-t1-5",
+        field: "Corak dan Rekaan",
+        category: "Media & Bahan",
+        question:
+          "5. Apakah bahan yang digunakan untuk menghasilkan corak ini?",
+        options: [
+          "Warna air/poster dan bahan alam seperti bendi, daun atau pelepah pisang",
+          "Kertas warna, gunting dan gam untuk lipatan serta guntingan",
+          "Krayon atau lilin dan warna air di atas kertas lukisan",
+          "Warna air dan penyedut minuman (straw) atau berus lukisan",
+        ],
+      },
+      {
+        id: "cr-t1-6",
+        field: "Corak dan Rekaan",
+        category: "Teknik",
+        question:
+          "6. Apakah teknik yang digunakan untuk menghasilkan corak ini?",
+        options: [
+          "Teknik capan menggunakan bahan semula jadi atau blok mudah",
+          "Teknik lipatan dan guntingan kertas warna",
+          "Teknik resis (krayon/lilin bersama sapuan warna air)",
+          "Teknik tiupan, titisan atau pualaman (corak tidak terancang)",
+        ],
+      },
+      {
+        id: "cr-t1-7",
+        field: "Corak dan Rekaan",
+        category: "Mesej",
+        question: "7. Di manakah corak seperti ini boleh digunakan?",
+        options: [
+          "Boleh dijadikan pembalut hadiah yang cantik dan ceria",
+          "Boleh dijadikan kulit buku latihan atau penanda buku",
+          "Boleh dijadikan hiasan kad ucapan atau beg kertas",
+          "Boleh dijadikan corak pada baju, kain atau hiasan dinding",
         ],
       },
     ],
     tahap2: [
       {
-        id: "cr-t2-unsur-1",
-        field: "Corak dan Rekaan",
-        category: "Unsur Seni",
-        question:
-          "Bagaimanakah olahan unsur rupa positif, rupa negatif dan jalinan tampak dalam corak ini?",
-        options: [
-          "Keseimbangan rupa positif (motif) dan rupa negatif (ruang latar) yang jelas",
-          "Jalinan tampak terhasil daripada teknik cetakan, pualaman atau ikatan celupan",
-          "Penggunaan warna harmoni (sekeluarga) atau penggenap yang menghidupkan motif",
-          "Garisan grid dan struktur rupa geometri/organik yang konsisten",
-        ],
-      },
-      {
-        id: "cr-t2-prinsip-1",
+        id: "cr-t2-1",
         field: "Corak dan Rekaan",
         category: "Prinsip Rekaan",
         question:
-          "Apakah prinsip rekaan utama yang mengawal struktur gubahan corak ini?",
+          "1. Bagaimanakah susunan motif menghasilkan corak yang menarik dan seimbang?",
         options: [
-          "Prinsip irama dan pergerakan melalui pengulangan motif secara berterusan",
-          "Prinsip harmoni dan kesatuan hasil susunan terancang (grid, batu-bata, cerminan)",
-          "Prinsip imbangan simetri/jejari yang kemas dan teratur",
-          "Prinsip kontra antara ton warna latar dengan motif utama",
+          "Susunan terancang (grid/batu-bata/cerminan) mewujudkan imbangan dan keseragaman yang kemas",
+          "Pengulangan motif pada jarak yang konsisten menghasilkan irama dan pergerakan visual",
+          "Keseimbangan antara rupa positif (motif) dan rupa negatif (ruang latar) mengelakkan kesesakan",
+          "Susunan berpusat/jejari menarik perhatian terus ke bahagian tengah rekaan corak",
         ],
       },
       {
-        id: "cr-t2-halbenda-1",
+        id: "cr-t2-2",
         field: "Corak dan Rekaan",
-        category: "Hal Benda",
+        category: "Pengkritikan",
         question:
-          "Bagaimanakah hal benda (motif sumber alam/buatan manusia) digayakan menjadi motif corak?",
+          "2. Apakah perbezaan kesan visual antara corak terancang dengan corak tidak terancang?",
         options: [
-          "Motif flora/fauna digayakan secara stilasi (dipermudahkan) menjadi unit corak",
-          "Motif geometri digabungkan membentuk struktur corak moden dan kontemporari",
-          "Kesan rawak alam (aliran cat/pualaman) dijadikan tekstur rekaan abstrak",
-          "Motif objek harian diolah semula menjadi pola hiasan yang menarik",
+          "Corak terancang mempunyai susunan motif berulang yang sistematik; corak tidak terancang bersifat bebas dan rawak",
+          "Corak terancang kelihatan lebih formal dan berstruktur, manakala corak tidak terancang menghasilkan jalinan organik yang unik",
+          "Corak terancang menggunakan grid atau ukuran tertentu, manakala corak tidak terancang bergantung pada aliran media seperti pualaman atau tiupan",
+          "Kedua-duanya menarik tetapi corak tidak terancang sukar diulang semula dengan bentuk yang 100% sama",
         ],
       },
       {
-        id: "cr-t2-teknik-1",
+        id: "cr-t2-3",
         field: "Corak dan Rekaan",
-        category: "Alat, Bahan & Teknik",
+        category: "Unsur Seni",
         question:
-          "Apakah kategori teknik penghasilan corak dan kemasan bahan yang diaplikasikan?",
+          "3. Bagaimanakah penggunaan warna menghasilkan kesan harmoni, kontra atau penegasan dalam corak ini?",
         options: [
-          "Corak Terancang: Cetakan blok, stensilan, resis atau lipatan dan guntingan",
-          "Corak Tidak Terancang: Pualaman, tiupan, titisan atau ikatan dan celupan (tie & dye)",
-          "Penggunaan alat dan bahan (blok cetakan, warna poster, berus, kertas lukisan) yang tepat",
-          "Aplikasi corak ke atas rekaan produk fizikal (beg kertas, bekas, kad atau hiasan)",
+          "Gabungan warna sekeluarga (harmoni) menjadikan keseluruhan permukaan corak sedap dipandang",
+          "Penggunaan warna penggenap antara latar belakang dan motif mewujudkan kontra yang jelas",
+          "Satu warna cerah diletakkan pada motif utama untuk menjadi titik penegasan dalam corak",
+          "Peralihan warna panas dan sejuk memberi dinamik dan keceriaan pada rekaan",
         ],
       },
       {
-        id: "cr-t2-mesej-1",
+        id: "cr-t2-4",
         field: "Corak dan Rekaan",
-        category: "Mesej & Nilai",
+        category: "Media & Bahan",
         question:
-          "Apakah nilai fungsi rekaan dan elemen keusahawanan yang ditonjolkan dalam karya ini?",
+          "4. Sejauh manakah teknik dan bahan yang digunakan sesuai untuk menghasilkan corak tersebut?",
         options: [
-          "Corak mempunyai nilai komersial untuk dijadikan produk seperti beg, tekstil atau pembalut",
-          "Menunjukkan ketelitian, kesabaran dan disiplin tinggi dalam menyusun ulangan motif",
-          "Inovasi mengaplikasikan corak 2D kepada rekaan produk yang praktikal dan berguna",
-          "Menghargai keindahan alam sebagai sumber ilham rekaan seni gunaan",
+          "Sangat sesuai kerana sifat bahan menyerap warna dengan baik dan menghasilkan kesan corak yang jelas",
+          "Sesuai kerana teknik yang dipilih membolehkan pengulangan motif dilakukan dengan kemas dan konsisten",
+          "Sangat berkesan kerana alat dan bahan mudah dikawal untuk menghasilkan perincian motif",
+          "Sesuai serta selamat digunakan bagi menghasilkan rekaan corak yang berkualiti",
+        ],
+      },
+      {
+        id: "cr-t2-5",
+        field: "Corak dan Rekaan",
+        category: "Kreativiti",
+        question:
+          "5. Apakah keunikan motif yang digunakan berbanding corak lain yang pernah kamu lihat?",
+        options: [
+          "Motif alam semula jadi telah digayakan (stilasi) menjadi bentuk moden yang ringkas tetapi menarik",
+          "Gabungan unsur geometri dan organik dalam satu unit motif mencipta identiti tersendiri",
+          "Kesan jalinan rawak daripada teknik yang digunakan menghasilkan corak yang eksklusif",
+          "Susunan motifnya kreatif dan tidak terikat dengan susunan biasa yang sering dilihat",
+        ],
+      },
+      {
+        id: "cr-t2-6",
+        field: "Corak dan Rekaan",
+        category: "Mesej",
+        question:
+          "6. Bagaimanakah corak ini boleh diaplikasikan dalam kehidupan seharian atau produk komersial?",
+        options: [
+          "Boleh dicetak pada produk pembungkusan komersial seperti beg kertas, kotak hadiah dan pembalut",
+          "Sesuai diaplikasikan pada rekaan tekstil seperti kain batik moden, tudung, kemeja atau langsir",
+          "Boleh dijadikan corak hiasan dalaman seperti kertas dinding (wallpaper), jubin atau sarung kusyen",
+          "Sesuai untuk produk alat tulis seperti kulit buku nota, fail dan penanda buku komersial",
+        ],
+      },
+      {
+        id: "cr-t2-7",
+        field: "Corak dan Rekaan",
+        category: "Kreativiti",
+        question:
+          "7. Jika kamu diberi peluang mengubah suai corak ini, apakah idea kreatif yang akan kamu tambahkan?",
+        options: [
+          "Menambah variasi saiz motif (kecil dan besar) untuk mewujudkan kesan irama yang lebih dinamik",
+          "Menggabungkan dua teknik berbeza seperti resis dan capan bagi memperkayakan jalinan",
+          "Menambah garisan sempadan (bingkai corak) supaya rekaan siap sedia untuk dijadikan produk",
+          "Meneroka palet warna yang lebih kontras antara motif utama dan ruang latar",
         ],
       },
     ],
   },
 
+  // C. BIDANG MEMBENTUK DAN MEMBUAT BINAAN (Tahap 1: 7 Soalan | Tahap 2: 7 Soalan = 14 Soalan)
   Binaan: {
     tahap1: [
       {
-        id: "bn-t1-unsur-1",
-        field: "Binaan",
-        category: "Unsur Seni",
-        question:
-          "Apakah unsur bentuk 3D dan jalinan yang dapat kamu lihat pada karya binaan ini?",
-        options: [
-          "Bentuk konkrit 3D yang boleh dilihat dan disentuh dari semua arah",
-          "Gabungan bentuk asas seperti kubus, silinder, kon atau sfera",
-          "Jalinan sentuh pada permukaan binaan (licin, kasar atau timbul)",
-          "Ruang nyata di dalam dan di sekeliling struktur binaan",
-        ],
-      },
-      {
-        id: "bn-t1-prinsip-1",
-        field: "Binaan",
-        category: "Prinsip Rekaan",
-        question:
-          "Bagaimanakah kestabilan dan imbangan karya binaan 3D ini kelihatan?",
-        options: [
-          "Tapak binaan kukuh dan boleh berdiri tegak dengan seimbang (imbangan)",
-          "Bahagian kiri dan kanan binaan disusun sama berat dan stabil",
-          "Hiasan warna-warni menjadikan binaan nampak ceria dan harmoni",
-          "Saiz setiap bahagian binaan sesuai dan sepadan antara satu sama lain",
-        ],
-      },
-      {
-        id: "bn-t1-halbenda-1",
+        id: "bn-t1-1",
         field: "Binaan",
         category: "Hal Benda",
-        question:
-          "Apakah hal benda (model objek) yang dibina oleh rakan kamu dalam karya 3D ini?",
+        question: "1. Apakah objek yang dihasilkan melalui binaan ini?",
         options: [
-          "Model bangunan, rumah atau kenderaan (kereta, roket, kapal)",
-          "Binaan haiwan, serangga atau watak boneka/topeng yang comel",
-          "Pemandangan mini (diorama) atau hiasan gantung (mobail)",
-          "Binaan origami atau arca kreatif daripada bentuk geometri",
+          "Model kenderaan seperti kereta, kapal terbang, roket atau bot",
+          "Model bangunan, rumah mini, menara atau istana",
+          "Binaan haiwan, robot, topeng muka atau boneka comel",
+          "Hiasan gantung (mobail), tabung atau pemandangan mini (diorama)",
         ],
       },
       {
-        id: "bn-t1-teknik-1",
+        id: "bn-t1-2",
         field: "Binaan",
-        category: "Alat, Bahan & Teknik",
-        question: "Apakah bahan kitar semula dan teknik binaan yang digunakan?",
+        category: "Unsur Seni",
+        question: "2. Apakah bentuk yang kamu dapat lihat pada binaan ini?",
         options: [
-          "Mencantum kotak, gulungan tisu atau botol plastik (teknik asemblaj)",
-          "Melipat dan membentuk kertas menjadi objek 3D (teknik origami/lipatan)",
-          "Menguli dan membentuk doh, plastisin atau tanah liat",
-          "Menggunting, menebuk dan melekat kadbod menjadi topeng atau boneka",
+          "Bentuk kotak (kubus dan kuboid) yang mempunyai bucu",
+          "Bentuk silinder (bulat memanjang) dan bentuk kon",
+          "Bentuk sfera (bulat) dan bentuk piramid",
+          "Gabungan pelbagai bentuk 3D yang dicantum bersama",
         ],
       },
       {
-        id: "bn-t1-mesej-1",
+        id: "bn-t1-3",
         field: "Binaan",
-        category: "Mesej & Nilai",
-        question:
-          "Apakah nilai murni yang kita pelajari daripada karya binaan bahan terbuang ini?",
+        category: "Unsur Seni",
+        question: "3. Apakah warna yang digunakan pada binaan ini?",
         options: [
-          "Menjaga alam sekitar melalui amalan kitar semula bahan terpakai",
-          "Kreativiti mengubah barang terbuang menjadi permainan atau hiasan berguna",
-          "Kesabaran dan ketelitian semasa mencantum bahagian supaya kukuh",
-          "Berani mencuba membina sesuatu yang baharu daripada imaginasi",
+          "Warna-warna terang dan ceria seperti merah, kuning dan biru",
+          "Warna semula jadi bahan seperti coklat kotak dan putih",
+          "Warna metalik atau warna gelap yang nampak moden",
+          "Gabungan pelbagai warna hiasan yang menarik perhatian",
+        ],
+      },
+      {
+        id: "bn-t1-4",
+        field: "Binaan",
+        category: "Media & Bahan",
+        question:
+          "4. Apakah bahan yang digunakan untuk menghasilkan binaan ini?",
+        options: [
+          "Bahan kitar semula seperti kotak, botol plastik dan penutup botol",
+          "Kertas warna, kadbod, gam dan pita pelekat",
+          "Plastisin, tanah liat atau doh yang dibentuk dengan tangan",
+          "Gulungan tisu, cawan kertas, lidi dan warna poster",
+        ],
+      },
+      {
+        id: "bn-t1-5",
+        field: "Binaan",
+        category: "Prinsip Rekaan",
+        question: "5. Adakah binaan ini kelihatan kukuh?",
+        options: [
+          "Ya, tapaknya lebar dan binaan boleh berdiri tegak dengan stabil",
+          "Ya, setiap bahagian dicantum dengan kemas dan tidak mudah tanggal",
+          "Sederhana kukuh kerana diperbuat daripada kertas yang ringan",
+          "Kukuh dan seimbang apabila diletakkan di atas meja",
+        ],
+      },
+      {
+        id: "bn-t1-6",
+        field: "Binaan",
+        category: "Kreativiti",
+        question: "6. Bahagian manakah yang paling menarik pada binaan ini?",
+        options: [
+          "Bahagian kepala atau hadapan binaan kerana perinciannya comel",
+          "Bahagian hiasan warna dan corak di sekeliling badan binaan",
+          "Cara bahan terbuang dicantum menjadi bentuk baharu yang kreatif",
+          "Keseluruhan bentuk 3D binaan yang kemas dan menyerupai objek sebenar",
+        ],
+      },
+      {
+        id: "bn-t1-7",
+        field: "Binaan",
+        category: "Mesej",
+        question: "7. Apakah kegunaan binaan ini?",
+        options: [
+          "Boleh dijadikan alat permainan kreatif yang menyeronokkan",
+          "Boleh dijadikan perhiasan cantik di atas meja atau bilik darjah",
+          "Boleh digunakan sebagai bekas simpanan atau tabung duit",
+          "Boleh digunakan sebagai alat persembahan (topeng / boneka)",
         ],
       },
     ],
     tahap2: [
       {
-        id: "bn-t2-unsur-1",
+        id: "bn-t2-1",
         field: "Binaan",
         category: "Unsur Seni",
         question:
-          "Bagaimanakah unsur bentuk konkrit, ruang dan jalinan sentuh diolah dalam karya 3D ini?",
+          "1. Bagaimanakah gabungan bentuk, ruang dan jalinan mempengaruhi keindahan binaan ini?",
         options: [
-          "Bentuk konkrit mempunyai isi padu dan jisim yang jelas dari pelbagai sudut pandang",
-          "Ruang nyata (ruang dalaman dan luaran) diolah secara seimbang dan berfungsi",
-          "Jalinan sentuh daripada bahan kutipan/kemasan memberi kesan visual yang menarik",
-          "Penggunaan warna dan garisan struktur menyerlahkan lagi dimensi 3D karya",
+          "Bentuk konkrit 3D mempunyai isi padu yang jelas dan menarik apabila dilihat dari pelbagai sudut",
+          "Olahan ruang dalaman dan luaran menjadikan struktur binaan tidak kelihatan terlalu padat",
+          "Jalinan sentuh daripada kepelbagaian bahan memberi variasi tekstur yang memperkayakan permukaan",
+          "Gabungan ketiga-tiga unsur menjadikan binaan kelihatan realistik dan mempunyai nilai estetik tinggi",
         ],
       },
       {
-        id: "bn-t2-prinsip-1",
+        id: "bn-t2-2",
         field: "Binaan",
         category: "Prinsip Rekaan",
         question:
-          "Bagaimanakah prinsip imbangan, kadaran dan kesatuan diterapkan dalam struktur binaan ini?",
+          "2. Adakah prinsip imbangan dan kesatuan berjaya diaplikasikan dalam binaan ini? Berikan alasan.",
         options: [
-          "Prinsip imbangan (simetri atau tidak simetri) memastikan struktur stabil dan tidak tumbang",
-          "Prinsip kadaran (nisbah saiz antara bahagian) kelihatan logik dan harmoni",
-          "Prinsip kesatuan tercapai apabila semua bahan kutipan bercantum sebagai satu bentuk utuh",
-          "Prinsip irama dan pergerakan kelihatan pada binaan mobail atau susunan berulang",
+          "Ya, imbangan simetri pada kiri dan kanan membolehkan binaan berdiri stabil tanpa mudah tumbang",
+          "Ya, imbangan tidak simetri diolah dengan bijak melalui agihan berat bahagian yang sepadan",
+          "Ya, kesatuan tercapai apabila pelbagai bahan terpakai dicantum menjadi satu bentuk objek yang utuh",
+          "Sebahagiannya berjaya, namun tapak binaan boleh diperkukuhkan lagi untuk imbangan maksimum",
         ],
       },
       {
-        id: "bn-t2-halbenda-1",
+        id: "bn-t2-3",
         field: "Binaan",
-        category: "Hal Benda",
+        category: "Media & Bahan",
         question:
-          "Apakah hal benda (subject matter) 3D yang diterjemahkan dalam karya binaan ini?",
+          "3. Sejauh manakah pemilihan bahan mempengaruhi kekuatan dan kestabilan binaan?",
         options: [
-          "Model seni bina, kenderaan futuristik atau struktur kejuruteraan kreatif",
-          "Diorama ekosistem alam semula jadi, hidupan atau suasana masyarakat",
-          "Arca figuratif/haiwan, topeng watak atau boneka persembahan",
-          "Arca abstrak (stabail/mobail/arca timbul) yang meneroka bentuk dan ruang",
+          "Sangat mempengaruhi kerana bahan keras seperti kadbod tebal dan botol plastik menyokong struktur utama",
+          "Penggunaan bahan yang lebih berat di bahagian tapak membantu merendahkan pusat graviti supaya stabil",
+          "Bahan ringan seperti kertas dan span sesuai untuk bahagian atas tanpa membebankan tapak binaan",
+          "Pemilihan bahan kitar semula yang tepat menjadikan binaan tahan lasak dan mesra alam",
         ],
       },
       {
-        id: "bn-t2-teknik-1",
+        id: "bn-t2-4",
         field: "Binaan",
-        category: "Alat, Bahan & Teknik",
+        category: "Teknik",
         question:
-          "Apakah teknik membentuk dan membuat binaan serta kesesuaian bahan yang digunakan?",
+          "4. Apakah kelebihan dan kekurangan teknik yang digunakan untuk menghasilkan binaan ini?",
         options: [
-          "Teknik asemblaj: Mencantum pelbagai bahan kutipan/kitar semula (kotak, botol, dawai)",
-          "Teknik arca stabail (tapak kukuh), mobail (gantungan seimbang) atau arca timbul",
-          "Teknik pembinaan model / diorama menggunakan kadbod, gam, gunting dan media campuran",
-          "Teknik luakan, acuan, lipatan origami 3D atau binaan rangka yang kemas",
+          "Kelebihan teknik asemblaj ialah mudah mencantum bahan sedia ada; kekurangannya memerlukan gam kuat agar tahan lama",
+          "Kelebihan teknik lipatan/potongan kadbod ialah bentuk kemas; kekurangannya perlu ukuran tepat supaya simetri",
+          "Kelebihan teknik luakan/picitan ialah bebas membentuk perincian; kekurangannya mengambil masa untuk kering",
+          "Teknik yang dipilih sangat praktikal untuk murid, cuma kemasan sambungan boleh diperhalusi lagi",
         ],
       },
       {
-        id: "bn-t2-mesej-1",
+        id: "bn-t2-5",
         field: "Binaan",
-        category: "Mesej & Nilai",
+        category: "Kreativiti",
         question:
-          "Apakah mesej kelestarian alam dan kemahiran menyelesaikan masalah dalam binaan ini?",
+          "5. Bagaimanakah unsur kreativiti dan inovasi dapat dikenal pasti dalam binaan ini?",
         options: [
-          "Mengaplikasikan amalan 3R (Guna Semula) untuk mengurangkan sisa buangan",
-          "Menunjukkan keupayaan menyelesaikan masalah teknikal (sambungan, tapak & berat)",
-          "Karya mempunyai nilai fungsi sebagai alat bantu, bekas serbaguna atau hiasan ruang",
-          "Memupuk pemikiran spatial, inovasi dan ketekunan dalam penghasilan produk 3D",
+          "Penggunaan semula bahan terbuang (3R) yang diubah suai menjadi komponen berfungsi pada model",
+          "Gabungan idea tradisional dan elemen futuristik dalam reka bentuk struktur 3D",
+          "Penyelesaian masalah sambungan dan hiasan tanpa bergantung kepada bahan beli siap",
+          "Keaslian idea dan perincian kecil yang membezakan binaan ini daripada model biasa",
+        ],
+      },
+      {
+        id: "bn-t2-6",
+        field: "Binaan",
+        category: "Pengkritikan",
+        question:
+          "6. Adakah binaan ini memenuhi fungsi atau tujuan asal penghasilannya? Jelaskan.",
+        options: [
+          "Ya, binaan ini berfungsi dengan baik sebagai model hiasan atau diorama yang menyampaikan maklumat",
+          "Ya, binaan ini boleh digunakan secara praktikal mengikut tujuan asalnya seperti bekas serbaguna atau topeng",
+          "Ya, ia berjaya menggambarkan konsep objek sebenar dalam skala mini dengan tepat dan menarik",
+          "Memenuhi tujuan pembelajaran seni 3D serta berpotensi ditingkatkan lagi dari segi ketahanan guna",
+        ],
+      },
+      {
+        id: "bn-t2-7",
+        field: "Binaan",
+        category: "Kreativiti",
+        question:
+          "7. Apakah cadangan penambahbaikan yang boleh menjadikan binaan ini lebih kreatif, kukuh dan berfungsi?",
+        options: [
+          "Menambah lapisan tapak yang lebih lebar dan berat supaya binaan lebih kukuh dan stabil",
+          "Mengemaskan bahagian cantuman/gam dengan balutan kertas atau sapuan cat agar tidak kelihatan",
+          "Menambah elemen mekanikal mudah (bahagian boleh gerak) atau pencahayaan kecil untuk nilai inovasi",
+          "Memperincikan tekstur permukaan dan kombinasi warna kontra agar lebih menonjol dari jauh",
         ],
       },
     ],
   },
 
+  // D. BIDANG MENGENAL KRAF TRADISIONAL (Tahap 1: 8 Soalan | Tahap 2: 9 Soalan = 17 Soalan -> Jumlah = 60 Soalan)
   "Kraf Tradisional": {
     tahap1: [
       {
-        id: "kt-t1-unsur-1",
-        field: "Kraf Tradisional",
-        category: "Unsur Seni",
-        question:
-          "Apakah unsur seni (garisan, rupa, warna atau jalinan) yang menonjol pada karya kraf ini?",
-        options: [
-          "Garisan beralun dan melengkung yang lembut seperti corak batik",
-          "Jalinan bersilang-seli yang kemas seperti anyaman tikar",
-          "Bentuk 3D yang unik seperti tembikar, wau atau gasing",
-          "Warna-warna tradisi yang cerah, menarik dan harmoni",
-        ],
-      },
-      {
-        id: "kt-t1-prinsip-1",
-        field: "Kraf Tradisional",
-        category: "Prinsip Rekaan",
-        question:
-          "Bagaimanakah susunan motif dan bentuk pada karya kraf tradisional ini?",
-        options: [
-          "Bentuk dan corak kiri dan kanan sama seimbang (imbangan simetri)",
-          "Susunan motif berulang secara teratur dan kemas (harmoni)",
-          "Warna latar dan warna motif berbeza supaya corak nampak jelas (kontra)",
-          "Semua bahagian hiasan tersusun cantik dan bersatu",
-        ],
-      },
-      {
-        id: "kt-t1-halbenda-1",
+        id: "kt-t1-1",
         field: "Kraf Tradisional",
         category: "Hal Benda",
-        question:
-          "Apakah jenis kraf tradisional Malaysia dan motif hiasan yang dipaparkan?",
+        question: "1. Apakah nama kraf tradisional yang kamu lihat?",
         options: [
-          "Batik atau Tekat dengan motif flora (bunga dan daun)",
-          "Anyaman kertas/daun dengan corak kelarai yang kemas",
-          "Alat permainan rakyat seperti Wau tradisional atau Gasing",
+          "Kraf Batik atau Tekat yang mempunyai corak cantik",
+          "Kraf Anyaman tikar atau kelarai tradisional",
+          "Permainan tradisional seperti Wau Bulan atau Gasing",
           "Tembikar (Labu Sayong) atau Perhiasan Diri (Dokoh / Cucuk Sanggul)",
         ],
       },
       {
-        id: "kt-t1-teknik-1",
+        id: "kt-t1-2",
         field: "Kraf Tradisional",
-        category: "Alat, Bahan & Teknik",
-        question:
-          "Apakah bahan gantian dan teknik asas yang digunakan untuk membuat kraf ini?",
+        category: "Media & Bahan",
+        question: "2. Apakah bahan yang digunakan untuk menghasilkan kraf ini?",
         options: [
-          "Teknik resis menggunakan krayon/lilin dan warna air (batik mudah)",
-          "Teknik menganyam jalur kertas warna secara selang-seli (atas dan bawah)",
-          "Teknik picitan atau lingkaran menggunakan tanah liat/plastisin (tembikar)",
-          "Teknik menggunting, melipat dan menampal untuk membuat wau atau perhiasan diri",
+          "Kertas lukisan, krayon/lilin dan warna air (batik mudah)",
+          "Jalur kertas warna yang dianyam berselang-seli dan gam",
+          "Tanah liat, plastisin atau doh untuk membentuk tembikar",
+          "Kadbod, kertas warna, lidi, benang dan gunting",
         ],
       },
       {
-        id: "kt-t1-mesej-1",
+        id: "kt-t1-3",
         field: "Kraf Tradisional",
-        category: "Mesej & Nilai",
-        question:
-          "Mengapakah kita perlu berbangga dan menghargai seni kraf tradisional ini?",
+        category: "Hal Benda",
+        question: "3. Apakah motif yang terdapat pada kraf ini?",
         options: [
-          "Supaya seni warisan budaya Malaysia terus kekal dan tidak dilupakan",
-          "Menunjukkan sikap sabar, teliti dan tekun semasa menghasilkan kraf",
-          "Kraf tradisional sangat cantik dan berguna dalam kehidupan harian",
-          "Memupuk rasa cinta akan identiti dan budaya negara kita",
+          "Motif flora seperti bunga raya, daun dan sulur paut",
+          "Motif fauna seperti rama-rama, burung atau ikan",
+          "Motif geometri seperti pucuk rebung dan corak kelarai",
+          "Motif awan larat dan garisan tradisi yang halus",
+        ],
+      },
+      {
+        id: "kt-t1-4",
+        field: "Kraf Tradisional",
+        category: "Unsur Seni",
+        question: "4. Apakah warna yang paling menonjol pada kraf ini?",
+        options: [
+          "Warna merah, kuning keemasan dan jingga yang menyerlah",
+          "Warna biru, ungu dan hijau yang sangat menarik",
+          "Warna tanah seperti coklat, hitam dan putih yang klasik",
+          "Gabungan warna-warna ceria yang menghidupkan corak tradisi",
+        ],
+      },
+      {
+        id: "kt-t1-5",
+        field: "Kraf Tradisional",
+        category: "Mesej",
+        question: "5. Apakah kegunaan kraf tradisional ini?",
+        options: [
+          "Digunakan sebagai pakaian atau kain hiasan (Batik / Tekat)",
+          "Digunakan sebagai alat permainan rakyat masa lapang (Wau / Gasing)",
+          "Digunakan sebagai bekas menyimpan air atau hiasan rumah (Tembikar)",
+          "Digunakan sebagai alas duduk, tudung saji atau perhiasan diri",
+        ],
+      },
+      {
+        id: "kt-t1-6",
+        field: "Kraf Tradisional",
+        category: "Media & Bahan",
+        question:
+          "6. Adakah kraf ini dihasilkan menggunakan bahan semula jadi?",
+        options: [
+          "Kraf asal menggunakan bahan semula jadi seperti buluh, rotan, mengkuang atau tanah liat",
+          "Kraf murid ini menggunakan bahan gantian seperti kertas warna dan kadbod",
+          "Ya, menggunakan bahan gantian yang mudah didapati di sekolah",
+          "Menggunakan gabungan bahan gantian moden untuk meniru kraf tradisional",
+        ],
+      },
+      {
+        id: "kt-t1-7",
+        field: "Kraf Tradisional",
+        category: "Hal Benda",
+        question: "7. Pernahkah kamu melihat kraf seperti ini?",
+        options: [
+          "Ya, saya pernah melihatnya di rumah, sekolah atau majlis kenduri",
+          "Ya, saya pernah melihatnya di televisyen, buku teks atau muzium",
+          "Ya, ahli keluarga saya mempunyai kraf seperti ini di rumah",
+          "Baru pertama kali saya melihatnya dan ia kelihatan sangat unik",
+        ],
+      },
+      {
+        id: "kt-t1-8",
+        field: "Kraf Tradisional",
+        category: "Mesej",
+        question: "8. Mengapakah kita perlu menghargai kraf tradisional?",
+        options: [
+          "Kerana kraf tradisional ialah warisan budaya negara kita yang berharga",
+          "Supaya seni warisan nenek moyang tidak hilang ditelan zaman",
+          "Kerana pembuatannya memerlukan kesabaran dan kemahiran yang tinggi",
+          "Supaya generasi muda berbangga dengan identiti seni Malaysia",
         ],
       },
     ],
     tahap2: [
       {
-        id: "kt-t2-unsur-1",
+        id: "kt-t2-1",
+        field: "Kraf Tradisional",
+        category: "Kreativiti",
+        question:
+          "1. Apakah keunikan motif dan corak yang terdapat pada kraf tradisional ini?",
+        options: [
+          "Motif flora dan alam semula jadi diolah secara halus dengan susunan yang penuh makna simbolik",
+          "Corak kelarai dan pucuk rebung tersusun secara matematik dan berulang dengan sangat teliti",
+          "Gabungan garisan melengkung (awan larat) dan motif tradisi mencerminkan kehalusan budi masyarakat",
+          "Keunikan motifnya menyerlahkan identiti tempatan yang berbeza daripada seni moden barat",
+        ],
+      },
+      {
+        id: "kt-t2-2",
         field: "Kraf Tradisional",
         category: "Unsur Seni",
         question:
-          "Bagaimanakah olahan unsur seni (garisan, jalinan, bentuk dan warna) menyerlahkan identiti kraf ini?",
+          "2. Bagaimanakah unsur seni dan prinsip rekaan mempengaruhi keindahan kraf ini?",
         options: [
-          "Garisan organik dan motif flora/fauna tradisi membentuk rupa yang halus dan berseni",
-          "Jalinan sentuh dan tampak terhasil daripada teknik anyaman kelarai, ukiran atau tekat",
-          "Bentuk 3D (tembikar/alat domestik/permainan) mempunyai struktur yang seimbang dan estetik",
-          "Pemilihan warna tradisi (warna alam dan kontra) menghidupkan motif warisan",
+          "Imbangan simetri pada bentuk dan susunan motif menjadikan kraf kelihatan stabil dan harmoni",
+          "Jalinan sentuh daripada anyaman/ukiran serta garisan batik memberi kesan permukaan yang kaya",
+          "Kontra warna antara motif dan latar belakang menonjolkan keindahan reka corak utama",
+          "Kesatuan antara bentuk fizikal kraf dengan ragam hiasnya melahirkan nilai estetik yang tinggi",
         ],
       },
       {
-        id: "kt-t2-prinsip-1",
+        id: "kt-t2-3",
         field: "Kraf Tradisional",
-        category: "Prinsip Rekaan",
+        category: "Media & Bahan",
         question:
-          "Apakah prinsip rekaan tradisional yang paling ketara dalam gubahan kraf ini?",
+          "3. Mengapakah bahan semula jadi sering digunakan dalam penghasilan kraf tradisional?",
         options: [
-          "Prinsip imbangan simetri (seperti pada wau, dokoh, ukiran tebuk dan tembikar)",
-          "Prinsip harmoni dan irama melalui pengulangan motif kelarai atau pucuk rebung",
-          "Prinsip kesatuan antara bentuk fizikal kraf dengan fungsi kegunaannya",
-          "Prinsip penegasan pada motif utama di bahagian tengah rekaan",
+          "Kerana bahan seperti buluh, rotan, daun mengkuang dan tanah liat mudah diperoleh dari alam sekitar",
+          "Bahan semula jadi bersifat mesra alam, tahan lasak dan mempunyai tekstur asli yang cantik",
+          "Masyarakat dahulu memanfaatkan sumber hutan dan alam sekeliling secara bijaksana dan lestari",
+          "Sifat semula jadi bahan sesuai dengan fungsi kegunaan kraf seperti tanah liat yang menyejukkan air",
         ],
       },
       {
-        id: "kt-t2-halbenda-1",
+        id: "kt-t2-4",
         field: "Kraf Tradisional",
-        category: "Hal Benda",
+        category: "Teknik",
         question:
-          "Apakah kategori kraf warisan dan motif tradisional yang diadaptasi dalam karya ini?",
+          "4. Apakah perbezaan teknik penghasilan kraf tradisional dengan teknik penghasilan kraf moden?",
         options: [
-          "Seni Tekstil & Hiasan: Batik, Tekat atau Tenunan bermotifkan flora (pucuk rebung, bunga)",
-          "Seni Anyaman & Ukiran: Kelarai anyaman atau ukiran kayu bermotifkan alam semula jadi",
-          "Seni Tembikar & Alat Domestik: Labu Sayong, buyung atau tudung saji tradisional",
-          "Permainan Rakyat & Perhiasan Diri: Wau Bulan, Gasing, Dokoh atau Keris/Alat Pertahanan",
+          "Kraf tradisional dihasilkan secara buatan tangan (manual) yang teliti, manakala kraf moden banyak menggunakan mesin",
+          "Kraf tradisional mengekalkan teknik warisan turun-temurun, manakala kraf moden meneroka teknologi dan bahan sintetik",
+          "Penghasilan kraf tradisional mengambil masa lebih lama dan bernilai eksklusif berbanding pengeluaran kilang moden",
+          "Kraf tradisional terikat dengan pantang larang dan aturan motif asal, manakala kraf moden lebih bebas",
         ],
       },
       {
-        id: "kt-t2-teknik-1",
+        id: "kt-t2-5",
         field: "Kraf Tradisional",
-        category: "Alat, Bahan & Teknik",
+        category: "Mesej",
         question:
-          "Bagaimanakah aplikasi teknik kraf tradisional menggunakan bahan gantian murid?",
+          "5. Bagaimanakah identiti budaya masyarakat dapat ditonjolkan melalui motif kraf ini?",
         options: [
-          "Teknik resis (batik canting/blok) menggunakan krayon/gam dan pewarna air",
-          "Teknik anyaman kelarai menggunakan jalur kertas/reben mengikut kiraan selang-seli",
-          "Teknik lingkaran, picitan atau kepingan bagi membentuk model tembikar",
-          "Teknik tebukan, ukiran lembut (sabun/kadbod) atau tampalan bagi perhiasan/wau",
+          "Pemilihan motif flora tempatan (seperti bunga raya, tampuk manggis, pucuk rebung) melambangkan alam Nusantara",
+          "Susunan motif yang tertib dan halus mencerminkan nilai kesopanan serta kehalusan budi pekerti masyarakat",
+          "Reka bentuk kraf berkait rapat dengan adat resam, perayaan dan kehidupan harian masyarakat Malaysia",
+          "Penggunaan warna tradisi dan nama-nama kelarai mengekalkan warisan bahasa serta budaya bangsa",
         ],
       },
       {
-        id: "kt-t2-mesej-1",
+        id: "kt-t2-6",
         field: "Kraf Tradisional",
-        category: "Mesej & Nilai",
+        category: "Pengkritikan",
         question:
-          "Apakah nilai estetik, warisan budaya dan jati diri yang dapat dihayati daripada karya ini?",
+          "6. Sejauh manakah kraf tradisional ini masih relevan dalam kehidupan masyarakat masa kini?",
         options: [
-          "Memupuk semangat cinta akan warisan seni kraf Melayu/Nusantara dan Malaysia",
-          "Menghargai kehalusan kerja tangan, kesabaran dan ketekunan tokoh kraf tempatan",
-          "Kreativiti mengadaptasi bahan gantian moden untuk mengekalkan seni tradisional",
-          "Memahami nilai estetik serta fungsi kraf dalam kehidupan harian dan adat budaya",
+          "Sangat relevan kerana ia kini dijadikan simbol identiti negara, pakaian rasmi dan hiasan eksklusif",
+          "Masih relevan apabila diadaptasi sebagai cenderamata pelancongan dan hiasan dalaman moden",
+          "Relevan sebagai sumber pendapatan ekonomi usahawan kraf tempatan dan industri kreatif negara",
+          "Perlu terus diperkenalkan kepada generasi muda di sekolah agar kekal relevan pada masa hadapan",
+        ],
+      },
+      {
+        id: "kt-t2-7",
+        field: "Kraf Tradisional",
+        category: "Pengkritikan",
+        question:
+          "7. Apakah cabaran yang mungkin dihadapi dalam usaha mengekalkan seni kraf tradisional?",
+        options: [
+          "Kekurangan pelapis generasi muda yang berminat mempelajari kemahiran kraf yang rumit dan teliti",
+          "Persaingan dengan produk moden keluaran kilang yang lebih murah dan pantas dihasilkan",
+          "Kesukaran mendapatkan bahan mentah semula jadi berkualiti akibat pembangunan dan perubahan alam",
+          "Kos penghasilan dan masa pembuatan yang panjang menyebabkan harga kraf asli agak tinggi",
+        ],
+      },
+      {
+        id: "kt-t2-8",
+        field: "Kraf Tradisional",
+        category: "Kreativiti",
+        question:
+          "8. Bagaimanakah teknologi moden boleh membantu memelihara dan mengembangkan seni kraf tradisional?",
+        options: [
+          "Promosi dan pemasaran digital melalui media sosial serta e-dagang ke pasaran antarabangsa",
+          "Penggunaan perisian reka bentuk grafik untuk mendokumentasi dan mencipta variasi motif baharu",
+          "Pameran maya (seperti Kanta Seni) dan video tutorial dalam talian untuk mendidik generasi muda",
+          "Penggunaan peralatan moden bagi mempercepatkan proses penyediaan bahan tanpa menghilangkan seni tangan",
+        ],
+      },
+      {
+        id: "kt-t2-9",
+        field: "Kraf Tradisional",
+        category: "Kreativiti",
+        question:
+          "9. Jika kamu diminta menghasilkan produk kraf tradisional yang mempunyai nilai komersial, apakah inovasi yang akan kamu lakukan tanpa menghilangkan identiti asalnya?",
+        options: [
+          "Mengaplikasikan motif batik atau anyaman kelarai pada aksesori moden seperti sarung telefon, beg komputer riba atau kasut",
+          "Menggunakan gabungan warna kontemporari (pastel atau monokrom) sambil mengekalkan motif tradisi asli",
+          "Menghasilkan kit DIY kraf tradisional untuk pelancong dan murid sekolah mencuba sendiri di rumah",
+          "Mencipta produk lampu hiasan atau bekas serbaguna moden yang menggabungkan ukiran/anyaman tradisional",
         ],
       },
     ],
@@ -2469,21 +2700,24 @@ export default function App() {
                 )}
               </nav>
 
-              {/* STATUS PASPORT / DAFTAR PASPORT */}
+              {/* STATUS PASPORT / DAFTAR PASPORT (RESPONSIF TELEFON & DESKTOP) */}
               {activePassport && activePassport.usedCount < 3 ? (
-                <div
+                <button
+                  type="button"
                   onClick={() => {
                     SoundFX.click();
                     setActiveTab("sudut-apresiasi");
                   }}
-                  className={`hidden sm:flex items-center px-2.5 py-1.5 rounded-full text-[11px] xl:text-xs font-bold whitespace-nowrap cursor-pointer hover:scale-105 active:scale-95 transition-all shadow-xs shrink-0 ${
+                  className={`flex items-center p-1.5 sm:px-2.5 sm:py-1.5 rounded-full text-[11px] xl:text-xs font-bold whitespace-nowrap cursor-pointer hover:scale-105 active:scale-95 transition-all shadow-xs shrink-0 ${
                     isCurrentPassportVip
                       ? "bg-gradient-to-r from-slate-900 via-amber-950 to-slate-900 border-2 border-yellow-400 text-yellow-300"
                       : "bg-green-50 border-2 border-green-400 text-green-900 hover:bg-green-100"
                   }`}
-                  title="Klik untuk lihat status Pasport"
+                  title={`Pasport Aktif: ${activePassport.fullName} (Baki ${
+                    3 - activePassport.usedCount
+                  }/3)`}
                 >
-                  <span className="relative inline-flex items-center mr-1">
+                  <span className="relative inline-flex items-center sm:mr-1">
                     <Award
                       className={`w-3.5 h-3.5 sm:w-4 sm:h-4 animate-pulse ${
                         isCurrentPassportVip
@@ -2492,16 +2726,16 @@ export default function App() {
                       }`}
                     />
                     {isCurrentPassportVip && (
-                      <span className="ml-1 bg-black text-yellow-400 border border-yellow-400 text-[8px] font-black px-1 py-0.2 rounded-full uppercase tracking-wider leading-none">
+                      <span className="hidden sm:inline-block ml-1 bg-black text-yellow-400 border border-yellow-400 text-[8px] font-black px-1 py-0.2 rounded-full uppercase tracking-wider leading-none">
                         VIP
                       </span>
                     )}
                   </span>
-                  <span className="truncate max-w-[68px] xl:max-w-[95px]">
+                  <span className="hidden sm:inline truncate max-w-[68px] xl:max-w-[95px]">
                     {activePassport.fullName}
                   </span>
                   <span
-                    className={`ml-1.5 px-1.5 py-0.5 rounded-full font-black ${
+                    className={`ml-1 sm:ml-1.5 px-1 sm:px-1.5 py-0.5 rounded-full text-[9px] sm:text-[11px] font-black leading-none ${
                       isCurrentPassportVip
                         ? "bg-amber-500/30 text-yellow-200 border border-yellow-400/50"
                         : "bg-green-600 text-white"
@@ -2509,17 +2743,19 @@ export default function App() {
                   >
                     {3 - activePassport.usedCount}/3
                   </span>
-                </div>
+                </button>
               ) : (
                 <button
+                  type="button"
                   onClick={() => {
                     SoundFX.click();
                     setIsPassportModalOpen(true);
                   }}
-                  className="hidden sm:flex items-center bg-amber-50 border-2 border-amber-300 text-amber-800 px-2.5 xl:px-3.5 py-1.5 rounded-full text-[11px] xl:text-xs font-bold whitespace-nowrap hover:bg-amber-100 hover:scale-105 active:scale-95 transition-all shrink-0"
+                  className="flex items-center bg-amber-50 border-2 border-amber-300 text-amber-800 p-1.5 sm:px-2.5 xl:px-3.5 sm:py-1.5 rounded-full text-[11px] xl:text-xs font-bold whitespace-nowrap hover:bg-amber-100 hover:scale-105 active:scale-95 transition-all shrink-0"
+                  title="Daftar Pasport Pengkritik"
                 >
-                  <Award className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 text-amber-600 shrink-0" />
-                  <span>Pasport</span>
+                  <Award className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-1 text-amber-600 shrink-0" />
+                  <span className="hidden sm:inline">Pasport</span>
                 </button>
               )}
 
@@ -2592,10 +2828,10 @@ export default function App() {
                   SoundFX.click();
                   setNoticeObj(null);
                 }}
-                className="text-blue-200 hover:text-white transition-colors p-1"
+                className="bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white border border-red-400/50 rounded-full transition-all p-1.5"
                 title="Tutup notifikasi"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4 stroke-[2.75]" />
               </button>
             </div>
             <div className="h-1 bg-blue-900 w-full">
@@ -2830,8 +3066,7 @@ export default function App() {
                   Jelajah Galeri Maya
                 </h3>
                 <p className="text-slate-500 font-medium mt-1">
-                  Klik pada gambar karya untuk besarkan, zoom dan gerakkan ke
-                  setiap sudut.
+                  Klik pada gambar karya untuk meneliti karya.
                 </p>
               </div>
               <div className="self-start md:self-auto text-sm font-bold text-blue-600 bg-blue-100 px-4 py-2 rounded-lg">
@@ -3238,7 +3473,7 @@ export default function App() {
               <div className="relative z-10 mb-5">
                 <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-900 px-4 py-1.5 rounded-full text-xs md:text-sm font-black uppercase tracking-wider border border-blue-200">
                   <Compass className="w-4 h-4 text-blue-600" />
-                  Proses Misi Apresiasi Karya (3 Langkah Mudah)
+                  Proses Misi Ekplorasi Karya (3 Langkah Mudah)
                 </div>
                 <p className="text-xs md:text-sm text-slate-500 font-medium mt-1.5">
                   Ikuti turutan proses di bawah semasa menilai karya seni rakan
@@ -3623,6 +3858,11 @@ export default function App() {
           onLike={() =>
             toggleLike(selectedArtwork.id, selectedArtwork.likes || [])
           }
+          onRequestPassport={() => {
+            SoundFX.click();
+            setPendingActionArtworkId(selectedArtwork.id);
+            setIsPassportModalOpen(true);
+          }}
           onOpenStarList={(givers: StarGiverItem[]) => {
             SoundFX.click();
             setStarListModalData({
@@ -3682,9 +3922,10 @@ export default function App() {
                   SoundFX.click();
                   setStarListModalData(null);
                 }}
-                className="p-1.5 hover:bg-blue-800 rounded-full transition-colors"
+                title="Tutup"
+                className="p-1.5 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-sm border border-red-300/60 transition-all hover:scale-105 active:scale-95"
               >
-                <X className="w-5 h-5" />
+                <X className="w-5 h-5 stroke-[2.75]" />
               </button>
             </div>
 
@@ -3951,10 +4192,10 @@ function PassportQuizBox({
               SoundFX.click();
               onClose();
             }}
-            className="p-1.5 bg-white hover:bg-red-100 text-slate-500 hover:text-red-600 rounded-lg border border-slate-200 transition-colors"
+            className="p-1.5 bg-red-50 hover:bg-red-500 text-red-600 hover:text-white rounded-lg border border-red-200 transition-all"
             title="Tutup soalan"
           >
-            <X className="w-3.5 h-3.5" />
+            <X className="w-3.5 h-3.5 stroke-[2.75]" />
           </button>
         </div>
       </div>
@@ -4100,9 +4341,10 @@ function StaffLoginModal({
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-blue-800 rounded-full transition-colors relative z-10"
+            title="Tutup"
+            className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-md border border-red-300/60 transition-all hover:scale-105 active:scale-95 relative z-10"
           >
-            <X className="w-6 h-6" />
+            <X className="w-5 h-5 stroke-[2.75]" />
           </button>
         </div>
 
@@ -5292,9 +5534,10 @@ function PassportRegistrationModal({
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-white/10 rounded-full transition-colors relative z-10"
+            title="Tutup"
+            className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-md border border-red-300/60 transition-all hover:scale-105 active:scale-95 relative z-10"
           >
-            <X className="w-6 h-6" />
+            <X className="w-5 h-5 stroke-[2.75]" />
           </button>
         </div>
 
@@ -5490,6 +5733,7 @@ function ArtworkCard({
   const [showComments, setShowComments] = useState(false);
   const [starBurst, setStarBurst] = useState(false);
 
+  const isRegisteredCritic = Boolean(activePassport);
   const criticStage = getStageFromClass(activePassport?.className);
   const artworkField = normalizePsvField(artwork.field);
   const [isQuizOpen, setIsQuizOpen] = useState(false);
@@ -5498,6 +5742,14 @@ function ArtworkCard({
   );
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
   const [quizAnswers, setQuizAnswers] = useState<Record<number, string>>({});
+
+  useEffect(() => {
+    if (!isRegisteredCritic) {
+      setIsQuizOpen(false);
+      setQuizAnswers({});
+      setCurrentQuestionIdx(0);
+    }
+  }, [isRegisteredCritic]);
 
   useEffect(() => {
     if (isQuizOpen) {
@@ -5524,6 +5776,7 @@ function ArtworkCard({
   };
 
   const handleToggleQuiz = () => {
+    if (!isRegisteredCritic) return;
     SoundFX.click();
     if (!isQuizOpen) {
       setQuizQuestions(pickThreeRandomQuestions(criticStage, artworkField));
@@ -5630,68 +5883,63 @@ function ArtworkCard({
           onError={handleImageError}
           className="w-full h-auto object-contain transition-transform duration-500 ease-out group-hover/img:scale-105"
         />
-        <div className="absolute bottom-3 right-3 bg-slate-900/75 text-white p-2 rounded-full opacity-0 group-hover/img:opacity-100 transition-all duration-300 transform translate-y-1 group-hover/img:translate-y-0 shadow-md">
-          <ZoomIn className="w-4 h-4" />
-        </div>
-        <div className="absolute top-4 left-4 flex flex-wrap items-center gap-1.5 pr-20">
-          <span className="bg-yellow-400 text-blue-900 text-xs font-extrabold px-3 py-1 rounded-full shadow-md uppercase tracking-wider">
-            {artwork.className}
-          </span>
-          <span className="bg-blue-900/90 text-yellow-300 text-xs font-extrabold px-2.5 py-1 rounded-full shadow-md">
-            {artworkField}
-          </span>
-          <span className="bg-slate-900/80 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-md">
-            {artworkYear}
-          </span>
+        <div className="absolute bottom-3 right-3 bg-slate-900/75 text-white p-2 rounded-full opacity-0 group-hover/img:opacity-100 transition-all duration-300 backdrop-blur-xs flex items-center gap-1.5 text-xs font-bold shadow-md">
+          <ZoomIn className="w-4 h-4 text-yellow-400" />
+          <span>Besarkan</span>
         </div>
       </div>
 
       <div className="p-5">
+        <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="inline-block bg-yellow-400 text-blue-900 text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wide">
+              {artwork.className}
+            </span>
+            <span className="inline-block bg-blue-50 text-blue-800 border border-blue-200 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
+              {artworkField}
+            </span>
+          </div>
+          <span className="text-[11px] font-bold text-slate-400 bg-slate-100 px-2.5 py-0.5 rounded-full">
+            {artworkYear}
+          </span>
+        </div>
+
         <h4
           onClick={onOpenPreview}
-          className="text-xl font-bold text-slate-800 mb-1 leading-tight cursor-pointer hover:text-blue-700 transition-colors"
+          className="text-xl font-black text-slate-800 mb-1 leading-snug cursor-pointer hover:text-blue-700 transition-colors"
         >
           {artwork.title}
         </h4>
-        <div className="flex items-center text-slate-500 mb-4 font-medium text-sm">
-          <User className="w-4 h-4 mr-1.5" />
+        <div className="flex items-center text-slate-500 text-sm font-medium mb-4">
+          <User className="w-4 h-4 mr-1.5 text-blue-500" />
           <span>{artwork.studentName}</span>
         </div>
 
-        <div className="flex items-center justify-between border-t border-slate-100 pt-4 gap-2">
+        <div className="flex items-center justify-between pt-3 border-t border-slate-100 gap-2">
           <div className="flex items-center gap-1.5">
             <button
               onClick={handleLikeClick}
-              className={`flex items-center space-x-1.5 font-extrabold transition-all active:scale-95 px-2.5 py-1 rounded-full ${
-                hasAnyStar
-                  ? "text-amber-500 bg-yellow-50/90 border border-yellow-300 shadow-2xs"
-                  : "text-slate-400 hover:text-amber-500 hover:bg-yellow-50/60"
-              }`}
               title={
                 hasLiked
-                  ? `Anda dan ${Math.max(
-                      0,
-                      likesCount - 1
-                    )} rakan lain telah memberi bintang`
-                  : hasAnyStar
-                  ? `${likesCount} bintang telah diberikan (Klik untuk beri bintang)`
-                  : "Klik untuk berikan bintang pertama"
+                  ? "Anda sudah memberi 1 bintang pada karya ini"
+                  : "Klik untuk beri 1 Bintang pada karya ini"
               }
+              className={`flex items-center space-x-1.5 py-2 px-3.5 rounded-full font-bold text-sm transition-all duration-200 active:scale-90 ${
+                hasAnyStar
+                  ? "bg-yellow-100 text-yellow-800 border border-yellow-400 shadow-xs"
+                  : "bg-slate-100 text-slate-600 hover:bg-yellow-50 hover:text-yellow-700"
+              }`}
             >
               <Star
-                className={`w-6 h-6 ${
+                className={`w-5 h-5 transition-transform duration-300 ${
+                  starBurst ? "animate-star-pop" : ""
+                } ${
                   hasAnyStar
-                    ? "fill-yellow-400 text-amber-500"
-                    : "text-slate-400 group-hover:text-amber-400"
-                } ${starBurst ? "animate-star-pop" : ""} transition-transform`}
-              />
-              <span
-                className={`text-base ${
-                  hasAnyStar ? "text-amber-600 font-black" : "text-slate-500"
+                    ? "fill-current text-yellow-500 scale-110"
+                    : "text-slate-400"
                 }`}
-              >
-                {likesCount}
-              </span>
+              />
+              <span>{likesCount}</span>
             </button>
 
             <StarGiversAvatars
@@ -5705,180 +5953,186 @@ function ArtworkCard({
               SoundFX.click();
               setShowComments(!showComments);
             }}
-            className="flex items-center space-x-1.5 text-slate-400 hover:text-blue-500 font-bold transition-colors"
+            className="flex items-center space-x-1.5 text-slate-600 hover:text-blue-600 font-bold text-sm py-2 px-3 rounded-full hover:bg-blue-50 active:scale-95 transition-all"
           >
-            <MessageCircle className="w-6 h-6 transition-transform hover:scale-110" />
-            <span>
-              {commentsList.length > 0 ? commentsList.length : "Komen"}
-            </span>
+            <MessageCircle className="w-5 h-5" />
+            <span>{commentsList.length} Komen</span>
           </button>
         </div>
-      </div>
 
-      {showComments && (
-        <div className="bg-slate-50 p-4 border-t border-slate-200 animate-pop-up">
-          <div className="flex items-center justify-between mb-3">
-            <div className="text-xs font-bold text-blue-800 flex items-center uppercase tracking-wider">
-              <Star className="w-3 h-3 mr-1 fill-current text-yellow-400" />
-              Sudut Apresiasi
-            </div>
+        {showComments && (
+          <div className="mt-4 pt-3 border-t border-slate-100 bg-slate-50 -mx-5 -mb-5 p-5 animate-pop-up">
+            <div className="space-y-2.5 max-h-48 overflow-y-auto mb-3 pr-1">
+              {commentsList.length === 0 ? (
+                <p className="text-xs text-slate-400 text-center italic py-2">
+                  Belum ada jejak komen. Jadilah yang pertama!
+                </p>
+              ) : (
+                commentsList.map((comment: any) => {
+                  const isVipComment =
+                    Boolean(comment.isVip) ||
+                    isVipCategory(comment.authorClass);
+                  const authorTitle =
+                    comment.authorName || "Penjelajah Misteri";
+                  const authorInitial = (
+                    authorTitle.charAt(0) || "P"
+                  ).toUpperCase();
+                  const avatarColor = getAvatarColorClass(
+                    authorTitle,
+                    isVipComment
+                  );
 
-            {activePassport && (
-              <button
-                type="button"
-                onClick={handleToggleQuiz}
-                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-black transition-all shadow-2xs ${
-                  isQuizOpen
-                    ? "bg-blue-700 text-yellow-300"
-                    : "bg-yellow-400 hover:bg-yellow-300 text-blue-900 border border-blue-900/30"
-                }`}
-                title="Jawab 3 soalan rawak mengikut bidang seni & tahap murid"
-              >
-                <HelpCircle className="w-3.5 h-3.5" />
-                <span>{isQuizOpen ? "Tutup Soalan" : "3 Soalan Seni"}</span>
-              </button>
-            )}
-          </div>
-
-          <div className="max-h-48 overflow-y-auto space-y-3 mb-3 pr-2">
-            {commentsList.length === 0 ? (
-              <p className="text-sm text-slate-400 italic text-center py-2">
-                Belum ada komen. Jadilah yang pertama!
-              </p>
-            ) : (
-              commentsList.map((comment: any) => {
-                const commentIsVip =
-                  Boolean(comment.isVip) || isVipCategory(comment.authorClass);
-                const authorDisplay =
-                  comment.authorName || "Penjelajah Misteri";
-                const avatarStyle = getAvatarColorClass(
-                  authorDisplay,
-                  commentIsVip
-                );
-
-                return (
-                  <div
-                    key={comment.id}
-                    className={`p-3 rounded-2xl shadow-sm border text-sm transition-all ${
-                      commentIsVip
-                        ? "bg-gradient-to-r from-amber-50/90 via-yellow-50/70 to-white border-amber-300"
-                        : "bg-white border-slate-100 hover:border-blue-200"
-                    }`}
-                  >
-                    <div className="flex justify-between items-start mb-1 gap-2">
-                      <div className="flex items-center gap-2">
-                        <div className="relative shrink-0">
-                          <div
-                            className={`w-7 h-7 rounded-full bg-gradient-to-br ${avatarStyle} flex items-center justify-center text-xs font-black uppercase shadow-2xs`}
+                  return (
+                    <div
+                      key={comment.id}
+                      className={`p-3 rounded-xl text-sm border transition-all ${
+                        isVipComment
+                          ? "bg-gradient-to-br from-slate-900 via-amber-950 to-slate-900 border-yellow-400 text-amber-100 shadow-sm"
+                          : "bg-white border-slate-200/60 shadow-2xs"
+                      }`}
+                    >
+                      <div className="flex justify-between items-start gap-2 mb-1.5">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span
+                            className={`relative w-6 h-6 rounded-full bg-gradient-to-br ${avatarColor} border border-white flex items-center justify-center text-[10px] font-black shrink-0 shadow-2xs`}
                           >
-                            {authorDisplay.charAt(0).toUpperCase()}
-                          </div>
-                          {commentIsVip && (
-                            <span className="absolute -bottom-1 -right-1.5 bg-black text-yellow-400 border border-yellow-400 rounded-full px-1 py-[0.5px] text-[7px] font-black uppercase leading-none shadow-2xs">
-                              VIP
-                            </span>
-                          )}
-                        </div>
-                        <div className="font-bold text-blue-900 text-xs flex items-center flex-wrap gap-1.5">
-                          <span>
-                            {authorDisplay}
-                            {comment.authorClass
-                              ? ` (${comment.authorClass})`
-                              : ""}
+                            {authorInitial}
+                            {isVipComment && (
+                              <span className="absolute -bottom-1 -right-1.5 bg-black text-yellow-400 border border-yellow-400 text-[6.5px] font-black px-1 py-[0.5px] rounded-full uppercase leading-none">
+                                VIP
+                              </span>
+                            )}
+                          </span>
+                          <span
+                            className={`font-extrabold text-xs ${
+                              isVipComment ? "text-yellow-300" : "text-blue-900"
+                            }`}
+                          >
+                            {authorTitle}
+                            {comment.authorClass && (
+                              <span
+                                className={`font-semibold ml-1 ${
+                                  isVipComment
+                                    ? "text-amber-300/90"
+                                    : "text-blue-600"
+                                }`}
+                              >
+                                ({comment.authorClass})
+                              </span>
+                            )}
                           </span>
                         </div>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {comment.timestamp && (
+                            <span
+                              className={`text-[10px] font-medium ${
+                                isVipComment
+                                  ? "text-amber-200/80"
+                                  : "text-slate-400"
+                              }`}
+                            >
+                              {formatTimeAgo(comment.timestamp)}
+                            </span>
+                          )}
+                          {isStaffLoggedIn && (
+                            <button
+                              onClick={() => onDeleteComment(comment)}
+                              className="text-red-400 hover:text-red-500"
+                              title="Padam komen & auto tolak bintang"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        {comment.timestamp && (
-                          <div className="text-[10px] text-slate-400 font-medium whitespace-nowrap">
-                            {formatTimeAgo(comment.timestamp)}
-                          </div>
-                        )}
-                        {isStaffLoggedIn && (
-                          <button
-                            onClick={() => onDeleteComment(comment)}
-                            className="text-red-500 hover:text-red-700 p-0.5 rounded"
-                            title="Padam komen & auto tolak bintang"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                      </div>
+                      <p
+                        className={`text-xs leading-relaxed whitespace-pre-line ${
+                          isVipComment ? "text-amber-50" : "text-slate-700"
+                        }`}
+                      >
+                        {comment.text}
+                      </p>
                     </div>
-                    <p className="text-slate-700 text-sm whitespace-pre-line pl-9">
-                      {comment.text}
-                    </p>
-                  </div>
-                );
-              })
-            )}
-          </div>
+                  );
+                })
+              )}
+            </div>
 
-          {activePassport && isQuizOpen && (
-            <PassportQuizBox
-              stage={criticStage}
-              field={artworkField}
-              questions={quizQuestions}
-              currentIndex={currentQuestionIdx}
-              answers={quizAnswers}
-              onSelectAnswer={handleSelectQuizAnswer}
-              onChangeStep={setCurrentQuestionIdx}
-              onRefreshQuestions={handleRefreshQuiz}
-              onClose={() => {
-                setIsQuizOpen(false);
-                setQuizAnswers({});
-                setCurrentQuestionIdx(0);
-              }}
-            />
-          )}
+            {isRegisteredCritic && (
+              <>
+                <div className="mb-2">
+                  <button
+                    type="button"
+                    onClick={handleToggleQuiz}
+                    className={`w-full py-2 px-3 rounded-xl text-xs font-extrabold border-2 transition-all flex items-center justify-center gap-1.5 ${
+                      isQuizOpen
+                        ? "bg-amber-100 border-amber-400 text-amber-900"
+                        : "bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-800"
+                    }`}
+                  >
+                    <HelpCircle className="w-4 h-4 text-blue-600 shrink-0" />
+                    <span>
+                      {isQuizOpen
+                        ? "Tutup 3 Soalan Apresiasi"
+                        : "Jawab 3 Soalan Apresiasi"}
+                    </span>
+                  </button>
+                </div>
 
-          <form
-            onSubmit={handleCommentSubmit}
-            className="flex items-center mt-2 relative gap-1.5"
-          >
-            {activePassport && (
-              <button
-                type="button"
-                onClick={handleToggleQuiz}
-                className={`shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-all border ${
-                  isQuizOpen
-                    ? "bg-blue-700 text-yellow-300 border-blue-800"
-                    : "bg-yellow-400 hover:bg-yellow-300 text-blue-900 border-blue-900/30"
-                }`}
-                title="Ikon Khas: Jawab 3 Soalan Apresiasi Seni"
-              >
-                <HelpCircle className="w-4 h-4" />
-              </button>
+                {isQuizOpen && (
+                  <PassportQuizBox
+                    stage={criticStage}
+                    field={artworkField}
+                    questions={quizQuestions}
+                    currentIndex={currentQuestionIdx}
+                    answers={quizAnswers}
+                    onSelectAnswer={handleSelectQuizAnswer}
+                    onChangeStep={setCurrentQuestionIdx}
+                    onRefreshQuestions={handleRefreshQuiz}
+                    onClose={() => {
+                      setIsQuizOpen(false);
+                      setQuizAnswers({});
+                      setCurrentQuestionIdx(0);
+                    }}
+                  />
+                )}
+              </>
             )}
-            <div className="relative flex-1">
+
+            <form
+              onSubmit={handleCommentSubmit}
+              className="flex items-center space-x-2"
+            >
               <input
                 type="text"
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
                 placeholder={
-                  answeredQuizList.length > 0
-                    ? "Tambah komen bebas (atau terus hantar)..."
-                    : "Tulis komen murni..."
+                  activePassport
+                    ? answeredQuizList.length > 0
+                      ? `Komen tambahan (${answeredQuizList.length}/3 soalan dijawab)...`
+                      : `Komen sebagai ${activePassport.fullName}...`
+                    : "Daftar Pasport dahulu untuk komen..."
                 }
-                className="w-full bg-white border border-slate-300 rounded-full py-2 pl-4 pr-11 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                className="flex-1 text-sm bg-white border border-slate-300 rounded-full px-4 py-2 focus:outline-none focus:border-blue-500 transition-colors"
               />
               <button
                 type="submit"
                 disabled={!canSubmitComment}
-                className="absolute right-1 top-1 bottom-1 bg-blue-500 text-white w-8 h-8 flex items-center justify-center rounded-full hover:bg-blue-600 active:scale-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                className="bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white p-2 rounded-full transition-all active:scale-90"
                 title="Hantar Komen / Jawapan"
               >
-                <Send className="w-4 h-4 ml-0.5" />
+                <Send className="w-4 h-4" />
               </button>
-            </div>
-          </form>
-        </div>
-      )}
+            </form>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
 
-// --- MODAL POP-UP & ZOOM + DRAG / PAN GAMBAR KARYA (BOLEH SCROLL PENUH DI TELEFON, TABLET & KOMPUTER) ---
+// --- POP-UP / LIGHTBOX GAMBAR DENGAN FUNGSI ZOOM & DRAG (SERET) ---
 function ArtworkLightboxModal({
   artwork,
   artworkYear,
@@ -5888,6 +6142,7 @@ function ArtworkLightboxModal({
   isStaffLoggedIn,
   onClose,
   onLike,
+  onRequestPassport,
   onOpenStarList,
   onComment,
   onDeleteComment,
@@ -5898,11 +6153,11 @@ function ArtworkLightboxModal({
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef({ x: 0, y: 0 });
-  const viewportRef = useRef<HTMLDivElement>(null);
 
   const [commentText, setCommentText] = useState("");
   const [starBurst, setStarBurst] = useState(false);
 
+  const isRegisteredCritic = Boolean(activePassport);
   const criticStage = getStageFromClass(activePassport?.className);
   const artworkField = normalizePsvField(artwork.field);
   const [isQuizOpen, setIsQuizOpen] = useState(false);
@@ -5913,24 +6168,23 @@ function ArtworkLightboxModal({
   const [quizAnswers, setQuizAnswers] = useState<Record<number, string>>({});
 
   useEffect(() => {
-    if (isQuizOpen) {
-      setQuizQuestions(pickThreeRandomQuestions(criticStage, artworkField));
-      setCurrentQuestionIdx(0);
-      setQuizAnswers({});
-    }
-  }, [criticStage, artworkField]);
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
+    setIsDragging(false);
+    setCommentText("");
+    setIsQuizOpen(false);
+    setQuizQuestions(pickThreeRandomQuestions(criticStage, artworkField));
+    setCurrentQuestionIdx(0);
+    setQuizAnswers({});
+  }, [artwork.id, criticStage, artworkField]);
 
   useEffect(() => {
-    const prevBodyOverflow = document.body.style.overflow;
-    const prevHtmlOverflow = document.documentElement.style.overflow;
-    document.body.style.overflow = "hidden";
-    document.documentElement.style.overflow = "hidden";
-
-    return () => {
-      document.body.style.overflow = prevBodyOverflow;
-      document.documentElement.style.overflow = prevHtmlOverflow;
-    };
-  }, []);
+    if (!isRegisteredCritic) {
+      setIsQuizOpen(false);
+      setQuizAnswers({});
+      setCurrentQuestionIdx(0);
+    }
+  }, [isRegisteredCritic]);
 
   const likesList = Array.isArray(artwork.likes) ? artwork.likes : [];
   const likesCount = likesList.length;
@@ -5942,85 +6196,61 @@ function ArtworkLightboxModal({
     [likesList, commentsList, vipRegistry]
   );
 
-  const clampPan = (nextX: number, nextY: number, currentZoom: number) => {
-    if (currentZoom <= 1) return { x: 0, y: 0 };
-    const rect = viewportRef.current?.getBoundingClientRect();
-    const maxX = rect ? (rect.width * (currentZoom - 1)) / 2 + 80 : 350;
-    const maxY = rect ? (rect.height * (currentZoom - 1)) / 2 + 80 : 350;
-    return {
-      x: Math.max(-maxX, Math.min(maxX, nextX)),
-      y: Math.max(-maxY, Math.min(maxY, nextY)),
-    };
+  const handleZoomIn = () => {
+    SoundFX.click();
+    setZoom((prev) => Math.min(prev + 0.5, 4));
   };
 
-  const applyZoom = (updater: (prev: number) => number) => {
+  const handleZoomOut = () => {
+    SoundFX.click();
     setZoom((prev) => {
-      const next = Number(Math.min(3.5, Math.max(1, updater(prev))).toFixed(2));
-      if (next <= 1) {
-        setPan({ x: 0, y: 0 });
-      } else {
-        setPan((p) => clampPan(p.x, p.y, next));
-      }
+      const next = Math.max(prev - 0.5, 1);
+      if (next === 1) setPan({ x: 0, y: 0 });
       return next;
     });
   };
 
-  const handleZoomIn = () => {
-    SoundFX.click();
-    applyZoom((z) => z + 0.35);
-  };
-  const handleZoomOut = () => {
-    SoundFX.click();
-    applyZoom((z) => z - 0.35);
-  };
   const handleResetZoom = () => {
     SoundFX.click();
     setZoom(1);
     setPan({ x: 0, y: 0 });
   };
 
-  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (zoom <= 1) return;
-    if ((e.target as HTMLElement).closest("button")) return;
+  const handleWheelZoom = (e: React.WheelEvent) => {
     e.preventDefault();
-    e.currentTarget.setPointerCapture(e.pointerId);
-    setIsDragging(true);
-    dragStartRef.current = {
-      x: e.clientX - pan.x,
-      y: e.clientY - pan.y,
-    };
-  };
-
-  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!isDragging || zoom <= 1) return;
-    const nextX = e.clientX - dragStartRef.current.x;
-    const nextY = e.clientY - dragStartRef.current.y;
-    setPan(clampPan(nextX, nextY, zoom));
-  };
-
-  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!isDragging) return;
-    setIsDragging(false);
-    try {
-      e.currentTarget.releasePointerCapture(e.pointerId);
-    } catch {}
-  };
-
-  const handleWheelZoom = (e: React.WheelEvent<HTMLDivElement>) => {
-    if (e.ctrlKey || zoom > 1) {
-      e.preventDefault();
-      const delta = e.deltaY < 0 ? 0.25 : -0.25;
-      applyZoom((z) => z + delta);
+    if (e.deltaY < 0) {
+      setZoom((prev) => Math.min(prev + 0.25, 4));
+    } else {
+      setZoom((prev) => {
+        const next = Math.max(prev - 0.25, 1);
+        if (next === 1) setPan({ x: 0, y: 0 });
+        return next;
+      });
     }
   };
 
-  const handleDoubleClickImage = () => {
-    SoundFX.click();
-    if (zoom > 1) {
-      setZoom(1);
-      setPan({ x: 0, y: 0 });
-    } else {
-      setZoom(2);
+  const handlePointerDown = (e: React.PointerEvent) => {
+    if (zoom <= 1) return;
+    e.preventDefault();
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    setIsDragging(true);
+    dragStartRef.current = { x: e.clientX - pan.x, y: e.clientY - pan.y };
+  };
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!isDragging || zoom <= 1) return;
+    setPan({
+      x: e.clientX - dragStartRef.current.x,
+      y: e.clientY - dragStartRef.current.y,
+    });
+  };
+
+  const handlePointerUp = (e: React.PointerEvent) => {
+    if (isDragging) {
+      try {
+        (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+      } catch {}
+      setIsDragging(false);
     }
   };
 
@@ -6031,6 +6261,7 @@ function ArtworkLightboxModal({
   };
 
   const handleToggleQuiz = () => {
+    if (!isRegisteredCritic) return;
     SoundFX.click();
     if (!isQuizOpen) {
       setQuizQuestions(pickThreeRandomQuestions(criticStage, artworkField));
@@ -6086,269 +6317,288 @@ function ArtworkLightboxModal({
     setIsQuizOpen(false);
   };
 
-  const handleImageError = (e: any) => {
-    e.target.src =
-      "https://placehold.co/800x600/e2e8f0/475569?text=Gambar+Rosak+atau+Tiada";
-  };
-
   return (
     <div
       onClick={onClose}
-      className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 overflow-y-auto overscroll-contain p-2 sm:p-4 md:p-6 flex items-start md:items-center justify-center"
+      className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-y-auto"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="bg-white rounded-3xl w-full max-w-5xl my-auto flex flex-col lg:flex-row shadow-2xl border-4 border-yellow-400 animate-modal-enter overflow-hidden"
+        className="bg-white rounded-3xl w-full max-w-6xl max-h-[94dvh] md:h-[90dvh] overflow-hidden shadow-2xl border-4 border-yellow-400 flex flex-col lg:flex-row relative animate-modal-enter my-auto"
       >
-        {/* Bahagian Kiri: Kawasan Gambar Interaktif (Zoom + Drag/Pan) */}
-        <div className="w-full lg:w-3/5 bg-slate-900 flex flex-col relative select-none shrink-0">
-          <div className="flex items-center justify-between px-3 sm:px-4 py-2.5 bg-slate-950/80 text-white border-b border-slate-800 z-20">
-            <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold text-slate-300">
-              <Move className="w-3.5 h-3.5 text-yellow-400 shrink-0" />
-              <span>
-                {zoom > 1
-                  ? "Seret gambar untuk lihat bahagian lain"
-                  : "Zum masuk untuk gerakkan gambar"}
-              </span>
-            </div>
-            <div className="flex items-center gap-1 sm:gap-1.5">
+        <div className="flex-1 bg-slate-900 relative flex flex-col min-h-[240px] sm:min-h-[300px] lg:min-h-0 overflow-hidden select-none">
+          <div className="absolute top-3 left-3 right-3 flex items-center justify-between z-20 gap-2 pointer-events-none">
+            <div className="pointer-events-auto flex items-center gap-1.5 bg-slate-800/90 backdrop-blur-md text-white px-3 py-1.5 rounded-full border border-slate-700 shadow-lg">
               <button
-                type="button"
                 onClick={handleZoomOut}
                 disabled={zoom <= 1}
-                className="p-1.5 sm:p-2 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-40 transition-colors"
-                title="Kecilkan (Zoom Out)"
+                title="Kecilkan Gambar (Zoom Out)"
+                className="p-1.5 hover:bg-slate-700 rounded-full disabled:opacity-40 transition-colors"
               >
-                <ZoomOut className="w-4 h-4" />
+                <ZoomOut className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
-              <span className="text-xs font-extrabold px-2 py-1 bg-slate-800 rounded-md min-w-[3.2rem] text-center text-yellow-400">
+              <span className="text-xs font-extrabold min-w-[44px] text-center text-yellow-400">
                 {Math.round(zoom * 100)}%
               </span>
               <button
-                type="button"
                 onClick={handleZoomIn}
-                disabled={zoom >= 3.5}
-                className="p-1.5 sm:p-2 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-40 transition-colors"
-                title="Besarkan (Zoom In)"
+                disabled={zoom >= 4}
+                title="Besarkan Gambar (Zoom In)"
+                className="p-1.5 hover:bg-slate-700 rounded-full disabled:opacity-40 transition-colors"
               >
-                <ZoomIn className="w-4 h-4" />
+                <ZoomIn className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
               {zoom > 1 && (
                 <button
-                  type="button"
                   onClick={handleResetZoom}
-                  className="p-1.5 sm:p-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition-colors"
                   title="Saiz Asal"
+                  className="p-1.5 hover:bg-slate-700 rounded-full text-sky-300 border-l border-slate-700 pl-2 ml-1 transition-colors"
                 >
                   <RotateCcw className="w-4 h-4" />
                 </button>
               )}
             </div>
+
+            <button
+              onClick={onClose}
+              title="Tutup Paparan"
+              className="pointer-events-auto lg:hidden bg-red-500 hover:bg-red-600 text-white p-2 rounded-full shadow-lg border-2 border-white transition-all hover:scale-105 active:scale-95"
+            >
+              <X className="w-5 h-5 stroke-[2.75]" />
+            </button>
           </div>
 
           <div
-            ref={viewportRef}
+            onWheel={handleWheelZoom}
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
             onPointerCancel={handlePointerUp}
-            onWheel={handleWheelZoom}
-            onDoubleClick={handleDoubleClickImage}
-            style={{ touchAction: zoom > 1 ? "none" : "pan-y" }}
-            className={`w-full h-[42vh] sm:h-[52vh] lg:h-[75vh] overflow-hidden flex items-center justify-center p-3 sm:p-4 relative ${
-              zoom > 1
-                ? isDragging
-                  ? "cursor-grabbing"
-                  : "cursor-grab"
-                : "cursor-zoom-in"
-            }`}
+            onDoubleClick={() => {
+              SoundFX.click();
+              if (zoom > 1) {
+                setZoom(1);
+                setPan({ x: 0, y: 0 });
+              } else {
+                setZoom(2);
+              }
+            }}
+            style={{
+              touchAction: zoom > 1 ? "none" : "auto",
+              cursor: zoom > 1 ? (isDragging ? "grabbing" : "grab") : "zoom-in",
+            }}
+            className="flex-1 overflow-hidden flex items-center justify-center p-4 sm:p-6"
           >
             <img
               key={artwork.imageUrl}
               src={
                 artwork.imageUrl ||
-                "https://placehold.co/800x600/e2e8f0/475569?text=Tiada+Gambar"
+                "https://placehold.co/600x400/e2e8f0/475569?text=Tiada+Gambar"
               }
               alt={artwork.title}
-              onError={handleImageError}
               draggable={false}
               style={{
-                transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`,
-                transformOrigin: "center center",
+                transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+                transition: isDragging
+                  ? "none"
+                  : "transform 0.2s cubic-bezier(0.22, 1, 0.36, 1)",
               }}
-              className={`max-h-full max-w-full object-contain rounded-xl shadow-2xl select-none ${
-                isDragging
-                  ? "transition-none"
-                  : "transition-transform duration-200 ease-out"
-              }`}
+              className="max-h-full max-w-full object-contain rounded-xl shadow-2xl select-none"
             />
+          </div>
+
+          <div className="bg-slate-950/75 text-slate-300 text-[11px] font-medium text-center py-1.5 px-3 border-t border-slate-800 flex items-center justify-center gap-1.5">
+            {zoom > 1 ? (
+              <>
+                <Move className="w-3.5 h-3.5 text-yellow-400" />
+                <span>
+                  Seret / tarik gambar ke semua sudut • Tekan 2x untuk saiz asal
+                </span>
+              </>
+            ) : (
+              <span>
+                Tip: Tekan 2x pada gambar atau klik ikon + untuk zoom & seret ke
+                semua arah
+              </span>
+            )}
           </div>
         </div>
 
-        {/* Bahagian Kanan: Maklumat Karya & Ruang Apresiasi */}
-        <div className="w-full lg:w-2/5 flex flex-col bg-white border-t-4 lg:border-t-0 lg:border-l-4 border-blue-100 lg:max-h-[82vh]">
-          <div className="p-4 sm:p-5 border-b border-slate-100 flex items-start justify-between gap-3 bg-sky-50/60 shrink-0">
-            <div>
-              <div className="flex flex-wrap items-center gap-1.5">
-                <span className="inline-block bg-yellow-400 text-blue-900 text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">
+        {/* BAHAGIAN KANAN POP-UP: BOLEH SCROLL PENUH TERMASUK KOMEN DI BAWAH */}
+        <div className="w-full lg:w-[430px] flex-1 lg:flex-initial min-h-0 flex flex-col bg-white border-t-4 lg:border-t-0 lg:border-l-4 border-blue-100 overflow-y-auto overscroll-contain">
+          <div className="p-4 sm:p-5 border-b border-slate-100 bg-sky-50/60 shrink-0">
+            <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="bg-yellow-400 text-blue-900 text-xs font-extrabold px-3 py-1 rounded-full uppercase">
                   {artwork.className}
                 </span>
-                <span className="inline-block bg-blue-900 text-yellow-300 text-xs font-extrabold px-2.5 py-1 rounded-full">
+                <span className="bg-blue-100 text-blue-900 text-[11px] font-bold px-2.5 py-0.5 rounded-full border border-blue-200">
                   {artworkField}
                 </span>
-                <span className="inline-block bg-blue-100 text-blue-900 text-xs font-extrabold px-2.5 py-1 rounded-full">
-                  Tahun {artworkYear}
+                <span className="text-xs font-bold text-slate-500 bg-white border border-slate-200 px-2.5 py-0.5 rounded-full">
+                  {artworkYear}
                 </span>
               </div>
-              <h3 className="text-lg sm:text-xl md:text-2xl font-black text-blue-950 mt-2 leading-snug">
-                {artwork.title}
-              </h3>
-              <div className="flex items-center text-slate-600 mt-1 font-semibold text-sm">
-                <User className="w-4 h-4 mr-1.5 text-blue-600" />
-                <span>{artwork.studentName}</span>
+
+              <div className="flex items-center gap-1.5">
+                {isStaffLoggedIn && (
+                  <>
+                    <button
+                      onClick={onRequestEdit}
+                      title="Edit Maklumat Karya"
+                      className="p-2 bg-blue-700 hover:bg-blue-800 text-yellow-300 rounded-full transition-all hover:scale-105 shadow-xs"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={onRequestDelete}
+                      title="Padam Karya"
+                      className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-full transition-all hover:scale-105 shadow-xs"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </>
+                )}
+
+                <button
+                  onClick={onClose}
+                  title="Tutup"
+                  className="hidden lg:flex items-center justify-center p-2 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-md border border-red-300/60 transition-all hover:scale-105 active:scale-95"
+                >
+                  <X className="w-5 h-5 stroke-[2.75]" />
+                </button>
               </div>
             </div>
 
-            <div className="flex items-center gap-1.5 shrink-0">
-              {isStaffLoggedIn && (
-                <>
-                  <button
-                    onClick={onRequestEdit}
-                    title="Edit Maklumat Karya"
-                    className="p-2 bg-blue-100 hover:bg-blue-700 text-blue-800 hover:text-yellow-300 rounded-full transition-colors"
-                  >
-                    <Pencil className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={onRequestDelete}
-                    title="Padam Karya"
-                    className="p-2 bg-red-50 hover:bg-red-500 text-red-500 hover:text-white rounded-full transition-colors"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </>
-              )}
-              <button
-                onClick={onClose}
-                title="Tutup"
-                className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-full transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
+            <h3 className="text-xl sm:text-2xl font-black text-blue-950 leading-tight mb-1">
+              {artwork.title}
+            </h3>
+            <div className="flex items-center text-slate-600 text-sm font-semibold">
+              <User className="w-4 h-4 mr-1.5 text-blue-600" />
+              <span>{artwork.studentName}</span>
             </div>
-          </div>
 
-          <div className="px-4 sm:px-5 py-3 border-b border-slate-100 flex items-center justify-between gap-2 bg-white shrink-0">
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleLikeClick}
-                className={`flex items-center space-x-2 font-extrabold px-3.5 py-2 rounded-full transition-all active:scale-95 ${
-                  hasAnyStar
-                    ? "bg-yellow-50 text-amber-600 border-2 border-yellow-400 shadow-xs"
-                    : "bg-slate-100 text-slate-500 hover:bg-yellow-50 hover:text-amber-600"
-                }`}
-              >
-                <Star
-                  className={`w-5 h-5 ${
+            <div className="flex items-center justify-between gap-2 mt-4 pt-3 border-t border-blue-100">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleLikeClick}
+                  title={
+                    hasLiked
+                      ? "Anda sudah memberi 1 bintang pada karya ini"
+                      : "Klik untuk beri 1 Bintang pada karya ini"
+                  }
+                  className={`flex items-center space-x-1.5 py-2 px-4 rounded-full font-bold text-sm transition-all duration-200 active:scale-90 ${
                     hasAnyStar
-                      ? "fill-yellow-400 text-amber-500"
-                      : "text-slate-400"
-                  } ${starBurst ? "animate-star-pop" : ""}`}
+                      ? "bg-yellow-400 text-blue-950 shadow-sm"
+                      : "bg-white border border-slate-200 text-slate-700 hover:bg-yellow-100"
+                  }`}
+                >
+                  <Star
+                    className={`w-5 h-5 transition-transform duration-300 ${
+                      starBurst ? "animate-star-pop" : ""
+                    } ${
+                      hasAnyStar
+                        ? "fill-current text-blue-950"
+                        : "text-yellow-500"
+                    }`}
+                  />
+                  <span>{likesCount} Bintang</span>
+                </button>
+
+                <StarGiversAvatars
+                  givers={starGivers}
+                  onOpenStarList={onOpenStarList}
                 />
-                <span>{likesCount}</span>
-              </button>
+              </div>
 
-              <StarGiversAvatars
-                givers={starGivers}
-                onOpenStarList={onOpenStarList}
-              />
-            </div>
-
-            <div className="flex items-center gap-2">
-              <div className="flex items-center space-x-1.5 text-blue-700 font-bold text-sm">
-                <MessageCircle className="w-5 h-5" />
+              <div className="flex items-center text-slate-600 font-bold text-sm">
+                <MessageCircle className="w-5 h-5 mr-1.5 text-blue-600" />
                 <span>{commentsList.length} Komen</span>
               </div>
-
-              {activePassport && (
-                <button
-                  type="button"
-                  onClick={handleToggleQuiz}
-                  className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-black transition-all shadow-2xs ${
-                    isQuizOpen
-                      ? "bg-blue-700 text-yellow-300"
-                      : "bg-yellow-400 hover:bg-yellow-300 text-blue-900 border border-blue-900/30"
-                  }`}
-                  title="Jawab 3 soalan rawak mengikut bidang seni & tahap murid"
-                >
-                  <HelpCircle className="w-3.5 h-3.5" />
-                  <span>{isQuizOpen ? "Tutup" : "3 Soalan"}</span>
-                </button>
-              )}
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3 bg-slate-50/70 min-h-[160px]">
+          {/* SENARAI KOMEN (DIPAPARKAN PENUH DAN BOLEH DI-SCROLL BERSAMA PANEL KANAN) */}
+          <div className="p-4 sm:p-5 space-y-3 bg-slate-50/70 flex-1">
             {commentsList.length === 0 ? (
-              <div className="text-center py-8 text-slate-400">
-                <MessageCircle className="w-10 h-10 mx-auto mb-2 opacity-30" />
-                <p className="text-sm italic">
-                  Belum ada komen. Jadilah yang pertama memuji karya ini!
+              <div className="text-center py-6">
+                <MessageCircle className="w-10 h-10 text-slate-300 mx-auto mb-2 animate-float-slow" />
+                <p className="text-sm font-semibold text-slate-400">
+                  Belum ada komen lagi.
+                </p>
+                <p className="text-xs text-slate-400">
+                  Berikan komen positif atau jawab 3 soalan apresiasi!
                 </p>
               </div>
             ) : (
               commentsList.map((comment: any) => {
-                const commentIsVip =
+                const isVipComment =
                   Boolean(comment.isVip) || isVipCategory(comment.authorClass);
-                const authorDisplay =
-                  comment.authorName || "Penjelajah Misteri";
-                const avatarStyle = getAvatarColorClass(
-                  authorDisplay,
-                  commentIsVip
+                const authorTitle = comment.authorName || "Penjelajah Misteri";
+                const authorInitial = (
+                  authorTitle.charAt(0) || "P"
+                ).toUpperCase();
+                const avatarColor = getAvatarColorClass(
+                  authorTitle,
+                  isVipComment
                 );
 
                 return (
                   <div
                     key={comment.id}
-                    className={`p-3.5 rounded-2xl shadow-sm border text-sm transition-all ${
-                      commentIsVip
-                        ? "bg-gradient-to-r from-amber-50/90 via-yellow-50/70 to-white border-amber-300"
-                        : "bg-white border-slate-100 hover:border-blue-200"
+                    className={`p-3.5 rounded-2xl border shadow-xs transition-all ${
+                      isVipComment
+                        ? "bg-gradient-to-br from-slate-900 via-amber-950 to-slate-900 border-yellow-400 text-amber-100"
+                        : "bg-white border-slate-200/70"
                     }`}
                   >
-                    <div className="flex justify-between items-start mb-1 gap-2">
-                      <div className="flex items-center gap-2">
-                        <div className="relative shrink-0">
-                          <div
-                            className={`w-7 h-7 rounded-full bg-gradient-to-br ${avatarStyle} flex items-center justify-center text-xs font-black uppercase shadow-2xs`}
-                          >
-                            {authorDisplay.charAt(0).toUpperCase()}
-                          </div>
-                          {commentIsVip && (
-                            <span className="absolute -bottom-1 -right-1.5 bg-black text-yellow-400 border border-yellow-400 rounded-full px-1 py-[0.5px] text-[7px] font-black uppercase leading-none shadow-2xs">
+                    <div className="flex justify-between items-start gap-2 mb-1.5">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span
+                          className={`relative w-6 h-6 rounded-full bg-gradient-to-br ${avatarColor} border border-white flex items-center justify-center text-[10px] font-black shrink-0 shadow-2xs`}
+                        >
+                          {authorInitial}
+                          {isVipComment && (
+                            <span className="absolute -bottom-1 -right-1.5 bg-black text-yellow-400 border border-yellow-400 text-[6.5px] font-black px-1 py-[0.5px] rounded-full uppercase leading-none">
                               VIP
                             </span>
                           )}
-                        </div>
-                        <div className="font-bold text-blue-900 text-xs flex items-center flex-wrap gap-1.5">
-                          <span>
-                            {authorDisplay}
-                            {comment.authorClass
-                              ? ` (${comment.authorClass})`
-                              : ""}
-                          </span>
-                        </div>
+                        </span>
+                        <span
+                          className={`font-extrabold text-xs ${
+                            isVipComment ? "text-yellow-300" : "text-blue-900"
+                          }`}
+                        >
+                          {authorTitle}
+                          {comment.authorClass && (
+                            <span
+                              className={`font-semibold ml-1 ${
+                                isVipComment
+                                  ? "text-amber-300/90"
+                                  : "text-blue-600"
+                              }`}
+                            >
+                              ({comment.authorClass})
+                            </span>
+                          )}
+                        </span>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
                         {comment.timestamp && (
-                          <div className="text-[10px] text-slate-400 font-medium whitespace-nowrap">
+                          <span
+                            className={`text-[10px] font-medium ${
+                              isVipComment
+                                ? "text-amber-200/80"
+                                : "text-slate-400"
+                            }`}
+                          >
                             {formatTimeAgo(comment.timestamp)}
-                          </div>
+                          </span>
                         )}
                         {isStaffLoggedIn && (
                           <button
                             onClick={() => onDeleteComment(comment)}
-                            className="text-red-500 hover:text-red-700 p-0.5 rounded"
+                            className="text-red-400 hover:text-red-500"
                             title="Padam komen & auto tolak bintang"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -6356,7 +6606,11 @@ function ArtworkLightboxModal({
                         )}
                       </div>
                     </div>
-                    <p className="text-slate-700 leading-relaxed whitespace-pre-line pl-9">
+                    <p
+                      className={`text-sm leading-relaxed whitespace-pre-line ${
+                        isVipComment ? "text-amber-50" : "text-slate-700"
+                      }`}
+                    >
                       {comment.text}
                     </p>
                   </div>
@@ -6365,64 +6619,85 @@ function ArtworkLightboxModal({
             )}
           </div>
 
+          {/* KOTAK SOALAN APRESIASI & INPUT KOMEN DI BAHAGIAN BAWAH */}
           <div className="p-3.5 sm:p-4 bg-white border-t border-slate-200 shrink-0">
-            {activePassport && isQuizOpen && (
-              <PassportQuizBox
-                stage={criticStage}
-                field={artworkField}
-                questions={quizQuestions}
-                currentIndex={currentQuestionIdx}
-                answers={quizAnswers}
-                onSelectAnswer={handleSelectQuizAnswer}
-                onChangeStep={setCurrentQuestionIdx}
-                onRefreshQuestions={handleRefreshQuiz}
-                onClose={() => {
-                  setIsQuizOpen(false);
-                  setQuizAnswers({});
-                  setCurrentQuestionIdx(0);
-                }}
-              />
+            {isRegisteredCritic ? (
+              <>
+                <div className="mb-2.5">
+                  <button
+                    type="button"
+                    onClick={handleToggleQuiz}
+                    className={`w-full py-2 px-3 rounded-xl text-xs font-extrabold border-2 transition-all flex items-center justify-center gap-1.5 ${
+                      isQuizOpen
+                        ? "bg-amber-100 border-amber-400 text-amber-900"
+                        : "bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-800"
+                    }`}
+                  >
+                    <HelpCircle className="w-4 h-4 text-blue-600 shrink-0" />
+                    <span>
+                      {isQuizOpen
+                        ? "Tutup 3 Soalan Apresiasi"
+                        : "Jawab 3 Soalan Apresiasi"}
+                    </span>
+                  </button>
+                </div>
+
+                {isQuizOpen && (
+                  <PassportQuizBox
+                    stage={criticStage}
+                    field={artworkField}
+                    questions={quizQuestions}
+                    currentIndex={currentQuestionIdx}
+                    answers={quizAnswers}
+                    onSelectAnswer={handleSelectQuizAnswer}
+                    onChangeStep={setCurrentQuestionIdx}
+                    onRefreshQuestions={handleRefreshQuiz}
+                    onClose={() => {
+                      setIsQuizOpen(false);
+                      setQuizAnswers({});
+                      setCurrentQuestionIdx(0);
+                    }}
+                  />
+                )}
+              </>
+            ) : (
+              <button
+                type="button"
+                onClick={onRequestPassport}
+                className="w-full mb-2.5 py-2 px-3 rounded-xl text-xs font-extrabold bg-amber-50 hover:bg-amber-100 border-2 border-amber-300 text-amber-900 transition-all flex items-center justify-center gap-1.5"
+              >
+                <Award className="w-4 h-4 text-amber-600 shrink-0" />
+                <span>
+                  Daftar Pasport Pengkritik untuk buka 3 Soalan Apresiasi
+                </span>
+              </button>
             )}
 
             <form
               onSubmit={handleCommentSubmit}
-              className="flex items-center relative gap-2"
+              className="flex items-center space-x-2"
             >
-              {activePassport && (
-                <button
-                  type="button"
-                  onClick={handleToggleQuiz}
-                  className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all border ${
-                    isQuizOpen
-                      ? "bg-blue-700 text-yellow-300 border-blue-800"
-                      : "bg-yellow-400 hover:bg-yellow-300 text-blue-900 border-blue-900/30"
-                  }`}
-                  title="Ikon Khas: Jawab 3 Soalan Apresiasi Seni"
-                >
-                  <HelpCircle className="w-5 h-5" />
-                </button>
-              )}
-              <div className="relative flex-1">
-                <input
-                  type="text"
-                  value={commentText}
-                  onChange={(e) => setCommentText(e.target.value)}
-                  placeholder={
-                    answeredQuizList.length > 0
-                      ? "Tambah komen bebas (atau terus hantar)..."
-                      : "Tulis komen murni..."
-                  }
-                  className="w-full bg-slate-50 border-2 border-slate-200 rounded-full py-2.5 pl-4 pr-12 text-sm focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
-                />
-                <button
-                  type="submit"
-                  disabled={!canSubmitComment}
-                  className="absolute right-1.5 top-1.5 bottom-1.5 bg-blue-600 text-white w-8 h-8 flex items-center justify-center rounded-full hover:bg-blue-700 active:scale-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                  title="Hantar Komen / Jawapan"
-                >
-                  <Send className="w-4 h-4 ml-0.5" />
-                </button>
-              </div>
+              <input
+                type="text"
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                placeholder={
+                  activePassport
+                    ? answeredQuizList.length > 0
+                      ? `Komen tambahan (${answeredQuizList.length}/3 soalan dijawab)...`
+                      : `Komen sebagai ${activePassport.fullName}...`
+                    : "Daftar Pasport dahulu untuk komen..."
+                }
+                className="flex-1 text-sm bg-slate-100 border border-slate-200 rounded-full px-4 py-2.5 focus:outline-none focus:bg-white focus:border-blue-500 transition-colors"
+              />
+              <button
+                type="submit"
+                disabled={!canSubmitComment}
+                className="bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white p-2.5 rounded-full transition-all shadow-sm active:scale-90"
+                title="Hantar Komen / Jawapan"
+              >
+                <Send className="w-4 h-4" />
+              </button>
             </form>
           </div>
         </div>
@@ -6431,23 +6706,17 @@ function ArtworkLightboxModal({
   );
 }
 
-// --- BORANG TAMBAH & EDIT KARYA (MENYOKONG MUAT NAIK FAIL GAMBAR TERUS KE GOOGLE DRIVE ATAU PAUTAN URL) ---
+// --- MODAL TAMBAH & EDIT KARYA ---
 function ArtworkFormModal({
-  mode,
-  initialData,
+  mode = "add",
+  initialData = null,
   onClose,
   onSubmit,
 }: {
-  mode: "add" | "edit";
+  mode?: "add" | "edit";
   initialData?: any;
   onClose: () => void;
-  onSubmit: (data: {
-    title: string;
-    studentName: string;
-    className: string;
-    field: string;
-    imageUrl: string;
-  }) => void;
+  onSubmit: (data: any) => void;
 }) {
   const isEdit = mode === "edit";
   const [title, setTitle] = useState(initialData?.title || "");
@@ -6457,49 +6726,47 @@ function ArtworkFormModal({
   const [className, setClassName] = useState(
     initialData?.className || "Tahun 1"
   );
-  const [field, setField] = useState<PsvFieldType>(() =>
+  const [field, setField] = useState<PsvFieldType>(
     normalizePsvField(initialData?.field)
   );
   const [imageUrl, setImageUrl] = useState(initialData?.imageUrl || "");
-  const [imageInputMode, setImageInputMode] = useState<"upload" | "link">(
-    "upload"
-  );
-  const [selectedFileName, setSelectedFileName] = useState("");
-  const [isUploadingFile, setIsUploadingFile] = useState(false);
-  const [uploadError, setUploadError] = useState("");
-  const [previewError, setPreviewError] = useState(false);
+  const [uploadMethod, setUploadMethod] = useState<"url" | "file">("url");
+  const [isCompressing, setIsCompressing] = useState(false);
+  const [fileError, setFileError] = useState("");
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (isEdit && initialData) {
+      setTitle(initialData.title || "");
+      setStudentName(initialData.studentName || "");
+      setClassName(initialData.className || "Tahun 1");
+      setField(normalizePsvField(initialData.field));
+      setImageUrl(initialData.imageUrl || "");
+      setUploadMethod("url");
+      setFileError("");
+    }
+  }, [isEdit, initialData]);
+
+  const previewUrl = useMemo(() => formatDirectImageUrl(imageUrl), [imageUrl]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setUploadError("");
-    setPreviewError(false);
-
+    setFileError("");
     if (!file.type.startsWith("image/")) {
-      SoundFX.alert();
-      setUploadError(
-        "Sila pilih fail gambar sahaja (JPG, PNG, WEBP atau GIF)."
+      setFileError(
+        "Sila pilih fail gambar sahaja (JPG, PNG, WEBP, atau gambar kamera)."
       );
       return;
     }
 
-    if (file.size > 15 * 1024 * 1024) {
-      SoundFX.alert();
-      setUploadError("Saiz gambar terlalu besar (maksimum 15MB).");
-      return;
-    }
-
-    setSelectedFileName(file.name);
-    setIsUploadingFile(true);
-
+    setIsCompressing(true);
     const reader = new FileReader();
-    reader.onload = () => {
+    reader.onload = (event) => {
       const img = new Image();
-      img.onload = async () => {
-        const MAX_DIM = 1400;
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const MAX_DIM = 850;
         let width = img.width;
         let height = img.height;
 
@@ -6513,111 +6780,47 @@ function ArtworkFormModal({
           }
         }
 
-        const canvas = document.createElement("canvas");
         canvas.width = width;
         canvas.height = height;
         const ctx = canvas.getContext("2d");
-
         if (ctx) {
           ctx.drawImage(img, 0, 0, width, height);
-          const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.85);
-          const base64Data = compressedDataUrl.split(",")[1];
-
-          try {
-            const response = await fetch(`${SCRIPT_URL}?action=uploadImage`, {
-              method: "POST",
-              body: JSON.stringify({
-                fileName: `${Date.now()}_${file.name.replace(
-                  /\.[^/.]+$/,
-                  ""
-                )}.jpg`,
-                mimeType: "image/jpeg",
-                base64Data,
-              }),
-              headers: {
-                "Content-Type": "text/plain;charset=utf-8",
-              },
-            });
-
-            const resText = await response.text();
-            let resJson: any = {};
-            try {
-              resJson = JSON.parse(resText);
-            } catch {}
-
-            if (resJson && resJson.imageUrl) {
-              setImageUrl(formatDirectImageUrl(resJson.imageUrl));
-              SoundFX.success();
-            } else {
-              setImageUrl(compressedDataUrl);
-              SoundFX.success();
-            }
-          } catch {
-            setImageUrl(compressedDataUrl);
-            SoundFX.success();
-          } finally {
-            setIsUploadingFile(false);
-          }
-        } else {
-          setIsUploadingFile(false);
-          setUploadError("Gagal memproses gambar. Sila cuba fail lain.");
+          const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.72);
+          setImageUrl(compressedDataUrl);
+          SoundFX.success();
         }
+        setIsCompressing(false);
       };
-
       img.onerror = () => {
-        setIsUploadingFile(false);
-        SoundFX.alert();
-        setUploadError(
-          "Fail gambar rosak atau format tidak disokong oleh pelayar."
-        );
+        setFileError("Gagal membaca gambar. Sila cuba gambar lain.");
+        setIsCompressing(false);
       };
-
-      img.src = reader.result as string;
+      img.src = event.target?.result as string;
     };
-
-    reader.onerror = () => {
-      setIsUploadingFile(false);
-      SoundFX.alert();
-      setUploadError("Gagal membaca fail daripada peranti anda.");
-    };
-
     reader.readAsDataURL(file);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (isUploadingFile) return;
-
-    const cleanImageUrl = formatDirectImageUrl(imageUrl.trim());
-    if (!title.trim() || !studentName.trim() || !cleanImageUrl) {
-      SoundFX.alert();
-      setUploadError(
-        "Sila lengkapkan tajuk, nama pelukis dan muat naik/masukkan gambar karya."
-      );
-      return;
-    }
-
+    if (!title.trim() || !studentName.trim() || !imageUrl.trim()) return;
     onSubmit({
       title: title.trim(),
       studentName: studentName.trim(),
       className,
       field,
-      imageUrl: cleanImageUrl,
+      imageUrl: formatDirectImageUrl(imageUrl.trim()),
     });
   };
 
-  const previewUrl = formatDirectImageUrl(imageUrl.trim());
-
   return (
-    <div className="fixed inset-0 bg-slate-900/75 backdrop-blur-sm flex items-center justify-center z-[65] p-3 sm:p-4 overflow-y-auto">
-      <div className="bg-white rounded-[2rem] w-full max-w-md overflow-hidden shadow-2xl border-4 border-yellow-400 animate-modal-enter my-auto max-h-[94vh] flex flex-col">
+    <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center z-[65] p-4">
+      <div className="bg-white rounded-[2rem] w-full max-w-md overflow-hidden shadow-2xl border-4 border-yellow-400 animate-modal-enter max-h-[92dvh] flex flex-col">
         <div
-          className={`${
+          className={`p-5 sm:p-6 flex justify-between items-center text-white shrink-0 ${
             isEdit ? "bg-blue-900" : "bg-blue-600"
-          } p-5 sm:p-6 flex justify-between items-center text-white relative overflow-hidden shrink-0`}
+          }`}
         >
-          <Sparkles className="absolute top-1 right-10 w-16 h-16 text-blue-400 opacity-30 animate-float-slow" />
-          <h3 className="text-xl sm:text-2xl font-black flex items-center relative z-10">
+          <h3 className="text-xl sm:text-2xl font-black flex items-center">
             {isEdit ? (
               <>
                 <Pencil className="mr-2 text-yellow-400 w-6 h-6" /> Edit
@@ -6625,16 +6828,16 @@ function ArtworkFormModal({
               </>
             ) : (
               <>
-                <Plus className="mr-2 text-yellow-400 w-7 h-7" /> Daftar Karya
+                <Plus className="mr-2 text-yellow-400" /> Pamerkan Karya
               </>
             )}
           </h3>
           <button
-            type="button"
             onClick={onClose}
-            className="p-2 hover:bg-white/15 rounded-full transition-colors relative z-10"
+            title="Tutup"
+            className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-md border border-red-300/60 transition-all hover:scale-105 active:scale-95"
           >
-            <X className="w-6 h-6" />
+            <X className="w-5 h-5 stroke-[2.75]" />
           </button>
         </div>
 
@@ -6644,28 +6847,14 @@ function ArtworkFormModal({
         >
           <div>
             <label className="block text-sm font-bold text-slate-700 mb-1">
-              Tajuk Karya <span className="text-red-500">*</span>
+              Tajuk Karya Seni <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
-              placeholder="Contoh: Pemandangan Indah di Kampung"
-              className="w-full border-2 border-slate-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all font-medium"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-bold text-slate-700 mb-1">
-              Nama Pelukis Cilik <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={studentName}
-              onChange={(e) => setStudentName(e.target.value)}
-              required
-              placeholder="Contoh: Ahmad Alif"
+              placeholder="Cth: Angkasawan di Bulan"
               className="w-full border-2 border-slate-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all font-medium"
             />
           </div>
@@ -6673,12 +6862,26 @@ function ArtworkFormModal({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-1">
-                Kelas / Tahun <span className="text-red-500">*</span>
+                Nama Pelukis Cilik <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={studentName}
+                onChange={(e) => setStudentName(e.target.value)}
+                required
+                placeholder="Nama penuh..."
+                className="w-full border-2 border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all font-medium"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-1">
+                Kelas <span className="text-red-500">*</span>
               </label>
               <select
                 value={className}
                 onChange={(e) => setClassName(e.target.value)}
-                className="w-full border-2 border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all font-medium bg-white"
+                className="w-full border-2 border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-blue-500 transition-colors font-medium bg-white"
               >
                 <option value="Tahun 1">Tahun 1</option>
                 <option value="Tahun 2">Tahun 2</option>
@@ -6688,159 +6891,126 @@ function ArtworkFormModal({
                 <option value="Tahun 6">Tahun 6</option>
               </select>
             </div>
-
-            <div>
-              <label className="block text-sm font-bold text-slate-700 mb-1">
-                Bidang Seni Visual <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={field}
-                onChange={(e) => setField(normalizePsvField(e.target.value))}
-                className="w-full border-2 border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all font-medium bg-white"
-              >
-                {PSV_FIELDS.map((f) => (
-                  <option key={f} value={f}>
-                    {f}
-                  </option>
-                ))}
-              </select>
-            </div>
           </div>
 
-          {/* PILIHAN SUMBER GAMBAR: MUAT NAIK FAIL TERUS ATAU PAUTAN URL */}
           <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <label className="block text-sm font-bold text-slate-700">
-                Gambar Karya <span className="text-red-500">*</span>
-              </label>
-              <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs font-bold">
-                <button
-                  type="button"
-                  onClick={() => {
-                    SoundFX.click();
-                    setImageInputMode("upload");
-                    setUploadError("");
-                  }}
-                  className={`px-2.5 py-1 rounded-md flex items-center gap-1 transition-all ${
-                    imageInputMode === "upload"
-                      ? "bg-blue-600 text-white shadow-2xs"
-                      : "text-slate-600 hover:text-blue-700"
-                  }`}
-                >
-                  <Upload className="w-3 h-3" />
-                  Muat Naik Fail
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    SoundFX.click();
-                    setImageInputMode("link");
-                    setUploadError("");
-                  }}
-                  className={`px-2.5 py-1 rounded-md flex items-center gap-1 transition-all ${
-                    imageInputMode === "link"
-                      ? "bg-blue-600 text-white shadow-2xs"
-                      : "text-slate-600 hover:text-blue-700"
-                  }`}
-                >
-                  <Link2 className="w-3 h-3" />
-                  Pautan URL
-                </button>
-              </div>
+            <label className="block text-sm font-bold text-slate-700 mb-1">
+              Bidang Seni Visual <span className="text-red-500">*</span>
+            </label>
+            <select
+              value={field}
+              onChange={(e) => setField(e.target.value as PsvFieldType)}
+              className="w-full border-2 border-slate-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all font-bold text-blue-950 bg-sky-50/50"
+            >
+              {PSV_FIELDS.map((f) => (
+                <option key={f} value={f}>
+                  {f}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-1.5">
+              Gambar Karya Seni <span className="text-red-500">*</span>
+            </label>
+
+            <div className="grid grid-cols-2 gap-2 bg-slate-100 p-1 rounded-xl mb-3">
+              <button
+                type="button"
+                onClick={() => {
+                  SoundFX.click();
+                  setUploadMethod("url");
+                  setFileError("");
+                }}
+                className={`py-2 px-3 rounded-lg text-xs font-extrabold flex items-center justify-center gap-1.5 transition-all ${
+                  uploadMethod === "url"
+                    ? "bg-blue-600 text-white shadow-xs"
+                    : "text-slate-600 hover:text-blue-700"
+                }`}
+              >
+                <Link2 className="w-3.5 h-3.5" />
+                Pautan (URL / Drive)
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  SoundFX.click();
+                  setUploadMethod("file");
+                  setFileError("");
+                }}
+                className={`py-2 px-3 rounded-lg text-xs font-extrabold flex items-center justify-center gap-1.5 transition-all ${
+                  uploadMethod === "file"
+                    ? "bg-blue-600 text-white shadow-xs"
+                    : "text-slate-600 hover:text-blue-700"
+                }`}
+              >
+                <Upload className="w-3.5 h-3.5" />
+                Muat Naik Fail
+              </button>
             </div>
 
-            {imageInputMode === "upload" ? (
+            {uploadMethod === "url" ? (
               <div>
                 <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  className="hidden"
+                  type="text"
+                  value={imageUrl.startsWith("data:") ? "" : imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                  required={uploadMethod === "url"}
+                  placeholder="Tampal pautan gambar atau Google Drive di sini..."
+                  className="w-full border-2 border-slate-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all text-sm"
                 />
-                <div
-                  onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-blue-300 hover:border-blue-500 bg-sky-50/70 hover:bg-sky-100/70 rounded-2xl p-4 text-center cursor-pointer transition-all"
-                >
-                  {isUploadingFile ? (
-                    <div className="py-2 flex flex-col items-center gap-2 text-blue-700">
-                      <RefreshCw className="w-7 h-7 animate-spin text-blue-600" />
-                      <span className="text-xs font-extrabold">
-                        Sedang memproses & memuat naik gambar...
-                      </span>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center gap-1.5">
-                      <div className="bg-blue-600 text-white p-2.5 rounded-full shadow-sm">
-                        <Upload className="w-5 h-5" />
-                      </div>
-                      <span className="text-sm font-extrabold text-blue-900">
-                        {selectedFileName
-                          ? `Fail dipilih: ${selectedFileName}`
-                          : isEdit
-                          ? "Klik untuk muat naik gambar baharu (ganti)"
-                          : "Klik untuk pilih gambar daripada peranti"}
-                      </span>
-                      <span className="text-[11px] text-slate-500 font-medium">
-                        Sokong gambar kamera telefon, JPG, PNG atau WEBP (Max
-                        15MB)
-                      </span>
-                    </div>
-                  )}
-                </div>
+                <p className="text-[11px] text-slate-500 mt-1">
+                  * Menyokong pautan gambar terus (.jpg/.png) & pautan
+                  perkongsian Google Drive.
+                </p>
               </div>
             ) : (
               <div>
-                <input
-                  type="url"
-                  value={imageUrl}
-                  onChange={(e) => {
-                    setImageUrl(e.target.value);
-                    setPreviewError(false);
-                    setUploadError("");
-                  }}
-                  placeholder="https://drive.google.com/file/d/... atau pautan gambar"
-                  className="w-full border-2 border-slate-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all font-medium text-sm"
-                />
-                <p className="text-xs text-slate-500 mt-1">
-                  * Menyokong pautan Google Drive (pastikan akses{" "}
-                  <span className="font-bold">Anyone with the link</span>) atau
-                  pautan gambar terus.
-                </p>
+                <label className="flex flex-col items-center justify-center border-2 border-dashed border-blue-300 hover:border-blue-500 bg-sky-50/60 hover:bg-sky-100/60 rounded-2xl p-4 cursor-pointer transition-all text-center">
+                  <Upload className="w-7 h-7 text-blue-600 mb-1.5" />
+                  <span className="text-xs font-extrabold text-blue-900">
+                    {isCompressing
+                      ? "Sedang memproses & memampatkan gambar..."
+                      : "Klik untuk pilih gambar daripada peranti / galeri"}
+                  </span>
+                  <span className="text-[11px] text-slate-500 mt-0.5">
+                    Format disokong: JPG, PNG, WEBP
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                </label>
+                {fileError && (
+                  <p className="text-xs font-bold text-red-600 mt-1.5">
+                    {fileError}
+                  </p>
+                )}
               </div>
             )}
 
-            {uploadError && (
-              <p className="text-xs font-bold text-red-600 mt-1.5 bg-red-50 px-3 py-1.5 rounded-lg border border-red-200">
-                {uploadError}
-              </p>
-            )}
-
-            {/* Pratonton Gambar */}
             {previewUrl && (
-              <div className="mt-3 bg-slate-50 border-2 border-blue-100 rounded-2xl p-2.5 text-center">
-                <div className="text-[11px] font-extrabold text-blue-800 uppercase tracking-wider mb-1.5">
-                  Pratonton Gambar Karya
-                </div>
-                {previewError ? (
-                  <div className="text-xs text-red-600 font-bold py-4">
-                    Gambar tidak dapat dipaparkan. Sila semak pautan atau muat
-                    naik fail gambar terus.
-                  </div>
-                ) : (
-                  <img
-                    key={previewUrl}
-                    src={previewUrl}
-                    alt="Pratonton Karya"
-                    onError={() => setPreviewError(true)}
-                    className="max-h-40 mx-auto rounded-xl object-contain shadow-xs border border-slate-200"
-                  />
-                )}
+              <div className="mt-3 bg-slate-100 rounded-2xl p-2 border border-slate-200">
+                <span className="block text-[10px] font-bold uppercase text-slate-400 mb-1 px-1">
+                  Pratonton Gambar:
+                </span>
+                <img
+                  src={previewUrl}
+                  alt="Pratonton Karya"
+                  onError={(e: any) => {
+                    e.target.src =
+                      "https://placehold.co/400x250/e2e8f0/475569?text=Pautan+Gambar+Tidak+Sah";
+                  }}
+                  className="w-full h-36 object-contain rounded-xl bg-white"
+                />
               </div>
             )}
           </div>
 
-          <div className="pt-3 border-t border-slate-100 flex space-x-3">
+          <div className="pt-3 flex space-x-3 shrink-0">
             <button
               type="button"
               onClick={onClose}
@@ -6850,18 +7020,10 @@ function ArtworkFormModal({
             </button>
             <button
               type="submit"
-              disabled={isUploadingFile}
-              className={`w-2/3 px-4 py-3 font-black rounded-xl transition-all disabled:opacity-50 ${
-                isEdit
-                  ? "bg-blue-800 hover:bg-blue-900 text-yellow-300 shadow-[0_4px_0_rgb(15,23,42)] hover:translate-y-0.5"
-                  : "bg-yellow-400 hover:bg-yellow-300 text-blue-900 shadow-[0_4px_0_rgb(180,83,9)] hover:translate-y-0.5"
-              }`}
+              disabled={isCompressing || !imageUrl.trim()}
+              className="w-2/3 px-4 py-3 bg-yellow-400 hover:bg-yellow-300 disabled:opacity-50 text-blue-900 font-black rounded-xl shadow-[0_4px_0_rgb(180,83,9)] hover:shadow-[0_2px_0_rgb(180,83,9)] hover:translate-y-0.5 active:translate-y-1 transition-all"
             >
-              {isUploadingFile
-                ? "Memuat Naik..."
-                : isEdit
-                ? "Simpan Perubahan"
-                : "Hantar ke Galeri!"}
+              {isEdit ? "Simpan Perubahan!" : "Hantar Karya!"}
             </button>
           </div>
         </form>
