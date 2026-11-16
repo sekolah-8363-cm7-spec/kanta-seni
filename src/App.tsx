@@ -219,7 +219,8 @@ const formatDirectImageUrl = (rawUrl: string): string => {
   return url;
 };
 
-// --- BANK SOALAN APRESIASI PSV DSKP SEKOLAH RENDAH (4 BIDANG UTAMA) ---
+// --- BANK SOALAN APRESIASI PSV KSSR (DSKP TAHUN 1 - TAHUN 6) ---
+// Dibina mengikut 4 Bidang Utama PSV & Perkembangan Kognitif Tahap 1 (Tahun 1-3) vs Tahap 2 (Tahun 4-6)
 const PSV_FIELDS = [
   "Menggambar",
   "Corak dan Rekaan",
@@ -241,10 +242,17 @@ const normalizePsvField = (rawField?: string): PsvFieldType => {
   return "Menggambar";
 };
 
+type AppreciationAspect =
+  | "Unsur Seni"
+  | "Prinsip Rekaan"
+  | "Hal Benda"
+  | "Alat, Bahan & Teknik"
+  | "Mesej & Nilai";
+
 interface AppreciationQuestion {
   id: string;
   field: PsvFieldType;
-  category: "Bahasa Seni Visual" | "Teknik & Proses" | "Nilai & Mesej";
+  category: AppreciationAspect;
   question: string;
   options: string[];
 }
@@ -256,442 +264,574 @@ const APPRECIATION_QUESTIONS_BY_FIELD: Record<
     tahap2: AppreciationQuestion[];
   }
 > = {
+  // =========================================================================
+  // 1. BIDANG MENGGAMBAR (Karya 2D: Lukisan, Catan, Kolaj, Montaj, Cetakan, Resis, Gosokan, Stensilan, Percikan, Gurisan)
+  // =========================================================================
   Menggambar: {
     tahap1: [
       {
-        id: "mg-t1-1",
+        id: "mg-t1-unsur-1",
         field: "Menggambar",
-        category: "Bahasa Seni Visual",
+        category: "Unsur Seni",
         question:
-          "Apakah jenis warna yang paling menonjol dalam lukisan atau catan ini?",
+          "Apakah unsur warna yang paling jelas kamu lihat dalam gambar ini?",
         options: [
-          "Warna cerah dan ceria (merah, kuning, jingga)",
-          "Warna sejuk dan tenang (biru, hijau, ungu)",
-          "Gabungan pelbagai warna terang dan gelap",
-          "Warna kontra yang menonjolkan objek utama",
+          "Warna asas yang terang (merah, biru dan kuning)",
+          "Warna sekunder yang ceria (hijau, jingga dan ungu)",
+          "Gabungan warna panas (cerah) yang menonjolkan gambar",
+          "Gabungan warna sejuk (tenang) seperti biru dan hijau",
         ],
       },
       {
-        id: "mg-t1-2",
+        id: "mg-t1-unsur-2",
         field: "Menggambar",
-        category: "Teknik & Proses",
+        category: "Unsur Seni",
         question:
-          "Apakah teknik menggambar yang dapat kamu lihat pada karya ini?",
+          "Apakah jenis garisan dan rupa yang digunakan untuk melukis objek?",
         options: [
-          "Lukisan (menggunakan pensel warna / krayon / pen)",
-          "Catan (menggunakan warna air / poster / berus)",
-          "Kolaj atau tampalan kertas warna yang kreatif",
-          "Gosokan atau resis yang menghasilkan kesan menarik",
+          "Garisan lurus dan rupa geometri (bulat, segi empat, segi tiga)",
+          "Garisan melengkung, beralun dan rupa organik yang bebas",
+          "Garisan tebal dan nipis yang menjadikan lukisan lebih jelas",
+          "Garisan putus-putus, beralun dan berlingkar yang kreatif",
         ],
       },
       {
-        id: "mg-t1-3",
+        id: "mg-t1-prinsip-1",
         field: "Menggambar",
-        category: "Nilai & Mesej",
+        category: "Prinsip Rekaan",
         question:
-          "Apakah cerita atau perasaan yang kamu dapat apabila melihat gambar ini?",
+          "Bagaimanakah objek utama dalam gambar ini menarik perhatian kamu?",
         options: [
-          "Suasana gembira, ceria dan menyeronokkan",
-          "Pemandangan alam semula jadi yang tenang dan damai",
-          "Kasih sayang terhadap keluarga, haiwan atau rakan",
-          "Imaginasi kreatif yang sangat menarik perhatian",
+          "Objek utama dilukis besar dan berada di tengah kertas (penegasan)",
+          "Warna objek utama berbeza dan kontra dengan warna latar belakang",
+          "Susunan objek di sebelah kiri dan kanan nampak seimbang",
+          "Pelbagai warna dan bentuk menjadikan gambar kelihatan harmoni",
         ],
       },
       {
-        id: "mg-t1-4",
+        id: "mg-t1-halbenda-1",
         field: "Menggambar",
-        category: "Bahasa Seni Visual",
+        category: "Hal Benda",
         question:
-          "Apakah jenis garisan yang jelas kelihatan pada objek dalam gambar ini?",
+          "Apakah hal benda (objek utama) yang dilukis oleh rakan kamu dalam karya ini?",
         options: [
-          "Garisan melengkung dan beralun yang lembut",
-          "Garisan lurus, tebal dan kemas",
-          "Garisan putus-putus dan beralun",
-          "Gabungan pelbagai garisan yang menghidupkan gambar",
+          "Alam semula jadi (pokok, bunga, gunung, laut atau cuaca)",
+          "Hidupan atau haiwan peliharaan yang comel",
+          "Keluarga, rakan-rakan atau aktiviti harian yang menyeronokkan",
+          "Objek buatan manusia (rumah, kenderaan atau alam imaginasi)",
+        ],
+      },
+      {
+        id: "mg-t1-teknik-1",
+        field: "Menggambar",
+        category: "Alat, Bahan & Teknik",
+        question:
+          "Apakah alat, bahan dan teknik asas yang digunakan untuk menghasilkan gambar ini?",
+        options: [
+          "Teknik lukisan menggunakan pensel warna, krayon atau pen",
+          "Teknik catan menggunakan warna air atau warna poster dengan berus",
+          "Teknik kolaj atau montaj melalui tampalan guntingan kertas/gambar",
+          "Teknik resis, gosokan, cetakan atau gurisan yang menarik",
+        ],
+      },
+      {
+        id: "mg-t1-mesej-1",
+        field: "Menggambar",
+        category: "Mesej & Nilai",
+        question:
+          "Apakah perasaan atau cerita yang ingin disampaikan oleh gambar ini?",
+        options: [
+          "Perasaan gembira, ceria dan seronok berkarya",
+          "Sayang akan keindahan alam sekitar dan hidupan",
+          "Kasih sayang terhadap keluarga dan rakan-rakan",
+          "Daya imaginasi yang kreatif dan berani mencuba",
         ],
       },
     ],
     tahap2: [
       {
-        id: "mg-t2-1",
+        id: "mg-t2-unsur-1",
         field: "Menggambar",
-        category: "Bahasa Seni Visual",
+        category: "Unsur Seni",
         question:
-          "Bagaimanakah pengolahan ruang dan perspektif dalam karya menggambar ini?",
+          "Bagaimanakah unsur ruang dan ton warna diolah untuk mewujudkan ilusi 3D pada karya 2D ini?",
         options: [
-          "Objek hadapan dilukis lebih besar berbanding objek di latar belakang",
-          "Pembahagian ruang hadapan, tengah dan belakang kelihatan jelas",
-          "Tona warna cerah dan gelap membantu mewujudkan ilusi ruang",
-          "Susunan komposisi objek seimbang dan memenuhi ruang kertas",
+          "Pembahagian ruang hadapan, tengah dan belakang melalui perbezaan saiz objek",
+          "Penggunaan ton warna cerah ke gelap (nilai) menimbulkan kesan bentuk",
+          "Olahan jalinan tampak pada permukaan objek menyerlahkan sifat hal benda",
+          "Pertindihan objek dan garisan perspektif mewujudkan ruang dalam",
         ],
       },
       {
-        id: "mg-t2-2",
+        id: "mg-t2-prinsip-1",
         field: "Menggambar",
-        category: "Teknik & Proses",
+        category: "Prinsip Rekaan",
         question:
-          "Apakah kekuatan teknik dan media yang digunakan oleh pengkarya?",
+          "Apakah prinsip rekaan yang paling ketara dalam gubahan komposisi karya ini?",
         options: [
-          "Sapuan warna dan ton yang kemas serta terkawal",
-          "Gabungan teknik campuran (lukisan, catan atau kolaj) yang kreatif",
-          "Olahan jalinan tampak pada permukaan objek kelihatan hidup",
-          "Penggunaan garisan luar (outline) dan bayang yang menonjolkan bentuk",
+          "Prinsip penegasan melalui titik fokus dan warna kontra pada subjek utama",
+          "Prinsip imbangan (simetri atau tidak simetri) yang menstabilkan komposisi",
+          "Prinsip kesatuan dan harmoni melalui keselarasan tema serta pilihan warna",
+          "Prinsip kepelbagaian unsur garisan, rupa dan jalinan yang menghidupkan karya",
         ],
       },
       {
-        id: "mg-t2-3",
+        id: "mg-t2-halbenda-1",
         field: "Menggambar",
-        category: "Nilai & Mesej",
+        category: "Hal Benda",
         question:
-          "Apakah mesej utama yang ingin disampaikan melalui hal benda (subject matter) karya ini?",
+          "Bagaimanakah pengolahan hal benda (subject matter) dalam karya menggambar ini?",
         options: [
-          "Kepentingan memelihara keindahan alam sekitar dan hidupan",
-          "Semangat perpaduan, muhibah dan keharmonian masyarakat",
-          "Kebebasan berimaginasi dan keberanian meneroka idea baharu",
-          "Penghargaan terhadap kehidupan harian dan budaya tempatan",
+          "Hal benda alam semula jadi diolah secara realistik dan terperinci",
+          "Hal benda figura manusia dan persekitaran digubah mengikut situasi penceritaan",
+          "Hal benda objek buatan manusia disusun mengikut kadar banding yang tepat",
+          "Hal benda bertemakan fantasi/imaginasi diterjemahkan secara kreatif",
         ],
       },
       {
-        id: "mg-t2-4",
+        id: "mg-t2-teknik-1",
         field: "Menggambar",
-        category: "Bahasa Seni Visual",
+        category: "Alat, Bahan & Teknik",
         question:
-          "Bagaimanakah prinsip penegasan (titik fokus) diwujudkan dalam gambar ini?",
+          "Bagaimanakah aplikasi media dan gabungan teknik (teknik campuran) dalam karya ini?",
         options: [
-          "Penggunaan warna kontra pada objek utama menarik tumpuan mata",
-          "Saiz objek utama yang lebih dominan di bahagian tengah karya",
-          "Perincian jalinan dan garisan tertumpu pada subjek utama",
-          "Latar belakang yang ringkas menonjolkan subjek di hadapan",
+          "Gabungan teknik resis (krayon/lilin) dengan sapuan catan warna air",
+          "Gabungan teknik kolaj/montaj dengan lukisan atau cetakan bagi kesan berlapis",
+          "Kawalan media kering/basah (berus, palet, pensel warna) yang kemas dan teliti",
+          "Penerokaan teknik stensilan, percikan atau gurisan menghasilkan kesan khas",
+        ],
+      },
+      {
+        id: "mg-t2-mesej-1",
+        field: "Menggambar",
+        category: "Mesej & Nilai",
+        question:
+          "Apakah mesej tersirat dan nilai murni yang disampaikan oleh pengkarya melalui visual ini?",
+        options: [
+          "Kesedaran memelihara kelestarian alam sekitar dan flora fauna",
+          "Semangat perpaduan, keharmonian masyarakat dan cinta akan negara",
+          "Ketekunan, disiplin dan kebebasan berimaginasi dalam menyusun idea visual",
+          "Penghargaan terhadap budaya, warisan dan kehidupan seharian",
         ],
       },
     ],
   },
 
+  // =========================================================================
+  // 2. BIDANG MEMBUAT CORAK DAN REKAAN (Corak Terancang & Tidak Terancang -> Rekaan Produk)
+  // =========================================================================
   "Corak dan Rekaan": {
     tahap1: [
       {
-        id: "cr-t1-1",
+        id: "cr-t1-unsur-1",
         field: "Corak dan Rekaan",
-        category: "Bahasa Seni Visual",
+        category: "Unsur Seni",
         question:
-          "Apakah jenis motif atau rupa yang digunakan untuk menghasilkan corak ini?",
+          "Apakah jenis rupa (motif) dan warna yang digunakan untuk membina corak ini?",
         options: [
-          "Motif flora (bunga, daun atau tumbuhan)",
-          "Motif fauna (haiwan atau serangga comel)",
-          "Motif geometri (bulat, segi tiga, segi empat)",
-          "Motif bebas dan organik yang kreatif",
+          "Rupa organik seperti bunga, daun dan tumbuhan (motif flora)",
+          "Rupa geometri seperti bulatan, segi tiga dan segi empat",
+          "Campuran pelbagai warna cerah dan kontra yang menarik",
+          "Garisan beralun, lurus dan titik-titik yang disusun kemas",
         ],
       },
       {
-        id: "cr-t1-2",
+        id: "cr-t1-prinsip-1",
         field: "Corak dan Rekaan",
-        category: "Teknik & Proses",
-        question: "Bagaimanakah susunan corak dalam karya ini dihasilkan?",
-        options: [
-          "Susunan berulang-ulang secara teratur dan kemas",
-          "Corak tidak terancang (seperti tiupan, titisan atau renjisan)",
-          "Teknik capan menggunakan bahan alam atau objek harian",
-          "Teknik lipatan dan guntingan atau cetakan yang menarik",
-        ],
-      },
-      {
-        id: "cr-t1-3",
-        field: "Corak dan Rekaan",
-        category: "Nilai & Mesej",
+        category: "Prinsip Rekaan",
         question:
-          "Pada pendapat kamu, di manakah corak cantik ini sesuai digunakan?",
+          "Bagaimanakah prinsip susunan corak ini kelihatan pada mata kamu?",
         options: [
-          "Pembalut hadiah atau kad ucapan yang ceria",
-          "Hiasan kulit buku nota atau penanda buku",
-          "Corak kain baju, langsir atau alas meja",
-          "Hiasan dinding bilik darjah yang menarik",
+          "Susunan motif berulang secara teratur dan kemas (harmoni)",
+          "Corak sebelah kiri dan kanan nampak seimbang (imbangan)",
+          "Warna latar dan warna corak berbeza supaya mudah dilihat (kontra)",
+          "Susunan corak kelihatan bergerak dan beralun (irama)",
         ],
       },
       {
-        id: "cr-t1-4",
+        id: "cr-t1-halbenda-1",
         field: "Corak dan Rekaan",
-        category: "Bahasa Seni Visual",
-        question: "Apakah kesan harmoni warna yang kamu lihat pada corak ini?",
+        category: "Hal Benda",
+        question:
+          "Apakah sumber inspirasi motif (hal benda) yang dapat dikesan pada corak ini?",
         options: [
-          "Gabungan warna ceria yang menjadikan corak nampak meriah",
-          "Pengulangan warna yang sama mewujudkan kesatuan yang kemas",
-          "Warna latar dan warna motif kontra serta mudah dilihat",
-          "Campuran warna lembut yang sedap dipandang",
+          "Motif flora (kelopak bunga, daun atau ranting)",
+          "Motif fauna (rama-rama, ikan atau corak haiwan)",
+          "Motif geometri atau garisan bebas yang kreatif",
+          "Kesan alam semula jadi seperti ombak air, awan atau batu marmar",
+        ],
+      },
+      {
+        id: "cr-t1-teknik-1",
+        field: "Corak dan Rekaan",
+        category: "Alat, Bahan & Teknik",
+        question:
+          "Bagaimanakah cara atau teknik corak ini dihasilkan oleh pengkarya?",
+        options: [
+          "Corak terancang: Lukisan, catan atau lipatan dan guntingan",
+          "Corak terancang: Teknik capan (menggunakan pelepah pisang, bendi atau jari)",
+          "Corak tidak terancang: Teknik tiupan (straw), titisan atau renjisan",
+          "Corak tidak terancang: Teknik pualaman atau ikatan dan celupan",
+        ],
+      },
+      {
+        id: "cr-t1-mesej-1",
+        field: "Corak dan Rekaan",
+        category: "Mesej & Nilai",
+        question:
+          "Apakah kegunaan rekaan produk yang sesuai menggunakan corak cantik ini?",
+        options: [
+          "Kertas pembalut hadiah atau kad ucapan yang ceria",
+          "Penanda buku atau hiasan kulit buku latihan",
+          "Hiasan dinding kelas atau alas meja yang cantik",
+          "Corak pada baju, beg kertas atau kipas tangan",
         ],
       },
     ],
     tahap2: [
       {
-        id: "cr-t2-1",
+        id: "cr-t2-unsur-1",
         field: "Corak dan Rekaan",
-        category: "Bahasa Seni Visual",
+        category: "Unsur Seni",
         question:
-          "Apakah prinsip rekaan yang paling ketara dalam gubahan corak ini?",
+          "Bagaimanakah olahan unsur rupa positif, rupa negatif dan jalinan tampak dalam corak ini?",
         options: [
-          "Prinsip harmoni dan kesatuan melalui pengulangan motif yang konsisten",
-          "Prinsip irama dan pergerakan hasil susunan motif yang beralun",
-          "Prinsip imbangan simetri yang kemas dan terancang",
-          "Prinsip kontra antara warna motif dengan warna latar belakang",
+          "Keseimbangan rupa positif (motif) dan rupa negatif (ruang latar) yang jelas",
+          "Jalinan tampak terhasil daripada teknik cetakan, pualaman atau ikatan celupan",
+          "Penggunaan warna harmoni (sekeluarga) atau penggenap yang menghidupkan motif",
+          "Garisan grid dan struktur rupa geometri/organik yang konsisten",
         ],
       },
       {
-        id: "cr-t2-2",
+        id: "cr-t2-prinsip-1",
         field: "Corak dan Rekaan",
-        category: "Teknik & Proses",
+        category: "Prinsip Rekaan",
         question:
-          "Bagaimanakah teknik penghasilan corak dalam karya ini dilaksanakan?",
+          "Apakah prinsip rekaan utama yang mengawal struktur gubahan corak ini?",
         options: [
-          "Corak terancang (grid, cerminan, batu-bata atau sisik ikan)",
-          "Corak tidak terancang (pualaman, ikatan dan celupan atau tiupan)",
-          "Teknik cetakan blok / stensilan dengan ulangan motif yang tepat",
-          "Teknik resis atau kolaj yang menghasilkan jalinan permukaan menarik",
+          "Prinsip irama dan pergerakan melalui pengulangan motif secara berterusan",
+          "Prinsip harmoni dan kesatuan hasil susunan terancang (grid, batu-bata, cerminan)",
+          "Prinsip imbangan simetri/jejari yang kemas dan teratur",
+          "Prinsip kontra antara ton warna latar dengan motif utama",
         ],
       },
       {
-        id: "cr-t2-3",
+        id: "cr-t2-halbenda-1",
         field: "Corak dan Rekaan",
-        category: "Nilai & Mesej",
+        category: "Hal Benda",
         question:
-          "Apakah nilai keusahawanan dan fungsi rekaan corak ini dalam kehidupan harian?",
+          "Bagaimanakah hal benda (motif sumber alam/buatan manusia) digayakan menjadi motif corak?",
         options: [
-          "Sesuai dikomersialkan sebagai rekaan tekstil, beg atau kertas pembalut",
-          "Sesuai dijadikan hiasan dalaman, jubin atau kertas dinding moden",
-          "Menunjukkan ketelitian, kesabaran dan disiplin tinggi dalam menyusun motif",
-          "Mengolah sumber alam semula jadi kepada rekaan kontemporari yang bernilai",
+          "Motif flora/fauna digayakan secara stilasi (dipermudahkan) menjadi unit corak",
+          "Motif geometri digabungkan membentuk struktur corak moden dan kontemporari",
+          "Kesan rawak alam (aliran cat/pualaman) dijadikan tekstur rekaan abstrak",
+          "Motif objek harian diolah semula menjadi pola hiasan yang menarik",
         ],
       },
       {
-        id: "cr-t2-4",
+        id: "cr-t2-teknik-1",
         field: "Corak dan Rekaan",
-        category: "Bahasa Seni Visual",
+        category: "Alat, Bahan & Teknik",
         question:
-          "Bagaimanakah pengolahan rupa positif dan rupa negatif dalam corak ini?",
+          "Apakah kategori teknik penghasilan corak dan kemasan bahan yang diaplikasikan?",
         options: [
-          "Rupa positif (motif) dan rupa negatif (ruang latar) seimbang dan jelas",
-          "Jarak antara setiap unit motif disusun rapi tanpa bertindih secara serabut",
-          "Olahan motif geometri dan organik digabungkan secara kreatif",
-          "Garisan grid membantu mengekalkan ketepatan susunan corak",
+          "Corak Terancang: Cetakan blok, stensilan, resis atau lipatan dan guntingan",
+          "Corak Tidak Terancang: Pualaman, tiupan, titisan atau ikatan dan celupan (tie & dye)",
+          "Penggunaan alat dan bahan (blok cetakan, warna poster, berus, kertas lukisan) yang tepat",
+          "Aplikasi corak ke atas rekaan produk fizikal (beg kertas, bekas, kad atau hiasan)",
+        ],
+      },
+      {
+        id: "cr-t2-mesej-1",
+        field: "Corak dan Rekaan",
+        category: "Mesej & Nilai",
+        question:
+          "Apakah nilai fungsi rekaan dan elemen keusahawanan yang ditonjolkan dalam karya ini?",
+        options: [
+          "Corak mempunyai nilai komersial untuk dijadikan produk seperti beg, tekstil atau pembalut",
+          "Menunjukkan ketelitian, kesabaran dan disiplin tinggi dalam menyusun ulangan motif",
+          "Inovasi mengaplikasikan corak 2D kepada rekaan produk yang praktikal dan berguna",
+          "Menghargai keindahan alam sebagai sumber ilham rekaan seni gunaan",
         ],
       },
     ],
   },
 
+  // =========================================================================
+  // 3. BIDANG MEMBENTUK DAN MEMBUAT BINAAN (Karya 3D: Arca Timbul, Asemblaj, Mobail, Stabail, Model, Diorama, Boneka, Topeng, Origami)
+  // =========================================================================
   Binaan: {
     tahap1: [
       {
-        id: "bn-t1-1",
+        id: "bn-t1-unsur-1",
         field: "Binaan",
-        category: "Bahasa Seni Visual",
+        category: "Unsur Seni",
         question:
-          "Apakah bentuk 3 dimensi (3D) yang dapat kamu lihat pada karya binaan ini?",
+          "Apakah unsur bentuk 3D dan jalinan yang dapat kamu lihat pada karya binaan ini?",
         options: [
-          "Bentuk konkrit 3D yang boleh dilihat dari pelbagai sudut",
-          "Gabungan bentuk kubus, silinder, sfera atau kon",
-          "Bentuk haiwan, kenderaan atau bangunan imaginasi",
-          "Bentuk topeng, boneka atau mobail yang menarik",
+          "Bentuk konkrit 3D yang boleh dilihat dan disentuh dari semua arah",
+          "Gabungan bentuk asas seperti kubus, silinder, kon atau sfera",
+          "Jalinan sentuh pada permukaan binaan (licin, kasar atau timbul)",
+          "Ruang nyata di dalam dan di sekeliling struktur binaan",
         ],
       },
       {
-        id: "bn-t1-2",
+        id: "bn-t1-prinsip-1",
         field: "Binaan",
-        category: "Teknik & Proses",
+        category: "Prinsip Rekaan",
         question:
-          "Apakah bahan kitar semula atau bahan binaan yang digunakan dalam karya ini?",
+          "Bagaimanakah kestabilan dan imbangan karya binaan 3D ini kelihatan?",
         options: [
-          "Kotak, kadbod atau gulungan tisu yang dibentuk semula",
-          "Botol plastik, cawan kertas atau penyedut minuman",
-          "Doh, plastisin atau tanah liat yang diuli kemas",
-          "Kertas keras yang digunting, dilipat dan dicantum",
+          "Tapak binaan kukuh dan boleh berdiri tegak dengan seimbang (imbangan)",
+          "Bahagian kiri dan kanan binaan disusun sama berat dan stabil",
+          "Hiasan warna-warni menjadikan binaan nampak ceria dan harmoni",
+          "Saiz setiap bahagian binaan sesuai dan sepadan antara satu sama lain",
         ],
       },
       {
-        id: "bn-t1-3",
+        id: "bn-t1-halbenda-1",
         field: "Binaan",
-        category: "Nilai & Mesej",
-        question: "Apakah keistimewaan karya binaan ini apabila dipamerkan?",
+        category: "Hal Benda",
+        question:
+          "Apakah hal benda (model objek) yang dibina oleh rakan kamu dalam karya 3D ini?",
         options: [
-          "Boleh berdiri stabil dan seimbang dengan kukuh",
-          "Mengajar kita menjaga alam sekitar melalui guna semula bahan terbuang",
-          "Sangat kreatif dan boleh dijadikan alat permainan atau hiasan",
-          "Cantuman bahagian binaan kelihatan kemas dan teliti",
+          "Model bangunan, rumah atau kenderaan (kereta, roket, kapal)",
+          "Binaan haiwan, serangga atau watak boneka/topeng yang comel",
+          "Pemandangan mini (diorama) atau hiasan gantung (mobail)",
+          "Binaan origami atau arca kreatif daripada bentuk geometri",
         ],
       },
       {
-        id: "bn-t1-4",
+        id: "bn-t1-teknik-1",
         field: "Binaan",
-        category: "Bahasa Seni Visual",
+        category: "Alat, Bahan & Teknik",
         question:
-          "Bagaimanakah jalinan sentuh pada permukaan karya binaan ini?",
+          "Apakah bahan kitar semula dan teknik binaan yang digunakan?",
         options: [
-          "Permukaan licin dan kemas hasil balutan kertas warna",
-          "Permukaan berjalinan kasar dan timbul yang menarik",
-          "Gabungan permukaan lembut dan keras yang kreatif",
-          "Hiasan tambahan menjadikan permukaan binaan lebih ceria",
+          "Mencantum kotak, gulungan tisu atau botol plastik (teknik asemblaj)",
+          "Melipat dan membentuk kertas menjadi objek 3D (teknik origami/lipatan)",
+          "Menguli dan membentuk doh, plastisin atau tanah liat",
+          "Menggunting, menebuk dan melekat kadbod menjadi topeng atau boneka",
+        ],
+      },
+      {
+        id: "bn-t1-mesej-1",
+        field: "Binaan",
+        category: "Mesej & Nilai",
+        question:
+          "Apakah nilai murni yang kita pelajari daripada karya binaan bahan terbuang ini?",
+        options: [
+          "Menjaga alam sekitar melalui amalan kitar semula bahan terpakai",
+          "Kreativiti mengubah barang terbuang menjadi permainan atau hiasan berguna",
+          "Kesabaran dan ketelitian semasa mencantum bahagian supaya kukuh",
+          "Berani mencuba membina sesuatu yang baharu daripada imaginasi",
         ],
       },
     ],
     tahap2: [
       {
-        id: "bn-t2-1",
+        id: "bn-t2-unsur-1",
         field: "Binaan",
-        category: "Bahasa Seni Visual",
+        category: "Unsur Seni",
         question:
-          "Bagaimanakah prinsip imbangan dan kestabilan diterapkan dalam binaan 3D ini?",
+          "Bagaimanakah unsur bentuk konkrit, ruang dan jalinan sentuh diolah dalam karya 3D ini?",
         options: [
-          "Struktur binaan mempunyai tapak yang kukuh dan seimbang (simetri / tidak simetri)",
-          "Agihan berat setiap bahagian binaan dirancang dengan teliti supaya stabil",
-          "Ruang konkrit di sekeliling dan di dalam binaan diolah dengan baik",
-          "Perkadaran (nisbah saiz) antara bahagian binaan kelihatan realistik",
+          "Bentuk konkrit mempunyai isi padu dan jisim yang jelas dari pelbagai sudut pandang",
+          "Ruang nyata (ruang dalaman dan luaran) diolah secara seimbang dan berfungsi",
+          "Jalinan sentuh daripada bahan kutipan/kemasan memberi kesan visual yang menarik",
+          "Penggunaan warna dan garisan struktur menyerlahkan lagi dimensi 3D karya",
         ],
       },
       {
-        id: "bn-t2-2",
+        id: "bn-t2-prinsip-1",
         field: "Binaan",
-        category: "Teknik & Proses",
+        category: "Prinsip Rekaan",
         question:
-          "Apakah teknik membentuk dan membuat binaan yang jelas pada karya ini?",
+          "Bagaimanakah prinsip imbangan, kadaran dan kesatuan diterapkan dalam struktur binaan ini?",
         options: [
-          "Teknik asemblaj (mencantum pelbagai bahan kutipan / terbuang)",
-          "Teknik arca stabail / mobail yang mempunyai ciri pergerakan atau kestabilan",
-          "Teknik luakan, ukiran atau acuan yang kemas dan terperinci",
-          "Teknik lipatan origami 3D / pembinaan model berskala",
+          "Prinsip imbangan (simetri atau tidak simetri) memastikan struktur stabil dan tidak tumbang",
+          "Prinsip kadaran (nisbah saiz antara bahagian) kelihatan logik dan harmoni",
+          "Prinsip kesatuan tercapai apabila semua bahan kutipan bercantum sebagai satu bentuk utuh",
+          "Prinsip irama dan pergerakan kelihatan pada binaan mobail atau susunan berulang",
         ],
       },
       {
-        id: "bn-t2-3",
+        id: "bn-t2-halbenda-1",
         field: "Binaan",
-        category: "Nilai & Mesej",
+        category: "Hal Benda",
         question:
-          "Apakah nilai kelestarian alam dan inovasi yang ditonjolkan oleh pengkarya?",
+          "Apakah hal benda (subject matter) 3D yang diterjemahkan dalam karya binaan ini?",
         options: [
-          "Mengubah bahan kitar semula menjadi produk seni 3D yang bernilai tinggi",
-          "Menunjukkan kemahiran menyelesaikan masalah semasa mencantum struktur",
-          "Karya berfungsi sebagai model hiasan, alat bantu atau bekas serbaguna",
-          "Memupuk kesedaran menjaga alam sekitar melalui amalan 3R",
+          "Model seni bina, kenderaan futuristik atau struktur kejuruteraan kreatif",
+          "Diorama ekosistem alam semula jadi, hidupan atau suasana masyarakat",
+          "Arca figuratif/haiwan, topeng watak atau boneka persembahan",
+          "Arca abstrak (stabail/mobail/arca timbul) yang meneroka bentuk dan ruang",
         ],
       },
       {
-        id: "bn-t2-4",
+        id: "bn-t2-teknik-1",
         field: "Binaan",
-        category: "Bahasa Seni Visual",
+        category: "Alat, Bahan & Teknik",
         question:
-          "Bagaimanakah jalinan sentuh dan kemasan akhir meningkatkan mutu binaan ini?",
+          "Apakah teknik membentuk dan membuat binaan serta kesesuaian bahan yang digunakan?",
         options: [
-          "Kemasan cat dan warna menyerlahkan lagi bentuk 3D karya",
-          "Jalinan sentuh semula jadi daripada bahan binaan memberi kesan unik",
-          "Setiap sambungan dilekatkan dengan kemas tanpa kesan comot",
-          "Gabungan pelbagai tekstur menjadikan karya menarik dari setiap sudut",
+          "Teknik asemblaj: Mencantum pelbagai bahan kutipan/kitar semula (kotak, botol, dawai)",
+          "Teknik arca stabail (tapak kukuh), mobail (gantungan seimbang) atau arca timbul",
+          "Teknik pembinaan model / diorama menggunakan kadbod, gam, gunting dan media campuran",
+          "Teknik luakan, acuan, lipatan origami 3D atau binaan rangka yang kemas",
+        ],
+      },
+      {
+        id: "bn-t2-mesej-1",
+        field: "Binaan",
+        category: "Mesej & Nilai",
+        question:
+          "Apakah mesej kelestarian alam dan kemahiran menyelesaikan masalah dalam binaan ini?",
+        options: [
+          "Mengaplikasikan amalan 3R (Guna Semula) untuk mengurangkan sisa buangan",
+          "Menunjukkan keupayaan menyelesaikan masalah teknikal (sambungan, tapak & berat)",
+          "Karya mempunyai nilai fungsi sebagai alat bantu, bekas serbaguna atau hiasan ruang",
+          "Memupuk pemikiran spatial, inovasi dan ketekunan dalam penghasilan produk 3D",
         ],
       },
     ],
   },
 
+  // =========================================================================
+  // 4. BIDANG MENGENAL KRAF TRADISIONAL (Batik, Tekat, Ukiran, Anyaman, Tembikar, Wau, Gasing, Perhiasan Diri, Alat Domestik)
+  // =========================================================================
   "Kraf Tradisional": {
     tahap1: [
       {
-        id: "kt-t1-1",
+        id: "kt-t1-unsur-1",
         field: "Kraf Tradisional",
-        category: "Bahasa Seni Visual",
+        category: "Unsur Seni",
         question:
-          "Apakah jenis kraf tradisional Malaysia yang diperkenalkan dalam karya ini?",
+          "Apakah unsur seni (garisan, rupa, warna atau jalinan) yang menonjol pada karya kraf ini?",
         options: [
-          "Batik / Corak Kain Tradisional yang berwarna-warni",
-          "Anyaman tikar / kelarai daripada jalur kertas atau daun",
-          "Wau tradisional / Gasing / Alat permainan rakyat",
+          "Garisan beralun dan melengkung yang lembut seperti corak batik",
+          "Jalinan bersilang-seli yang kemas seperti anyaman tikar",
+          "Bentuk 3D yang unik seperti tembikar, wau atau gasing",
+          "Warna-warna tradisi yang cerah, menarik dan harmoni",
+        ],
+      },
+      {
+        id: "kt-t1-prinsip-1",
+        field: "Kraf Tradisional",
+        category: "Prinsip Rekaan",
+        question:
+          "Bagaimanakah susunan motif dan bentuk pada karya kraf tradisional ini?",
+        options: [
+          "Bentuk dan corak kiri dan kanan sama seimbang (imbangan simetri)",
+          "Susunan motif berulang secara teratur dan kemas (harmoni)",
+          "Warna latar dan warna motif berbeza supaya corak nampak jelas (kontra)",
+          "Semua bahagian hiasan tersusun cantik dan bersatu",
+        ],
+      },
+      {
+        id: "kt-t1-halbenda-1",
+        field: "Kraf Tradisional",
+        category: "Hal Benda",
+        question:
+          "Apakah jenis kraf tradisional Malaysia dan motif hiasan yang dipaparkan?",
+        options: [
+          "Batik atau Tekat dengan motif flora (bunga dan daun)",
+          "Anyaman kertas/daun dengan corak kelarai yang kemas",
+          "Alat permainan rakyat seperti Wau tradisional atau Gasing",
           "Tembikar (Labu Sayong) atau Perhiasan Diri (Dokoh / Cucuk Sanggul)",
         ],
       },
       {
-        id: "kt-t1-2",
+        id: "kt-t1-teknik-1",
         field: "Kraf Tradisional",
-        category: "Teknik & Proses",
+        category: "Alat, Bahan & Teknik",
         question:
-          "Apakah motif atau corak hiasan yang menghiasi karya kraf ini?",
+          "Apakah bahan gantian dan teknik asas yang digunakan untuk membuat kraf ini?",
         options: [
-          "Motif flora, pucuk rebung atau daun tumbuh-tumbuhan",
-          "Corak kelarai anyaman berselang-seli yang kemas",
-          "Garisan berlingkar dan corak geometri tradisional",
-          "Gabungan warna tradisi yang cerah dan menarik",
+          "Teknik resis menggunakan krayon/lilin dan warna air (batik mudah)",
+          "Teknik menganyam jalur kertas warna secara selang-seli (atas dan bawah)",
+          "Teknik picitan atau lingkaran menggunakan tanah liat/plastisin (tembikar)",
+          "Teknik menggunting, melipat dan menampal untuk membuat wau atau perhiasan diri",
         ],
       },
       {
-        id: "kt-t1-3",
+        id: "kt-t1-mesej-1",
         field: "Kraf Tradisional",
-        category: "Nilai & Mesej",
+        category: "Mesej & Nilai",
         question:
-          "Mengapakah kita perlu menghargai seni kraf tradisional seperti karya ini?",
+          "Mengapakah kita perlu berbangga dan menghargai seni kraf tradisional ini?",
         options: [
-          "Supaya warisan budaya Malaysia tidak dilupakan",
-          "Menunjukkan kehalusan kerja tangan dan kesabaran pengkarya",
-          "Kraf tradisional sangat cantik dijadikan hiasan dan kegunaan harian",
-          "Berbangga dengan keunikan seni warisan negara kita",
-        ],
-      },
-      {
-        id: "kt-t1-4",
-        field: "Kraf Tradisional",
-        category: "Bahasa Seni Visual",
-        question:
-          "Bagaimanakah rupa dan garisan pada karya kraf tradisional ini kelihatan?",
-        options: [
-          "Rupa simetri yang seimbang di sebelah kiri dan kanan",
-          "Garisan beralun dan melengkung yang lembut seperti motif batik",
-          "Susunan jalur lurus bersilang yang sangat kemas",
-          "Bentuk tradisional yang unik dan mudah dikenali",
+          "Supaya seni warisan budaya Malaysia terus kekal dan tidak dilupakan",
+          "Menunjukkan sikap sabar, teliti dan tekun semasa menghasilkan kraf",
+          "Kraf tradisional sangat cantik dan berguna dalam kehidupan harian",
+          "Memupuk rasa cinta akan identiti dan budaya negara kita",
         ],
       },
     ],
     tahap2: [
       {
-        id: "kt-t2-1",
+        id: "kt-t2-unsur-1",
         field: "Kraf Tradisional",
-        category: "Bahasa Seni Visual",
+        category: "Unsur Seni",
         question:
-          "Bagaimanakah motif dan prinsip rekaan tradisional diolah dalam karya kraf ini?",
+          "Bagaimanakah olahan unsur seni (garisan, jalinan, bentuk dan warna) menyerlahkan identiti kraf ini?",
         options: [
-          "Motif flora dan alam (seperti pucuk rebung, bunga cengkih) disusun harmoni",
-          "Imbangan simetri yang tepat pada struktur wau, tembikar atau perhiasan diri",
-          "Jalinan sentuh dan tampak terhasil daripada teknik anyaman atau ukiran",
-          "Kontra warna latar dan motif menyerlahkan identiti kraf warisan",
+          "Garisan organik dan motif flora/fauna tradisi membentuk rupa yang halus dan berseni",
+          "Jalinan sentuh dan tampak terhasil daripada teknik anyaman kelarai, ukiran atau tekat",
+          "Bentuk 3D (tembikar/alat domestik/permainan) mempunyai struktur yang seimbang dan estetik",
+          "Pemilihan warna tradisi (warna alam dan kontra) menghidupkan motif warisan",
         ],
       },
       {
-        id: "kt-t2-2",
+        id: "kt-t2-prinsip-1",
         field: "Kraf Tradisional",
-        category: "Teknik & Proses",
+        category: "Prinsip Rekaan",
         question:
-          "Apakah proses atau teknik kraf yang diaplikasikan dalam penghasilan karya ini?",
+          "Apakah prinsip rekaan tradisional yang paling ketara dalam gubahan kraf ini?",
         options: [
-          "Teknik resis / cantingan (batik) menggunakan lilin, krayon atau warna air",
-          "Teknik anyaman kelarai (selang-seli) menggunakan jalur kertas atau bahan gantian",
-          "Teknik lingkaran, picitan atau acuan bagi membentuk tembikar",
-          "Teknik tebukan, ukiran atau tampalan bagi perhiasan diri dan alat permainan",
+          "Prinsip imbangan simetri (seperti pada wau, dokoh, ukiran tebuk dan tembikar)",
+          "Prinsip harmoni dan irama melalui pengulangan motif kelarai atau pucuk rebung",
+          "Prinsip kesatuan antara bentuk fizikal kraf dengan fungsi kegunaannya",
+          "Prinsip penegasan pada motif utama di bahagian tengah rekaan",
         ],
       },
       {
-        id: "kt-t2-3",
+        id: "kt-t2-halbenda-1",
         field: "Kraf Tradisional",
-        category: "Nilai & Mesej",
+        category: "Hal Benda",
         question:
-          "Apakah nilai warisan budaya dan jati diri yang dapat dipelajari daripada karya ini?",
+          "Apakah kategori kraf warisan dan motif tradisional yang diadaptasi dalam karya ini?",
         options: [
-          "Memupuk semangat cinta akan warisan seni kraf tempatan Malaysia",
-          "Menghargai nilai ketekunan, ketelitian dan kesabaran tukang kraf",
-          "Mengaplikasikan bahan gantian moden untuk mengekalkan seni tradisional",
-          "Menyedari fungsi kraf sebagai kegunaan harian serta identiti bangsa",
+          "Seni Tekstil & Hiasan: Batik, Tekat atau Tenunan bermotifkan flora (pucuk rebung, bunga)",
+          "Seni Anyaman & Ukiran: Kelarai anyaman atau ukiran kayu bermotifkan alam semula jadi",
+          "Seni Tembikar & Alat Domestik: Labu Sayong, buyung atau tudung saji tradisional",
+          "Permainan Rakyat & Perhiasan Diri: Wau Bulan, Gasing, Dokoh atau Keris/Alat Pertahanan",
         ],
       },
       {
-        id: "kt-t2-4",
+        id: "kt-t2-teknik-1",
         field: "Kraf Tradisional",
-        category: "Bahasa Seni Visual",
+        category: "Alat, Bahan & Teknik",
         question:
-          "Bagaimanakah kesatuan bentuk dan fungsi kelihatan pada karya kraf ini?",
+          "Bagaimanakah aplikasi teknik kraf tradisional menggunakan bahan gantian murid?",
         options: [
-          "Reka bentuk mengekalkan ciri asli kraf tradisional walaupun menggunakan bahan murid",
-          "Setiap bahagian hiasan melengkapi struktur utama karya dengan kemas",
-          "Pemilihan warna sesuai dengan identiti seni kraf tempatan",
-          "Kualiti kekemasan menunjukkan pemahaman murid terhadap proses kraf",
+          "Teknik resis (batik canting/blok) menggunakan krayon/gam dan pewarna air",
+          "Teknik anyaman kelarai menggunakan jalur kertas/reben mengikut kiraan selang-seli",
+          "Teknik lingkaran, picitan atau kepingan bagi membentuk model tembikar",
+          "Teknik tebukan, ukiran lembut (sabun/kadbod) atau tampalan bagi perhiasan/wau",
+        ],
+      },
+      {
+        id: "kt-t2-mesej-1",
+        field: "Kraf Tradisional",
+        category: "Mesej & Nilai",
+        question:
+          "Apakah nilai estetik, warisan budaya dan jati diri yang dapat dihayati daripada karya ini?",
+        options: [
+          "Memupuk semangat cinta akan warisan seni kraf Melayu/Nusantara dan Malaysia",
+          "Menghargai kehalusan kerja tangan, kesabaran dan ketekunan tokoh kraf tempatan",
+          "Kreativiti mengadaptasi bahan gantian moden untuk mengekalkan seni tradisional",
+          "Memahami nilai estetik serta fungsi kraf dalam kehidupan harian dan adat budaya",
         ],
       },
     ],
@@ -700,7 +840,8 @@ const APPRECIATION_QUESTIONS_BY_FIELD: Record<
 
 const getStageFromClass = (className?: string): "tahap1" | "tahap2" => {
   if (!className) return "tahap2";
-  if (["Tahun 1", "Tahun 2", "Tahun 3"].includes(className)) {
+  const clean = className.trim().toLowerCase();
+  if (clean === "tahun 1" || clean === "tahun 2" || clean === "tahun 3") {
     return "tahap1";
   }
   return "tahap2";
@@ -2241,7 +2382,7 @@ export default function App() {
       <header className="bg-white/95 backdrop-blur-md shadow-md sticky top-0 z-40 w-full border-b-4 border-yellow-400 transition-all no-print">
         <div className="max-w-7xl mx-auto px-2.5 sm:px-5 lg:px-8">
           <div className="flex justify-between items-center h-16 sm:h-20 gap-1.5 sm:gap-2.5">
-            {/* Kiri: Logo & Tajuk (Fleksibel & tidak menolak butang kanan keluar skrin) */}
+            {/* Kiri: Logo & Tajuk */}
             <div
               className="flex items-center cursor-pointer group min-w-0 flex-1 lg:flex-initial"
               onClick={() => {
@@ -2266,7 +2407,7 @@ export default function App() {
               </div>
             </div>
 
-            {/* Kanan: Kawalan & Butang (Dikawal saiz supaya muat pada semua layar) */}
+            {/* Kanan: Kawalan & Butang */}
             <div className="flex items-center space-x-1 sm:space-x-1.5 lg:space-x-2 shrink-0">
               {/* PENUNJUK STATUS SEGERAK PANGKALAN DATA (CLOUD SYNC) */}
               {syncState === "saving" && (
@@ -2310,7 +2451,7 @@ export default function App() {
                 )}
               </button>
 
-              {/* NAVIGASI UTAMA DESKTOP / TABLET BESAR (lg ke atas supaya tablet portrait tak sesak) */}
+              {/* NAVIGASI UTAMA DESKTOP / TABLET BESAR */}
               <nav className="hidden lg:flex items-center space-x-1 xl:space-x-1.5">
                 {["Laman Utama", "Galeri Seni", "Sudut Apresiasi"].map(
                   (item) => {
@@ -3392,7 +3533,7 @@ export default function App() {
         </div>
       )}
 
-      {/* MOBILE & TABLET BOTTOM NAV (sehingga skrin lg supaya tablet portrait selesa) */}
+      {/* MOBILE & TABLET BOTTOM NAV */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex justify-around p-1.5 sm:p-2 z-40 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] no-print">
         {["Laman Utama", "Galeri", "Sudut Apresiasi"].map((item) => {
           const tabKey = item.toLowerCase().replace(" ", "-");
@@ -3800,7 +3941,7 @@ function PassportQuizBox({
             Bidang: {field}
           </span>
           <span className="bg-blue-700 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase">
-            {stage === "tahap1" ? "Tahap 1" : "Tahap 2"}
+            {stage === "tahap1" ? "Tahap 1 (Thn 1-3)" : "Tahap 2 (Thn 4-6)"}
           </span>
           <span className="bg-yellow-400 text-blue-900 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full">
             {activeQuestion.category}
@@ -5362,6 +5503,14 @@ function ArtworkCard({
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
   const [quizAnswers, setQuizAnswers] = useState<Record<number, string>>({});
 
+  useEffect(() => {
+    if (isQuizOpen) {
+      setQuizQuestions(pickThreeRandomQuestions(criticStage, artworkField));
+      setCurrentQuestionIdx(0);
+      setQuizAnswers({});
+    }
+  }, [criticStage, artworkField]);
+
   const likesList = Array.isArray(artwork.likes) ? artwork.likes : [];
   const likesCount = likesList.length;
   const hasLiked = likesList.includes(activeUserKey);
@@ -5573,7 +5722,7 @@ function ArtworkCard({
                     ? "bg-blue-700 text-yellow-300"
                     : "bg-yellow-400 hover:bg-yellow-300 text-blue-900 border border-blue-900/30"
                 }`}
-                title="Jawab 3 soalan rawak mengenai unsur seni, mesej atau hal benda"
+                title="Jawab 3 soalan rawak mengikut bidang seni & tahap murid"
               >
                 <HelpCircle className="w-3.5 h-3.5" />
                 <span>{isQuizOpen ? "Tutup Soalan" : "3 Soalan Seni"}</span>
@@ -5754,6 +5903,14 @@ function ArtworkLightboxModal({
   const [quizAnswers, setQuizAnswers] = useState<Record<number, string>>({});
 
   useEffect(() => {
+    if (isQuizOpen) {
+      setQuizQuestions(pickThreeRandomQuestions(criticStage, artworkField));
+      setCurrentQuestionIdx(0);
+      setQuizAnswers({});
+    }
+  }, [criticStage, artworkField]);
+
+  useEffect(() => {
     const prevBodyOverflow = document.body.style.overflow;
     const prevHtmlOverflow = document.documentElement.style.overflow;
     document.body.style.overflow = "hidden";
@@ -5776,16 +5933,14 @@ function ArtworkLightboxModal({
 
   const handleZoomIn = () => {
     SoundFX.click();
-    setZoom((prev) => Math.min(prev + 0.4, 3.5));
+    setZoom((prev) => Math.min(prev + 0.5, 4));
   };
 
   const handleZoomOut = () => {
     SoundFX.click();
     setZoom((prev) => {
-      const next = Math.max(prev - 0.4, 1);
-      if (next <= 1) {
-        setPan({ x: 0, y: 0 });
-      }
+      const next = Math.max(prev - 0.5, 1);
+      if (next === 1) setPan({ x: 0, y: 0 });
       return next;
     });
   };
@@ -5796,10 +5951,33 @@ function ArtworkLightboxModal({
     setPan({ x: 0, y: 0 });
   };
 
-  const handleMouseDown = (e: React.MouseEvent) => {
+  useEffect(() => {
+    const el = viewportRef.current;
+    if (!el) return;
+
+    const handleNativeWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (e.deltaY < 0) {
+        setZoom((prev) => Math.min(prev + 0.25, 4));
+      } else {
+        setZoom((prev) => {
+          const next = Math.max(prev - 0.25, 1);
+          if (next === 1) setPan({ x: 0, y: 0 });
+          return next;
+        });
+      }
+    };
+
+    el.addEventListener("wheel", handleNativeWheel, { passive: false });
+    return () => el.removeEventListener("wheel", handleNativeWheel);
+  }, []);
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (zoom <= 1) return;
     e.preventDefault();
-    e.stopPropagation();
+    e.currentTarget.setPointerCapture(e.pointerId);
     setIsDragging(true);
     dragStartRef.current = {
       x: e.clientX - pan.x,
@@ -5807,59 +5985,30 @@ function ArtworkLightboxModal({
     };
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!isDragging || zoom <= 1) return;
-    e.preventDefault();
-    e.stopPropagation();
     setPan({
       x: e.clientX - dragStartRef.current.x,
       y: e.clientY - dragStartRef.current.y,
     });
   };
 
-  const handleMouseUpOrLeave = () => {
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
     if (isDragging) {
       setIsDragging(false);
+      try {
+        e.currentTarget.releasePointerCapture(e.pointerId);
+      } catch {}
     }
   };
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (zoom <= 1 || e.touches.length !== 1) return;
-    e.stopPropagation();
-    const touch = e.touches[0];
-    setIsDragging(true);
-    dragStartRef.current = {
-      x: touch.clientX - pan.x,
-      y: touch.clientY - pan.y,
-    };
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging || zoom <= 1 || e.touches.length !== 1) return;
-    e.stopPropagation();
-    const touch = e.touches[0];
-    setPan({
-      x: touch.clientX - dragStartRef.current.x,
-      y: touch.clientY - dragStartRef.current.y,
-    });
-  };
-
-  const handleTouchEnd = () => {
-    if (isDragging) {
-      setIsDragging(false);
-    }
-  };
-
-  const handleWheelOnImage = (e: React.WheelEvent) => {
-    e.stopPropagation();
-    if (e.deltaY < 0) {
-      setZoom((prev) => Math.min(prev + 0.25, 3.5));
+  const handleImageDoubleClick = () => {
+    SoundFX.click();
+    if (zoom > 1) {
+      setZoom(1);
+      setPan({ x: 0, y: 0 });
     } else {
-      setZoom((prev) => {
-        const next = Math.max(prev - 0.25, 1);
-        if (next <= 1) setPan({ x: 0, y: 0 });
-        return next;
-      });
+      setZoom(2.25);
     }
   };
 
@@ -5915,7 +6064,6 @@ function ArtworkLightboxModal({
   const handleCommentSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!canSubmitComment) return;
-
     onComment(
       commentText,
       answeredQuizList.length > 0 ? answeredQuizList : undefined
@@ -5929,166 +6077,166 @@ function ArtworkLightboxModal({
   return (
     <div
       onClick={onClose}
-      className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-50 p-3 md:p-6 overflow-hidden overscroll-none"
+      className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-hidden overscroll-none"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="bg-white rounded-3xl w-full max-w-5xl max-h-[92vh] overflow-hidden shadow-2xl border-4 border-yellow-400 flex flex-col md:flex-row relative animate-modal-enter"
+        className="bg-white rounded-[2rem] w-full max-w-6xl max-h-[92vh] overflow-hidden shadow-2xl border-4 border-yellow-400 flex flex-col lg:flex-row relative animate-modal-enter"
       >
-        <div className="absolute top-3 right-3 z-20 flex items-center gap-2">
-          {isStaffLoggedIn && (
-            <>
+        <div className="flex-1 bg-slate-900 relative flex flex-col min-h-[340px] lg:min-h-[550px]">
+          <div className="flex items-center justify-between px-4 py-3 bg-slate-800/90 border-b border-slate-700 text-white z-20 gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2">
               <button
-                onClick={onRequestEdit}
-                className="bg-blue-700 hover:bg-blue-800 hover:scale-110 text-yellow-300 p-2 rounded-full shadow-lg transition-all border border-white/50"
-                title="Edit Maklumat Karya"
+                onClick={handleZoomOut}
+                disabled={zoom <= 1}
+                className="p-2 bg-slate-700 hover:bg-slate-600 disabled:opacity-40 rounded-xl transition-colors"
+                title="Kecilkan Gambar (Zoom Out)"
               >
-                <Pencil className="w-4 h-4" />
+                <ZoomOut className="w-5 h-5" />
               </button>
+              <span className="text-xs font-extrabold bg-slate-950 px-3 py-1.5 rounded-lg min-w-[54px] text-center text-yellow-400">
+                {Math.round(zoom * 100)}%
+              </span>
               <button
-                onClick={onRequestDelete}
-                className="bg-red-500 hover:bg-red-600 hover:scale-110 text-white p-2 rounded-full shadow-lg transition-all border border-white/50"
-                title="Padam Karya"
+                onClick={handleZoomIn}
+                disabled={zoom >= 4}
+                className="p-2 bg-slate-700 hover:bg-slate-600 disabled:opacity-40 rounded-xl transition-colors"
+                title="Besarkan Gambar (Zoom In)"
               >
-                <Trash2 className="w-4 h-4" />
+                <ZoomIn className="w-5 h-5" />
               </button>
-            </>
-          )}
-          <button
-            onClick={onClose}
-            className="bg-slate-800/80 hover:bg-slate-900 hover:scale-110 text-white p-2 rounded-full shadow-lg transition-all"
-            title="Tutup"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        <div
-          ref={viewportRef}
-          onWheel={handleWheelOnImage}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUpOrLeave}
-          onMouseLeave={handleMouseUpOrLeave}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          className={`md:w-3/5 bg-slate-900 relative flex flex-col items-center justify-center min-h-[250px] md:min-h-[500px] max-h-[44vh] md:max-h-[92vh] shrink-0 overflow-hidden select-none touch-none ${
-            zoom > 1
-              ? isDragging
-                ? "cursor-grabbing"
-                : "cursor-grab"
-              : "cursor-zoom-in"
-          }`}
-        >
-          {zoom > 1 && (
-            <div className="absolute top-3 left-3 bg-blue-900/85 text-yellow-300 border border-yellow-400/50 px-3 py-1 rounded-full text-[11px] font-bold flex items-center gap-1.5 z-10 pointer-events-none shadow-md">
-              <Move className="w-3.5 h-3.5" />
-              <span>Seret (Drag) gambar untuk lihat sudut lain</span>
+              {zoom > 1 && (
+                <button
+                  onClick={handleResetZoom}
+                  className="p-2 bg-blue-600 hover:bg-blue-500 rounded-xl transition-colors flex items-center text-xs font-bold gap-1 px-3"
+                  title="Saiz Asal & Tengah Semula"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  <span className="hidden sm:inline">Reset</span>
+                </button>
+              )}
             </div>
-          )}
+
+            {zoom > 1 && (
+              <div className="hidden md:flex items-center gap-1.5 text-[11px] font-bold text-yellow-300 bg-slate-950/70 px-3 py-1 rounded-full">
+                <Move className="w-3.5 h-3.5" />
+                Seret gambar untuk lihat sudut terperinci
+              </div>
+            )}
+
+            <button
+              onClick={onClose}
+              className="lg:hidden p-2 bg-red-500 hover:bg-red-600 text-white rounded-full transition-colors"
+              title="Tutup"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
 
           <div
-            onClick={() => {
-              if (zoom === 1) {
-                SoundFX.click();
-                setZoom(1.8);
-              }
-            }}
-            style={{
-              transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`,
-              transformOrigin: "center center",
-              transition: isDragging ? "none" : "transform 0.18s ease-out",
-            }}
-            className="w-full h-full flex items-center justify-center p-4 will-change-transform"
+            ref={viewportRef}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onPointerCancel={handlePointerUp}
+            onDoubleClick={handleImageDoubleClick}
+            style={{ touchAction: "none" }}
+            className={`flex-1 overflow-hidden flex items-center justify-center p-4 select-none relative overscroll-contain ${
+              zoom > 1
+                ? isDragging
+                  ? "cursor-grabbing"
+                  : "cursor-grab"
+                : "cursor-zoom-in"
+            }`}
           >
             <img
               key={artwork.imageUrl}
               src={
                 artwork.imageUrl ||
-                "https://placehold.co/600x400/e2e8f0/475569?text=Tiada+Gambar"
+                "https://placehold.co/800x600/1e293b/f8fafc?text=Tiada+Gambar"
               }
               alt={artwork.title}
               draggable={false}
-              className="max-w-full max-h-[38vh] md:max-h-[76vh] object-contain rounded-lg select-none pointer-events-none shadow-xl"
+              style={{
+                transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`,
+                transformOrigin: "center center",
+              }}
+              className={`max-w-full max-h-[60vh] lg:max-h-[76vh] object-contain rounded-xl shadow-2xl ${
+                isDragging
+                  ? "transition-none"
+                  : "transition-transform duration-200 ease-out"
+              }`}
             />
-          </div>
-
-          <div
-            onMouseDown={(e) => e.stopPropagation()}
-            onTouchStart={(e) => e.stopPropagation()}
-            className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-slate-800/90 border border-slate-700 px-3 py-1.5 rounded-full flex items-center gap-2 shadow-xl z-10"
-          >
-            <button
-              type="button"
-              onClick={handleZoomOut}
-              disabled={zoom <= 1}
-              className="p-1.5 text-white hover:text-yellow-400 disabled:opacity-40 transition-colors"
-              title="Kecilkan (Zoom Out)"
-            >
-              <ZoomOut className="w-5 h-5" />
-            </button>
-            <span className="text-xs font-bold text-white min-w-[48px] text-center">
-              {Math.round(zoom * 100)}%
-            </span>
-            <button
-              type="button"
-              onClick={handleZoomIn}
-              disabled={zoom >= 3.5}
-              className="p-1.5 text-white hover:text-yellow-400 disabled:opacity-40 transition-colors"
-              title="Besarkan (Zoom In)"
-            >
-              <ZoomIn className="w-5 h-5" />
-            </button>
-            {zoom > 1 && (
-              <button
-                type="button"
-                onClick={handleResetZoom}
-                className="p-1.5 text-yellow-400 hover:text-yellow-300 border-l border-slate-600 pl-2 transition-colors"
-                title="Saiz Asal & Pusatkan Semula"
-              >
-                <RotateCcw className="w-4 h-4" />
-              </button>
-            )}
           </div>
         </div>
 
-        <div className="md:w-2/5 flex-1 min-h-0 flex flex-col bg-white overflow-hidden">
-          <div className="p-4 sm:p-5 border-b border-slate-200 bg-sky-50/70 pr-24 shrink-0">
-            <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-              <span className="bg-yellow-400 text-blue-900 text-xs font-extrabold px-3 py-0.5 rounded-full uppercase">
-                {artwork.className}
-              </span>
-              <span className="bg-blue-900 text-yellow-300 text-xs font-extrabold px-2.5 py-0.5 rounded-full">
-                {artworkField}
-              </span>
-              <span className="bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-0.5 rounded-full">
-                Sesi {artworkYear}
-              </span>
+        <div className="w-full lg:w-[410px] bg-white flex flex-col max-h-[45vh] lg:max-h-[92vh] border-t-4 lg:border-t-0 lg:border-l-2 border-slate-200">
+          <div className="p-5 border-b border-slate-100 bg-sky-50/70 flex justify-between items-start gap-3">
+            <div>
+              <div className="flex flex-wrap items-center gap-1.5 mb-2">
+                <span className="bg-yellow-400 text-blue-900 text-xs font-extrabold px-3 py-0.5 rounded-full uppercase">
+                  {artwork.className}
+                </span>
+                <span className="bg-blue-800 text-yellow-300 text-xs font-extrabold px-2.5 py-0.5 rounded-full">
+                  {artworkField}
+                </span>
+                <span className="bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-0.5 rounded-full">
+                  Tahun {artworkYear}
+                </span>
+              </div>
+              <h3 className="text-2xl font-black text-blue-950 leading-tight">
+                {artwork.title}
+              </h3>
+              <p className="text-sm font-bold text-blue-600 mt-1 flex items-center">
+                <User className="w-4 h-4 mr-1.5" />
+                {artwork.studentName}
+              </p>
             </div>
-            <h3 className="text-lg sm:text-2xl font-black text-blue-900 leading-snug">
-              {artwork.title}
-            </h3>
-            <div className="flex items-center text-slate-600 font-semibold text-xs sm:text-sm mt-1">
-              <User className="w-4 h-4 mr-1.5 text-blue-500" />
-              <span>{artwork.studentName}</span>
+
+            <div className="flex items-center gap-1.5 shrink-0">
+              {isStaffLoggedIn && (
+                <>
+                  <button
+                    onClick={onRequestEdit}
+                    className="p-2 bg-blue-100 hover:bg-blue-700 text-blue-800 hover:text-yellow-300 rounded-full transition-colors"
+                    title="Edit Maklumat Karya"
+                  >
+                    <Pencil className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={onRequestDelete}
+                    className="p-2 bg-red-100 hover:bg-red-600 text-red-600 hover:text-white rounded-full transition-colors"
+                    title="Padam Karya"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </button>
+                </>
+              )}
+
+              <button
+                onClick={onClose}
+                className="hidden lg:flex p-2 bg-slate-200 hover:bg-red-500 hover:text-white text-slate-600 rounded-full transition-colors"
+                title="Tutup"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
           </div>
 
-          <div className="px-4 sm:px-5 py-2.5 border-b border-slate-200 flex items-center justify-between bg-white gap-2 shrink-0">
+          <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between bg-white gap-2">
             <div className="flex items-center gap-2">
               <button
                 onClick={handleLikeClick}
-                className={`flex items-center space-x-2 font-extrabold px-3.5 py-1.5 rounded-full transition-all text-xs sm:text-sm ${
+                className={`flex items-center space-x-2 px-4 py-2 rounded-full font-extrabold text-sm transition-all ${
                   hasLiked
-                    ? "bg-yellow-100 text-yellow-700 border-2 border-yellow-400"
-                    : "bg-slate-100 text-slate-600 hover:bg-yellow-50 hover:text-yellow-600"
+                    ? "bg-yellow-400 text-blue-900 shadow-sm"
+                    : "bg-slate-100 text-slate-600 hover:bg-yellow-100 hover:text-yellow-700"
                 }`}
               >
                 <Star
-                  className={`w-4 h-4 sm:w-5 sm:h-5 ${
-                    hasLiked ? "fill-current text-yellow-500" : ""
-                  } ${starBurst ? "animate-star-pop" : ""}`}
+                  className={`w-5 h-5 ${hasLiked ? "fill-current" : ""} ${
+                    starBurst ? "animate-star-pop" : ""
+                  }`}
                 />
                 <span>
                   {likesCount > 0 ? `${likesCount} Bintang` : "Beri Bintang"}
@@ -6101,16 +6249,34 @@ function ArtworkLightboxModal({
               />
             </div>
 
-            <div className="flex items-center space-x-1.5 text-blue-700 font-bold text-xs sm:text-sm">
-              <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span>{commentsList.length} Ulasan</span>
+            <div className="flex items-center gap-2">
+              {activePassport && (
+                <button
+                  type="button"
+                  onClick={handleToggleQuiz}
+                  className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-black transition-all shadow-2xs ${
+                    isQuizOpen
+                      ? "bg-blue-700 text-yellow-300"
+                      : "bg-yellow-400 hover:bg-yellow-300 text-blue-900 border border-blue-900/30"
+                  }`}
+                  title="Jawab 3 soalan apresiasi mengikut bidang & tahap murid"
+                >
+                  <HelpCircle className="w-3.5 h-3.5" />
+                  <span>{isQuizOpen ? "Tutup Soalan" : "3 Soalan Seni"}</span>
+                </button>
+              )}
+
+              <div className="text-xs font-bold text-slate-500 flex items-center">
+                <MessageCircle className="w-4 h-4 mr-1 text-blue-500" />
+                {commentsList.length}
+              </div>
             </div>
           </div>
 
-          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-4 sm:p-5 space-y-3 bg-slate-50">
+          <div className="flex-1 overflow-y-auto p-5 space-y-3 bg-slate-50">
             {commentsList.length === 0 ? (
-              <div className="text-center py-6 text-slate-400 text-sm italic">
-                Belum ada ulasan pada karya ini. Jadilah yang pertama memuji!
+              <div className="text-center py-8 text-slate-400 text-sm italic">
+                Belum ada ulasan pada karya ini. Kongsikan pujian anda!
               </div>
             ) : (
               commentsList.map((comment: any) => {
@@ -6181,7 +6347,7 @@ function ArtworkLightboxModal({
             )}
           </div>
 
-          <div className="p-3 sm:p-4 bg-white border-t border-slate-200 shrink-0 max-h-[45vh] overflow-y-auto overscroll-contain">
+          <div className="p-4 bg-white border-t border-slate-200">
             {activePassport && isQuizOpen && (
               <PassportQuizBox
                 stage={criticStage}
@@ -6208,35 +6374,32 @@ function ArtworkLightboxModal({
                 <button
                   type="button"
                   onClick={handleToggleQuiz}
-                  className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all border-2 ${
+                  className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all border ${
                     isQuizOpen
-                      ? "bg-blue-700 text-yellow-300 border-blue-800 shadow-sm"
-                      : "bg-yellow-400 hover:bg-yellow-300 text-blue-900 border-blue-900/30 shadow-xs"
+                      ? "bg-blue-700 text-yellow-300 border-blue-800"
+                      : "bg-yellow-400 hover:bg-yellow-300 text-blue-900 border-blue-900/30"
                   }`}
                   title="Ikon Khas: Jawab 3 Soalan Apresiasi Seni"
                 >
                   <HelpCircle className="w-5 h-5" />
                 </button>
               )}
-
               <div className="relative flex-1">
                 <input
                   type="text"
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
                   placeholder={
-                    activePassport
-                      ? answeredQuizList.length > 0
-                        ? `Tambah ulasan bebas (${activePassport.fullName})...`
-                        : `Tulis pujian sebagai ${activePassport.fullName}...`
-                      : "Tulis pujian murni anda di sini..."
+                    answeredQuizList.length > 0
+                      ? "Tambah ulasan bebas (atau terus hantar)..."
+                      : "Tulis ulasan murni..."
                   }
-                  className="w-full bg-slate-50 border-2 border-slate-200 rounded-full py-2.5 pl-4 pr-12 text-sm focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
+                  className="w-full bg-slate-100 border border-slate-300 rounded-full py-2.5 pl-4 pr-12 text-sm focus:outline-none focus:bg-white focus:border-blue-500 transition-all"
                 />
                 <button
                   type="submit"
                   disabled={!canSubmitComment}
-                  className="absolute right-1.5 top-1.5 bottom-1.5 bg-blue-600 text-white w-9 h-9 flex items-center justify-center rounded-full hover:bg-blue-700 active:scale-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
+                  className="absolute right-1.5 top-1.5 bottom-1.5 bg-blue-600 text-white w-8 h-8 flex items-center justify-center rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   title="Hantar Komen / Jawapan"
                 >
                   <Send className="w-4 h-4 ml-0.5" />
@@ -6250,68 +6413,72 @@ function ArtworkLightboxModal({
   );
 }
 
-// --- MODAL TAMBAH & EDIT KARYA (MENYOKONG MUAT NAIK FAIL GAMBAR & PAUTAN URL) ---
+// --- MODAL TAMBAH & EDIT KARYA (MUAT NAIK GAMBAR TERUS ATAU PAUTAN URL) ---
 function ArtworkFormModal({
   mode = "add",
-  initialData,
+  initialData = null,
   onClose,
   onSubmit,
 }: {
   mode?: "add" | "edit";
   initialData?: any;
   onClose: () => void;
-  onSubmit: (data: any) => void;
+  onSubmit: (data: any) => void | Promise<void>;
 }) {
-  const [title, setTitle] = useState(initialData?.title || "");
+  const isEdit = mode === "edit" && initialData;
+  const [title, setTitle] = useState(isEdit ? initialData.title || "" : "");
   const [studentName, setStudentName] = useState(
-    initialData?.studentName || ""
+    isEdit ? initialData.studentName || "" : ""
   );
   const [className, setClassName] = useState(
-    initialData?.className || "Tahun 1"
+    isEdit ? initialData.className || "Tahun 1" : "Tahun 1"
   );
   const [field, setField] = useState<PsvFieldType>(
-    normalizePsvField(initialData?.field)
+    isEdit ? normalizePsvField(initialData.field) : "Menggambar"
   );
-  const [imageMode, setImageMode] = useState<"upload" | "url">(
-    initialData?.imageUrl && !initialData.imageUrl.startsWith("data:")
-      ? "url"
-      : "upload"
+
+  const initialImg = isEdit ? initialData.imageUrl || "" : "";
+  const [imageSourceMode, setImageSourceMode] = useState<"upload" | "url">(
+    initialImg.startsWith("data:image") || !initialImg ? "upload" : "url"
   );
-  const [imageUrl, setImageUrl] = useState(initialData?.imageUrl || "");
-  const [isCompressing, setIsCompressing] = useState(false);
+  const [imageUrl, setImageUrl] = useState(initialImg);
+  const [uploadError, setUploadError] = useState("");
+  const [isProcessingImg, setIsProcessingImg] = useState(false);
 
-  const classes = [
-    "Tahun 1",
-    "Tahun 2",
-    "Tahun 3",
-    "Tahun 4",
-    "Tahun 5",
-    "Tahun 6",
-  ];
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleImageFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setIsCompressing(true);
+    setUploadError("");
+    if (!file.type.startsWith("image/")) {
+      SoundFX.alert();
+      setUploadError(
+        "Sila pilih fail gambar yang sah (JPG, PNG, WEBP atau GIF)."
+      );
+      return;
+    }
+
+    setIsProcessingImg(true);
     const reader = new FileReader();
     reader.onload = (event) => {
       const img = new Image();
       img.onload = () => {
         const canvas = document.createElement("canvas");
-        const MAX_DIM = 850;
+        const MAX_DIMENSION = 640;
         let width = img.width;
         let height = img.height;
 
         if (width > height) {
-          if (width > MAX_DIM) {
-            height = Math.round((height * MAX_DIM) / width);
-            width = MAX_DIM;
+          if (width > MAX_DIMENSION) {
+            height = Math.round((height * MAX_DIMENSION) / width);
+            width = MAX_DIMENSION;
           }
         } else {
-          if (height > MAX_DIM) {
-            width = Math.round((width * MAX_DIM) / height);
-            height = MAX_DIM;
+          if (height > MAX_DIMENSION) {
+            width = Math.round((width * MAX_DIMENSION) / height);
+            height = MAX_DIMENSION;
           }
         }
 
@@ -6320,14 +6487,25 @@ function ArtworkFormModal({
         const ctx = canvas.getContext("2d");
         if (ctx) {
           ctx.drawImage(img, 0, 0, width, height);
-          const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.72);
+          let quality = 0.65;
+          let compressedDataUrl = canvas.toDataURL("image/jpeg", quality);
+
+          while (compressedDataUrl.length > 42000 && quality > 0.25) {
+            quality -= 0.1;
+            compressedDataUrl = canvas.toDataURL("image/jpeg", quality);
+          }
+
           setImageUrl(compressedDataUrl);
           SoundFX.success();
         }
-        setIsCompressing(false);
+        setIsProcessingImg(false);
       };
       img.onerror = () => {
-        setIsCompressing(false);
+        setIsProcessingImg(false);
+        SoundFX.alert();
+        setUploadError(
+          "Gagal memproses fail gambar tersebut. Sila cuba gambar lain."
+        );
       };
       img.src = event.target?.result as string;
     };
@@ -6336,46 +6514,66 @@ function ArtworkFormModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || !studentName.trim() || !imageUrl.trim()) return;
-    const finalImageUrl = formatDirectImageUrl(imageUrl.trim());
-    onSubmit({ title, studentName, className, field, imageUrl: finalImageUrl });
-  };
+    setUploadError("");
 
-  const isEdit = mode === "edit";
+    const finalFormattedUrl = formatDirectImageUrl(imageUrl);
+
+    if (!title || !studentName || !finalFormattedUrl) {
+      SoundFX.alert();
+      setUploadError(
+        "Sila lengkapkan tajuk, nama pelukis, dan muat naik gambar karya."
+      );
+      return;
+    }
+
+    onSubmit({
+      title,
+      studentName,
+      className,
+      field,
+      imageUrl: finalFormattedUrl,
+    });
+  };
 
   return (
     <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-[2rem] w-full max-w-md max-h-[92vh] overflow-y-auto shadow-2xl border-4 border-yellow-400 animate-modal-enter">
         <div
-          className={`p-6 flex justify-between items-center text-white sticky top-0 z-20 ${
-            isEdit ? "bg-blue-900" : "bg-blue-600"
+          className={`p-6 flex justify-between items-center text-white sticky top-0 z-10 ${
+            isEdit ? "bg-blue-900" : "bg-blue-500"
           }`}
         >
           <h3 className="text-2xl font-black flex items-center">
             {isEdit ? (
               <>
-                <Pencil className="mr-2 text-yellow-400" />
-                Edit Karya Seni
+                <Pencil className="mr-2 text-yellow-300" />
+                Edit Maklumat Karya
               </>
             ) : (
               <>
-                <Plus className="mr-2 text-yellow-400" />
+                <Plus className="mr-2 text-yellow-300" />
                 Pamerkan Karya
               </>
             )}
           </h3>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-white/10 rounded-full transition-colors"
+            className="p-2 hover:bg-white/15 rounded-full transition-colors"
           >
             <X className="w-6 h-6" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+          {uploadError && (
+            <div className="bg-red-100 border-l-4 border-red-500 text-red-800 p-3 rounded-r-xl text-xs font-bold">
+              {uploadError}
+            </div>
+          )}
+
           <div>
             <label className="block text-sm font-bold text-slate-700 mb-1">
-              Tajuk Karya
+              Tajuk Karya Seni *
             </label>
             <input
               type="text"
@@ -6390,14 +6588,14 @@ function ArtworkFormModal({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-1">
-                Nama Pelukis Cilik
+                Nama Pelukis *
               </label>
               <input
                 type="text"
                 value={studentName}
                 onChange={(e) => setStudentName(e.target.value)}
                 required
-                placeholder="Cth: Ahmad Ali"
+                placeholder="Cth: Ali bin Abu"
                 className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all font-medium"
               />
             </div>
@@ -6411,46 +6609,49 @@ function ArtworkFormModal({
                 onChange={(e) => setClassName(e.target.value)}
                 className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all font-medium bg-white"
               >
-                {classes.map((cls) => (
-                  <option key={cls} value={cls}>
-                    {cls}
-                  </option>
-                ))}
+                <option value="Tahun 1">Tahun 1</option>
+                <option value="Tahun 2">Tahun 2</option>
+                <option value="Tahun 3">Tahun 3</option>
+                <option value="Tahun 4">Tahun 4</option>
+                <option value="Tahun 5">Tahun 5</option>
+                <option value="Tahun 6">Tahun 6</option>
               </select>
             </div>
           </div>
 
           <div>
             <label className="block text-sm font-bold text-slate-700 mb-1">
-              Bidang PSV (DSKP Sekolah Rendah)
+              Bidang Seni (DSKP PSV) *
             </label>
             <select
               value={field}
               onChange={(e) => setField(e.target.value as PsvFieldType)}
-              className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all font-bold text-blue-900 bg-amber-50/50"
+              className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all font-medium bg-white"
             >
-              {PSV_FIELDS.map((fld) => (
-                <option key={fld} value={fld}>
-                  {fld}
+              {PSV_FIELDS.map((item) => (
+                <option key={item} value={item}>
+                  {item}
                 </option>
               ))}
             </select>
           </div>
 
+          {/* BAHAGIAN GAMBAR KARYA: MUAT NAIK FAIL TERUS ATAU PAUTAN URL */}
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="block text-sm font-bold text-slate-700">
-                Gambar Karya
+                Gambar Karya *
               </label>
-              <div className="flex bg-slate-100 p-1 rounded-xl text-xs font-bold">
+              <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200">
                 <button
                   type="button"
                   onClick={() => {
                     SoundFX.click();
-                    setImageMode("upload");
+                    setImageSourceMode("upload");
+                    setUploadError("");
                   }}
-                  className={`px-2.5 py-1 rounded-lg flex items-center gap-1 transition-all ${
-                    imageMode === "upload"
+                  className={`px-2.5 py-1 rounded-md text-xs font-extrabold flex items-center gap-1 transition-all ${
+                    imageSourceMode === "upload"
                       ? "bg-blue-600 text-white shadow-2xs"
                       : "text-slate-600 hover:text-blue-700"
                   }`}
@@ -6462,10 +6663,11 @@ function ArtworkFormModal({
                   type="button"
                   onClick={() => {
                     SoundFX.click();
-                    setImageMode("url");
+                    setImageSourceMode("url");
+                    setUploadError("");
                   }}
-                  className={`px-2.5 py-1 rounded-lg flex items-center gap-1 transition-all ${
-                    imageMode === "url"
+                  className={`px-2.5 py-1 rounded-md text-xs font-extrabold flex items-center gap-1 transition-all ${
+                    imageSourceMode === "url"
                       ? "bg-blue-600 text-white shadow-2xs"
                       : "text-slate-600 hover:text-blue-700"
                   }`}
@@ -6476,58 +6678,62 @@ function ArtworkFormModal({
               </div>
             </div>
 
-            {imageMode === "upload" ? (
-              <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-blue-300 rounded-2xl cursor-pointer bg-sky-50/70 hover:bg-sky-100/70 transition-colors p-3 text-center">
-                <Upload className="w-7 h-7 text-blue-600 mb-1.5" />
-                <span className="text-xs font-extrabold text-blue-900">
-                  {isCompressing
-                    ? "Sedang memproses & mengoptimumkan gambar..."
-                    : "Klik untuk pilih foto karya dari telefon / komputer"}
-                </span>
-                <span className="text-[11px] text-slate-500 mt-0.5">
-                  Format: JPG, PNG, WEBP (Auto-mampat pantas)
-                </span>
+            {imageSourceMode === "upload" ? (
+              <div>
                 <input
+                  ref={fileInputRef}
                   type="file"
                   accept="image/*"
-                  onChange={handleImageFileUpload}
+                  onChange={handleFileUpload}
                   className="hidden"
                 />
-              </label>
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className="border-2 border-dashed border-blue-300 hover:border-blue-500 bg-sky-50/70 hover:bg-sky-100/70 rounded-2xl p-5 text-center cursor-pointer transition-all"
+                >
+                  <Upload className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+                  <p className="text-sm font-extrabold text-blue-900">
+                    {isProcessingImg
+                      ? "Sedang memproses & memampatkan gambar..."
+                      : imageUrl
+                      ? "Klik untuk tukar fail gambar lain"
+                      : "Klik untuk pilih gambar dari Telefon / Komputer"}
+                  </p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Format disokong: JPG, PNG, WEBP (Auto-mampat pantas)
+                  </p>
+                </div>
+              </div>
             ) : (
               <div>
                 <input
                   type="url"
-                  value={imageUrl}
+                  value={imageUrl.startsWith("data:") ? "" : imageUrl}
                   onChange={(e) => setImageUrl(e.target.value)}
-                  placeholder="https://... atau pautan Google Drive"
-                  className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all font-medium text-sm"
+                  placeholder="Tampal pautan Google Drive / Imgur / Postimages..."
+                  className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all text-sm font-medium"
                 />
-                <p className="text-xs text-slate-400 mt-1">
-                  Menyokong pautan terus gambar (.jpg/.png) atau pautan perkongsian
-                  Google Drive.
+                <p className="text-[11px] text-slate-500 mt-1">
+                  Sokong pautan terus gambar atau pautan perkongsian Google Drive
+                  (Anyone with the link).
                 </p>
               </div>
             )}
 
             {imageUrl && (
-              <div className="mt-3 relative rounded-2xl overflow-hidden border-2 border-blue-200 bg-slate-100 p-2">
+              <div className="mt-3 relative bg-slate-100 p-2 rounded-2xl border border-slate-200 text-center">
                 <img
                   src={formatDirectImageUrl(imageUrl)}
                   alt="Pratonton Karya"
-                  className="max-h-40 mx-auto object-contain rounded-xl"
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    SoundFX.click();
-                    setImageUrl("");
+                  onError={(e: any) => {
+                    e.target.src =
+                      "https://placehold.co/400x250/e2e8f0/475569?text=Pautan+Gambar+Tidak+Sah";
                   }}
-                  className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white p-1.5 rounded-full shadow-md"
-                  title="Buang gambar ini"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
+                  className="max-h-40 mx-auto rounded-xl object-contain"
+                />
+                <span className="inline-block mt-1.5 text-[11px] font-bold text-green-700 bg-green-100 px-2.5 py-0.5 rounded-full">
+                  Pratonton Gambar Sedia
+                </span>
               </div>
             )}
           </div>
@@ -6542,10 +6748,10 @@ function ArtworkFormModal({
             </button>
             <button
               type="submit"
-              disabled={isCompressing || !imageUrl.trim()}
-              className="w-2/3 px-4 py-3 bg-yellow-400 hover:bg-yellow-300 disabled:opacity-50 text-blue-900 font-black rounded-xl shadow-[0_4px_0_rgb(180,83,9)] hover:translate-y-0.5 transition-all"
+              disabled={isProcessingImg}
+              className="w-2/3 px-4 py-3 bg-yellow-400 hover:bg-yellow-300 disabled:opacity-50 text-blue-900 font-black rounded-xl shadow-[0_4px_0_rgb(180,83,9)] hover:shadow-[0_2px_0_rgb(180,83,9)] hover:translate-y-0.5 transition-all"
             >
-              {isEdit ? "Simpan Perubahan!" : "Pamerkan Sekarang!"}
+              {isEdit ? "Simpan Perubahan" : "Hantar Karya!"}
             </button>
           </div>
         </form>
