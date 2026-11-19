@@ -249,9 +249,9 @@ const getOptimizedArtworkUrl = (
 // 5 Bidang Utama Pendidikan Seni Visual KSSR (Termasuk Seni Digital)
 const PSV_FIELDS = [
   "Menggambar",
-  "Membuat Corak dan Rekaan",
-  "Membentuk dan Membuat Binaan",
-  "Mengenal Kraf Tradisional",
+  "Corak dan Rekaan",
+  "Binaan 3D",
+  "Kraf Tradisional",
   "Seni Digital",
 ] as const;
 
@@ -263,11 +263,10 @@ const normalizePsvField = (val: string): PsvFieldType => {
   if (low.includes("digital")) return "Seni Digital";
   if (low.includes("gambar")) return "Menggambar";
   if (low.includes("corak") || low.includes("rekaan"))
-    return "Membuat Corak dan Rekaan";
-  if (low.includes("bentuk") || low.includes("binaan"))
-    return "Membentuk dan Membuat Binaan";
+    return "Corak dan Rekaan";
+  if (low.includes("bentuk") || low.includes("binaan")) return "Binaan 3D";
   if (low.includes("kraf") || low.includes("tradisional"))
-    return "Mengenal Kraf Tradisional";
+    return "Kraf Tradisional";
   return (PSV_FIELDS as readonly string[]).includes(s)
     ? (s as PsvFieldType)
     : "Menggambar";
@@ -285,7 +284,7 @@ const MEDIA_BY_FIELD: Record<string, string[]> = {
     "Bahan Alam & Terbuang (Daun Kering / Biji-bijian / Butang)",
     "Lilin / Krayon & Cat Air (Campuran Media)",
   ],
-  "Membuat Corak dan Rekaan": [
+  "Corak dan Rekaan": [
     "Media Basah (Cat Air / Cat Poster / Pewarna Makanan)",
     "Media Kering (Pensel Warna / Krayon / Oil Pastel / Marker)",
     "Kertas Warna / Kertas Lukisan / Kad Manila",
@@ -294,7 +293,7 @@ const MEDIA_BY_FIELD: Record<string, string[]> = {
     "Tisu / Kain Kapas / Tali Rafia & Pewarna",
     "Lilin & Cat Air / Cat Minyak",
   ],
-  "Membentuk dan Membuat Binaan (3D)": [
+  "Binaan 3D": [
     "Kertas / Kad Manila / Kadbod / Kotak Terpakai",
     "Tanah Liat / Plastisin / Doh Tepung",
     "Bahan Terbuang (Botol Plastik / Cawan Kertas / Tin / Penutup Botol)",
@@ -303,7 +302,7 @@ const MEDIA_BY_FIELD: Record<string, string[]> = {
     "Dawai Lembut / Aluminium Foil / Tali",
     "Cat Poster / Cat Akrilik / Kertas Warna (Kemasan Binaan)",
   ],
-  "Mengenal Kraf Tradisional": [
+  "Kraf Tradisional": [
     "Kertas Warna / Kad Manila / Kertas Lukisan",
     "Tanah Liat / Plastisin",
     "Kayu / Buluh / Rotan / Lidi",
@@ -332,12 +331,27 @@ const formatMediaAndStory = (media: string, story: string): string => {
   return cleanStory;
 };
 
+const parseMediaAndStory = (
+  rawDescription?: string
+): { media: string; story: string } => {
+  const desc = String(rawDescription || "").trim();
+  const match = desc.match(/^\[Media:\s*(.+?)\](?:\r?\n([\s\S]*))?$/);
+  if (match) {
+    return {
+      media: match[1].trim(),
+      story: (match[2] || "").trim(),
+    };
+  }
+  return { media: "", story: desc };
+};
+
 type AppreciationQuestion = {
+  id?: string;
+  field?: string;
   category: string;
   question: string;
   options: string[];
 };
-
 const APPRECIATION_QUESTIONS_BY_FIELD: Record<
   PsvFieldType,
   {
@@ -1130,128 +1144,180 @@ const APPRECIATION_QUESTIONS_BY_FIELD: Record<
       {
         id: "sd-t1-1",
         category: "Hal Benda",
-        prompt:
+        question:
           "Apakah gambar atau watak utama yang kamu lukis pada skrin dalam karya digital ini?",
-        starter: "Dalam karya digital ini, saya melukis gambar...",
+        options: [
+          "Dalam karya digital ini, saya melukis watak kartun atau haiwan comel yang ceria.",
+          "Saya melukis pemandangan alam semula jadi seperti pelangi, pokok, dan rumah di atas skrin.",
+          "Karya ini memaparkan objek harian dan kenderaan kegemaran saya yang berwarna-warni.",
+        ],
       },
       {
         id: "sd-t1-2",
         category: "Media & Bahan",
-        prompt:
+        question:
           "Apakah peranti dan aplikasi digital yang kamu gunakan untuk menghasilkan karya ini?",
-        starter:
-          "Saya menggunakan peranti... dan aplikasi... untuk menghasilkan karya ini.",
+        options: [
+          "Saya menggunakan tablet dan aplikasi lukisan digital untuk melakar serta mewarna karya ini.",
+          "Saya menghasilkan karya ini menggunakan komputer riba dan tetikus pada perisian melukis asas.",
+          "Saya menggunakan telefon pintar dengan jari dan aplikasi lukisan mudah alih untuk berkarya.",
+        ],
       },
       {
         id: "sd-t1-3",
         category: "Teknik",
-        prompt:
+        question:
           "Apakah alat digital (seperti berus, bentuk asas, atau baldi warna) yang paling kamu suka gunakan?",
-        starter:
-          "Alat digital yang paling saya suka gunakan ialah... kerana...",
+        options: [
+          "Saya paling suka menggunakan alat baldi warna (fill bucket) kerana ia mewarna ruang dengan cepat dan kemas.",
+          "Saya gemar menggunakan berus digital pelbagai saiz untuk membuat garisan tebal dan nipis.",
+          "Saya suka menggunakan alat bentuk asas (bulatan dan segi empat) untuk membina objek dengan tepat.",
+        ],
       },
       {
         id: "sd-t1-4",
         category: "Unsur Seni",
-        prompt:
+        question:
           "Apakah warna-warna terang atau garisan digital yang kamu pilih untuk mencantikkan karya ini?",
-        starter:
-          "Saya memilih warna... dan garisan... supaya karya kelihatan...",
+        options: [
+          "Saya memilih warna-warna terang seperti kuning, merah, dan biru supaya karya kelihatan ceria.",
+          "Saya menggabungkan garisan lurus dan melengkung yang kemas untuk membentuk rupa objek.",
+          "Saya menggunakan warna kontra antara latar belakang dan gambar utama supaya mudah dilihat.",
+        ],
       },
       {
         id: "sd-t1-5",
         category: "Prinsip Rekaan",
-        prompt:
+        question:
           "Bagaimanakah kamu menyusun gambar utama di tengah atau di ruang skrin supaya nampak kemas?",
-        starter: "Saya menyusun gambar utama di bahagian... supaya nampak...",
+        options: [
+          "Saya meletakkan gambar utama tepat di bahagian tengah skrin supaya menjadi tumpuan.",
+          "Saya menyusun objek besar dan kecil secara seimbang di kiri dan kanan ruang lukisan.",
+          "Saya memastikan ruang latar belakang tidak terlalu penuh supaya karya kelihatan teratur.",
+        ],
       },
       {
         id: "sd-t1-6",
         category: "Mesej",
-        prompt:
+        question:
           "Apakah cerita atau perasaan gembira yang ingin kamu sampaikan melalui karya digital ini?",
-        starter:
-          "Karya digital ini menceritakan tentang... dan membuatkan saya rasa...",
+        options: [
+          "Karya digital ini menceritakan kegembiraan saya bermain bersama kawan-kawan dan keluarga.",
+          "Saya ingin berkongsi rasa sayang terhadap alam sekitar dan haiwan peliharaan melalui lukisan ini.",
+          "Lukisan ini menggambarkan dunia imaginasi saya yang penuh warna dan menyeronokkan.",
+        ],
       },
       {
         id: "sd-t1-7",
         category: "Kreativiti",
-        prompt:
+        question:
           "Apakah bahagian yang paling menyeronokkan semasa kamu melukis menggunakan komputer atau tablet?",
-        starter: "Bahagian yang paling menyeronokkan ialah semasa saya...",
+        options: [
+          "Bahagian paling menyeronokkan ialah apabila saya dapat mencuba pelbagai jenis berus dan warna digital.",
+          "Saya seronok kerana boleh memadam kesilapan dengan mudah menggunakan butang undo tanpa mengotorkan kertas.",
+          "Saya gembira dapat mengezum masuk (zoom in) untuk mewarna bahagian kecil dengan lebih teliti.",
+        ],
       },
       {
         id: "sd-t1-8",
         category: "Pengkritikan",
-        prompt:
+        question:
           "Jika kamu boleh menambah satu lagi kesan khas atau pelekat digital pada karya ini, apakah yang akan kamu tambah?",
-        starter: "Jika boleh ditambah, saya ingin menambah... supaya lebih...",
+        options: [
+          "Saya ingin menambah kesan kilauan bintang atau cahaya supaya karya kelihatan lebih ajaib.",
+          "Saya mahu menambah bingkai digital yang cantik di sekeliling lukisan ini.",
+          "Saya ingin menambah teks tajuk yang ceria supaya mesej lukisan lebih jelas difahami.",
+        ],
       },
     ],
     tahap2: [
       {
         id: "sd-t2-1",
         category: "Hal Benda",
-        prompt:
+        question:
           "Huraikan tema atau subjek utama karya seni digital ini serta sumber ilham kamu menghasilkannya.",
-        starter:
-          "Tema utama karya seni digital ini ialah... yang diilhamkan daripada...",
+        options: [
+          "Tema utama karya ini ialah keharmonian alam dan teknologi yang diilhamkan daripada persekitaran harian.",
+          "Subjek utama karya ini ialah ilustrasi watak dan budaya tempatan yang diolah dalam gaya moden.",
+          "Karya ini mengangkat tema penjagaan alam sekitar yang diilhamkan daripada poster kempen kesedaran.",
+        ],
       },
       {
         id: "sd-t2-2",
         category: "Media & Bahan",
-        prompt:
+        question:
           "Nyatakan perisian, peranti input (tetikus, stylus, atau skrin sentuh), serta jenis berus digital yang diaplikasikan.",
-        starter:
-          "Karya ini dihasilkan menggunakan perisian... dengan peranti... dan pilihan berus...",
+        options: [
+          "Karya ini dihasilkan menggunakan aplikasi lukisan digital pada tablet dengan pen stylus dan berus cat air digital.",
+          "Saya menggunakan perisian grafik di komputer dengan tetikus serta kombinasi berus pen teknikal dan airbrush.",
+          "Karya ini dilukis pada skrin sentuh menggunakan berus tekstur lembut untuk kesan lorekan yang halus.",
+        ],
       },
       {
         id: "sd-t2-3",
         category: "Teknik",
-        prompt:
+        question:
           "Bagaimanakah kamu memanfaatkan fungsi lapisan (layers), alat bentuk, atau kesan tekstur digital semasa berkarya?",
-        starter:
-          "Saya mengaplikasikan teknik lapisan (layers) dan kesan digital dengan cara...",
+        options: [
+          "Saya mengasingkan lakaran garisan, warna asas, dan bayang pada lapisan (layers) berbeza agar mudah disunting.",
+          "Saya menggabungkan alat bentuk geometri dengan kesan kecerunan warna (gradient) untuk latar belakang yang kemas.",
+          "Saya menggunakan lapisan tekstur dan mod campuran warna untuk memberi kedalaman pada permukaan objek.",
+        ],
       },
       {
         id: "sd-t2-4",
         category: "Unsur Seni",
-        prompt:
+        question:
           "Analisis penggunaan unsur warna, ton cahaya, dan jalinan digital yang menghidupkan suasana karya ini.",
-        starter:
-          "Dari segi unsur seni, gabungan warna... dan kesan cahaya digital berjaya...",
+        options: [
+          "Gabungan warna harmoni dan ton cahaya cerah berjaya mewujudkan suasana yang segar dan bertenaga.",
+          "Penggunaan kontras warna panas dan sejuk serta kesan pencahayaan digital menonjolkan bentuk tiga dimensi objek.",
+          "Jalinan digital pada latar belakang memberi kesan visual yang menarik tanpa menenggelamkan subjek utama.",
+        ],
       },
       {
         id: "sd-t2-5",
         category: "Prinsip Rekaan",
-        prompt:
+        question:
           "Bagaimanakah prinsip penegasan, imbangan, dan kesatuan diwujudkan dalam susun atur grafik digital ini?",
-        starter:
-          "Prinsip penegasan dan imbangan jelas kelihatan melalui susunan...",
+        options: [
+          "Prinsip penegasan diwujudkan melalui saiz subjek utama yang lebih besar dan warna yang lebih menyerlah di tengah komposisi.",
+          "Imbangan asimetri yang terancang antara elemen grafik dan ruang kosong menjadikan reka letak kelihatan profesional.",
+          "Kesatuan dicapai melalui pemilihan palet warna yang konsisten dan gaya garisan yang seragam di seluruh karya.",
+        ],
       },
       {
         id: "sd-t2-6",
         category: "Mesej",
-        prompt:
+        question:
           "Apakah mesej visual atau nilai murni yang ingin disampaikan kepada penonton melalui rekaan digital ini?",
-        starter:
-          "Mesej utama yang ingin disampaikan melalui karya digital ini ialah...",
+        options: [
+          "Karya ini menyampaikan mesej kepentingan menjaga kelestarian alam demi generasi masa hadapan.",
+          "Saya ingin memupuk semangat perpaduan, kasih sayang, dan nilai murni masyarakat Malaysia melalui visual ini.",
+          "Rekaan digital ini mengajak penonton menghargai kreativiti seni moden yang menggabungkan budaya dan inovasi.",
+        ],
       },
       {
         id: "sd-t2-7",
         category: "Kreativiti",
-        prompt:
+        question:
           "Apakah cabaran teknikal semasa mengawal alat digital dan bagaimana kamu menyelesaikannya secara kreatif?",
-        starter:
-          "Cabaran utama semasa berkarya secara digital ialah... dan saya mengatasinya dengan...",
+        options: [
+          "Cabaran utama ialah mengawal ketepatan garisan melengkung, dan saya mengatasinya dengan melaras tetapan penstabil berus (stabilizer).",
+          "Saya menghadapi kesukaran memilih padanan warna yang sesuai, lalu menggunakan palet warna terhad supaya hasil lebih kemas.",
+          "Menguruskan banyak lapisan (layers) agak mengelirukan pada awalnya, jadi saya menamakan setiap lapisan mengikut bahagian lukisan.",
+        ],
       },
       {
         id: "sd-t2-8",
         category: "Pengkritikan",
-        prompt:
+        question:
           "Buat penilaian kendiri tentang kekuatan reka letak digital ini dan cadangkan satu penambahbaikan untuk karya seterusnya.",
-        starter:
-          "Kekuatan utama rekaan digital ini terletak pada... dan pada masa hadapan saya ingin menambah baik...",
+        options: [
+          "Kekuatan utama karya ini ialah pemilihan warna yang menarik, namun pada masa hadapan saya ingin memperhalusi kesan bayang dan pencahayaan.",
+          "Susun atur subjek utama sudah jelas dan seimbang, dan untuk karya seterusnya saya ingin meneroka teknik jalinan digital yang lebih pelbagai.",
+          "Kemas kini garisan digital sangat kemas, dan saya bercadang menambah elemen latar belakang yang lebih terperinci pada karya akan datang.",
+        ],
       },
     ],
   },
