@@ -246,17 +246,18 @@ const getOptimizedArtworkUrl = (
   return formatted;
 };
 
-// --- BANK SOALAN APRESIASI SENI VISUAL (60 SOALAN LENGKAP: 30 TAHAP 1 & 30 TAHAP 2) ---
 // 5 Bidang Utama Pendidikan Seni Visual KSSR (Termasuk Seni Digital)
 const PSV_FIELDS = [
   "Menggambar",
   "Membuat Corak dan Rekaan",
-  "Membentuk dan Membuat Binaan (3D)",
+  "Membentuk dan Membuat Binaan",
   "Mengenal Kraf Tradisional",
   "Seni Digital",
-];
+] as const;
 
-const normalizePsvField = (val: string): string => {
+type PsvFieldType = (typeof PSV_FIELDS)[number];
+
+const normalizePsvField = (val: string): PsvFieldType => {
   const s = String(val || "").trim();
   const low = s.toLowerCase();
   if (low.includes("digital")) return "Seni Digital";
@@ -264,10 +265,12 @@ const normalizePsvField = (val: string): string => {
   if (low.includes("corak") || low.includes("rekaan"))
     return "Membuat Corak dan Rekaan";
   if (low.includes("bentuk") || low.includes("binaan"))
-    return "Membentuk dan Membuat Binaan (3D)";
+    return "Membentuk dan Membuat Binaan";
   if (low.includes("kraf") || low.includes("tradisional"))
     return "Mengenal Kraf Tradisional";
-  return PSV_FIELDS.includes(s) ? s : "Menggambar";
+  return (PSV_FIELDS as readonly string[]).includes(s)
+    ? (s as PsvFieldType)
+    : "Menggambar";
 };
 
 // Pemetaan Media / Bahan & Teknik mengikut Bidang PSV KSSR
