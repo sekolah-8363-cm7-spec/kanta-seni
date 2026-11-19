@@ -737,11 +737,11 @@ const APPRECIATION_QUESTIONS_BY_FIELD: Record<
       },
     ],
   },
-  Binaan: {
+  Binaan 3D: {
     tahap1: [
       {
         id: "bn-t1-1",
-        field: "Binaan",
+        field: "Binaan 3D",
         category: "Hal Benda",
         question: "1. Apakah objek yang dihasilkan melalui binaan ini?",
         options: [
@@ -753,7 +753,7 @@ const APPRECIATION_QUESTIONS_BY_FIELD: Record<
       },
       {
         id: "bn-t1-2",
-        field: "Binaan",
+        field: "Binaan 3D",
         category: "Unsur Seni",
         question: "2. Apakah bentuk yang kamu dapat lihat pada binaan ini?",
         options: [
@@ -765,7 +765,7 @@ const APPRECIATION_QUESTIONS_BY_FIELD: Record<
       },
       {
         id: "bn-t1-3",
-        field: "Binaan",
+        field: "Binaan 3D",
         category: "Unsur Seni",
         question: "3. Apakah warna yang digunakan pada binaan ini?",
         options: [
@@ -777,7 +777,7 @@ const APPRECIATION_QUESTIONS_BY_FIELD: Record<
       },
       {
         id: "bn-t1-4",
-        field: "Binaan",
+        field: "Binaan 3D",
         category: "Media & Bahan",
         question:
           "4. Apakah bahan yang digunakan untuk menghasilkan binaan ini?",
@@ -790,7 +790,7 @@ const APPRECIATION_QUESTIONS_BY_FIELD: Record<
       },
       {
         id: "bn-t1-5",
-        field: "Binaan",
+        field: "Binaan 3D",
         category: "Prinsip Rekaan",
         question: "5. Adakah binaan ini kelihatan kukuh?",
         options: [
@@ -802,7 +802,7 @@ const APPRECIATION_QUESTIONS_BY_FIELD: Record<
       },
       {
         id: "bn-t1-6",
-        field: "Binaan",
+        field: "Binaan 3D",
         category: "Kreativiti",
         question: "6. Bahagian manakah yang paling menarik pada binaan ini?",
         options: [
@@ -814,7 +814,7 @@ const APPRECIATION_QUESTIONS_BY_FIELD: Record<
       },
       {
         id: "bn-t1-7",
-        field: "Binaan",
+        field: "Binaan 3D",
         category: "Mesej",
         question: "7. Apakah kegunaan binaan ini?",
         options: [
@@ -828,7 +828,7 @@ const APPRECIATION_QUESTIONS_BY_FIELD: Record<
     tahap2: [
       {
         id: "bn-t2-1",
-        field: "Binaan",
+        field: "Binaan 3D",
         category: "Unsur Seni",
         question:
           "1. Bagaimanakah gabungan bentuk, ruang dan jalinan mempengaruhi keindahan binaan ini?",
@@ -841,7 +841,7 @@ const APPRECIATION_QUESTIONS_BY_FIELD: Record<
       },
       {
         id: "bn-t2-2",
-        field: "Binaan",
+        field: "Binaan 3D",
         category: "Prinsip Rekaan",
         question:
           "2. Adakah prinsip imbangan dan kesatuan berjaya diaplikasikan dalam binaan ini? Berikan alasan.",
@@ -854,7 +854,7 @@ const APPRECIATION_QUESTIONS_BY_FIELD: Record<
       },
       {
         id: "bn-t2-3",
-        field: "Binaan",
+        field: "Binaan 3D",
         category: "Media & Bahan",
         question:
           "3. Sejauh manakah pemilihan bahan mempengaruhi kekuatan dan kestabilan binaan?",
@@ -867,7 +867,7 @@ const APPRECIATION_QUESTIONS_BY_FIELD: Record<
       },
       {
         id: "bn-t2-4",
-        field: "Binaan",
+        field: "Binaan 3D",
         category: "Teknik",
         question:
           "4. Apakah kelebihan dan kekurangan teknik yang digunakan untuk menghasilkan binaan ini?",
@@ -880,7 +880,7 @@ const APPRECIATION_QUESTIONS_BY_FIELD: Record<
       },
       {
         id: "bn-t2-5",
-        field: "Binaan",
+        field: "Binaan 3D",
         category: "Kreativiti",
         question:
           "5. Bagaimanakah unsur kreativiti dan inovasi dapat dikenal pasti dalam binaan ini?",
@@ -893,7 +893,7 @@ const APPRECIATION_QUESTIONS_BY_FIELD: Record<
       },
       {
         id: "bn-t2-6",
-        field: "Binaan",
+        field: "Binaan 3D",
         category: "Pengkritikan",
         question:
           "6. Adakah binaan ini memenuhi fungsi atau tujuan asal penghasilannya? Jelaskan.",
@@ -906,7 +906,7 @@ const APPRECIATION_QUESTIONS_BY_FIELD: Record<
       },
       {
         id: "bn-t2-7",
-        field: "Binaan",
+        field: "Binaan 3D",
         category: "Kreativiti",
         question:
           "7. Apakah cadangan penambahbaikan yang boleh menjadikan binaan ini lebih kreatif, kukuh dan berfungsi?",
