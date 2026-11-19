@@ -7633,7 +7633,7 @@ function ArtworkFormModal({
             {isEditMode ? (
               <>
                 <Pencil className="mr-2 text-yellow-300" /> Kemaskini Maklumat
-                Karya Pelukis
+                Karya
               </>
             ) : (
               <>
@@ -7808,28 +7808,41 @@ function ArtworkFormModal({
               </div>
             )}
 
+            {/* RUANG PRATONTON GAMBAR YANG TELAH DIMUAT NAIK */}
             {imageUrl && (
-              <div className="mt-3 relative rounded-2xl overflow-hidden border-2 border-blue-200 bg-slate-100">
-                <img
-                  src={formatDirectImageUrl(imageUrl)}
-                  alt="Pratonton Karya"
-                  className="w-full max-h-44 object-contain mx-auto"
-                  onError={(e: any) => {
-                    e.target.src =
-                      "https://placehold.co/600x300/fee2e2/991b1b?text=Pautan+Gambar+Tidak+Sah";
-                  }}
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    SoundFX.click();
-                    setImageUrl("");
-                  }}
-                  className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white p-1.5 rounded-full shadow-md transition-transform hover:scale-105"
-                  title="Buang gambar ini"
-                >
-                  <X className="w-4 h-4 stroke-[2.75]" />
-                </button>
+              <div className="mt-3.5 space-y-1.5">
+                <div className="flex items-center justify-between px-0.5">
+                  <span className="text-xs font-extrabold text-blue-900 flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
+                    Pratonton karya yang telah dimuat naik:
+                  </span>
+                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                    Sedia Dihantar!
+                  </span>
+                </div>
+
+                <div className="relative rounded-2xl overflow-hidden border-2 border-blue-200 bg-slate-100">
+                  <img
+                    src={formatDirectImageUrl(imageUrl)}
+                    alt="Pratonton Karya"
+                    className="w-full max-h-44 object-contain mx-auto"
+                    onError={(e: any) => {
+                      e.target.src =
+                        "https://placehold.co/600x300/fee2e2/991b1b?text=Pautan+Gambar+Tidak+Sah";
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      SoundFX.click();
+                      setImageUrl("");
+                    }}
+                    className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white p-1.5 rounded-full shadow-md transition-transform hover:scale-105"
+                    title="Buang gambar ini"
+                  >
+                    <X className="w-4 h-4 stroke-[2.75]" />
+                  </button>
+                </div>
               </div>
             )}
           </div>
