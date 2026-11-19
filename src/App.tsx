@@ -1336,7 +1336,7 @@ const pickThreeRandomQuestions = (
   stage: "tahap1" | "tahap2",
   rawField?: string
 ): AppreciationQuestion[] => {
-  const field = normalizePsvField(rawField);
+  const field = normalizePsvField(rawField || "");
   const pool = APPRECIATION_QUESTIONS_BY_FIELD[field][stage];
   const shuffled = [...pool].sort(() => Math.random() - 0.5);
 
