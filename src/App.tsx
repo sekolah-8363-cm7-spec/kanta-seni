@@ -324,26 +324,18 @@ const MEDIA_BY_FIELD: Record<string, string[]> = {
 };
 
 // Helper untuk memisahkan & menggabungkan Media + Cerita Karya di dalam medan description
-const parseMediaAndStory = (
-  rawDesc?: string
-): { media: string; story: string } => {
-  const text = String(rawDesc || "").trim();
-  const match = text.match(/^\[Media:\s*(.+?)\]\s*(?:\r?\n)?([\s\S]*)$/i);
-  if (match) {
-    return {
-      media: match[1].trim(),
-      story: (match[2] || "").trim(),
-    };
-  }
-  return { media: "", story: text };
-};
-
 const formatMediaAndStory = (media: string, story: string): string => {
   const cleanMedia = media.trim();
   const cleanStory = story.trim();
   if (cleanMedia && cleanStory) return `[Media: ${cleanMedia}]\n${cleanStory}`;
   if (cleanMedia) return `[Media: ${cleanMedia}]`;
   return cleanStory;
+};
+
+type AppreciationQuestion = {
+  category: string;
+  question: string;
+  options: string[];
 };
 
 const APPRECIATION_QUESTIONS_BY_FIELD: Record<
