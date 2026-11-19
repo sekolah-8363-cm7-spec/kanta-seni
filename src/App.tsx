@@ -247,44 +247,101 @@ const getOptimizedArtworkUrl = (
 };
 
 // --- BANK SOALAN APRESIASI SENI VISUAL (60 SOALAN LENGKAP: 30 TAHAP 1 & 30 TAHAP 2) ---
+// 5 Bidang Utama Pendidikan Seni Visual KSSR (Termasuk Seni Digital)
 const PSV_FIELDS = [
   "Menggambar",
-  "Corak dan Rekaan",
-  "Binaan",
-  "Kraf Tradisional",
-] as const;
+  "Membuat Corak dan Rekaan",
+  "Membentuk dan Membuat Binaan (3D)",
+  "Mengenal Kraf Tradisional",
+  "Seni Digital",
+];
 
-type PsvFieldType = (typeof PSV_FIELDS)[number];
-
-const normalizePsvField = (rawField?: string): PsvFieldType => {
-  const clean = String(rawField || "")
-    .trim()
-    .toLowerCase();
-  if (clean.includes("corak") || clean.includes("rekaan"))
-    return "Corak dan Rekaan";
-  if (clean.includes("binaan") || clean.includes("membentuk")) return "Binaan";
-  if (clean.includes("kraf") || clean.includes("tradisional"))
-    return "Kraf Tradisional";
-  return "Menggambar";
+const normalizePsvField = (val: string): string => {
+  const s = String(val || "").trim();
+  const low = s.toLowerCase();
+  if (low.includes("digital")) return "Seni Digital";
+  if (low.includes("gambar")) return "Menggambar";
+  if (low.includes("corak") || low.includes("rekaan"))
+    return "Membuat Corak dan Rekaan";
+  if (low.includes("bentuk") || low.includes("binaan"))
+    return "Membentuk dan Membuat Binaan (3D)";
+  if (low.includes("kraf") || low.includes("tradisional"))
+    return "Mengenal Kraf Tradisional";
+  return PSV_FIELDS.includes(s) ? s : "Menggambar";
 };
 
-type AppreciationAspect =
-  | "Hal Benda"
-  | "Unsur Seni"
-  | "Prinsip Rekaan"
-  | "Media & Bahan"
-  | "Teknik"
-  | "Mesej"
-  | "Kreativiti"
-  | "Pengkritikan";
+// Pemetaan Media / Bahan & Teknik mengikut Bidang PSV KSSR
+// Pemetaan Media & Bahan Umum mengikut Bidang PSV (Mesra Murid Sekolah Rendah)
+const MEDIA_BY_FIELD: Record<string, string[]> = {
+  Menggambar: [
+    "Media Kering (Pensel / Pensel Warna / Krayon / Oil Pastel)",
+    "Media Kering (Pen Marker / Pen Gel / Arang)",
+    "Media Basah (Cat Air / Cat Poster / Cat Tempera)",
+    "Media Basah (Cat Akrilik / Dakwat)",
+    "Kertas Warna / Majalah / Surat Khabar / Gam",
+    "Bahan Alam & Terbuang (Daun Kering / Biji-bijian / Butang)",
+    "Lilin / Krayon & Cat Air (Campuran Media)",
+  ],
+  "Membuat Corak dan Rekaan": [
+    "Media Basah (Cat Air / Cat Poster / Pewarna Makanan)",
+    "Media Kering (Pensel Warna / Krayon / Oil Pastel / Marker)",
+    "Kertas Warna / Kertas Lukisan / Kad Manila",
+    "Bahan Alam (Sayuran / Daun / Kentang / Bendi)",
+    "Alat Harian (Straw / Berus Gigi / Span / Benang / Putik Kapas)",
+    "Tisu / Kain Kapas / Tali Rafia & Pewarna",
+    "Lilin & Cat Air / Cat Minyak",
+  ],
+  "Membentuk dan Membuat Binaan (3D)": [
+    "Kertas / Kad Manila / Kadbod / Kotak Terpakai",
+    "Tanah Liat / Plastisin / Doh Tepung",
+    "Bahan Terbuang (Botol Plastik / Cawan Kertas / Tin / Penutup Botol)",
+    "Batang Aiskrim / Lidi Satay / Penyedut Minuman (Straw)",
+    "Kain / Stoking / Benang Bulu / Kapas",
+    "Dawai Lembut / Aluminium Foil / Tali",
+    "Cat Poster / Cat Akrilik / Kertas Warna (Kemasan Binaan)",
+  ],
+  "Mengenal Kraf Tradisional": [
+    "Kertas Warna / Kad Manila / Kertas Lukisan",
+    "Tanah Liat / Plastisin",
+    "Kayu / Buluh / Rotan / Lidi",
+    "Kain Putih / Kain Batik / Benang / Tali",
+    "Lilin / Krayon & Pewarna Batik / Cat Air",
+    "Manik / Labuci / Butang / Reben",
+    "Kadbod / Kotak / Aluminium Foil / Cat Poster",
+  ],
+  "Seni Digital": [
+    "Aplikasi Reka Grafik (Canva / Adobe Express)",
+    "AI Generatif (Gemini / NotebookLM / Image Generator)",
+    "Perisian Melukis (MS Paint / Paint 3D / Tux Paint)",
+    "Aplikasi Lukisan Tablet/Telefon (ibis Paint / Sketchbook / Procreate)",
+    "Persembahan & Poster Digital (PowerPoint / Google Slides)",
+    "Penyunting Foto & Kolaj Digital (CapCut / Snapseed / Picsart)",
+    "Peranti Digital (Komputer / Tablet / Telefon Pintar / Stylus)",
+  ],
+};
 
-interface AppreciationQuestion {
-  id: string;
-  field: PsvFieldType;
-  category: AppreciationAspect;
-  question: string;
-  options: string[];
-}
+// Helper untuk memisahkan & menggabungkan Media + Cerita Karya di dalam medan description
+const parseMediaAndStory = (
+  rawDesc?: string
+): { media: string; story: string } => {
+  const text = String(rawDesc || "").trim();
+  const match = text.match(/^\[Media:\s*(.+?)\]\s*(?:\r?\n)?([\s\S]*)$/i);
+  if (match) {
+    return {
+      media: match[1].trim(),
+      story: (match[2] || "").trim(),
+    };
+  }
+  return { media: "", story: text };
+};
+
+const formatMediaAndStory = (media: string, story: string): string => {
+  const cleanMedia = media.trim();
+  const cleanStory = story.trim();
+  if (cleanMedia && cleanStory) return `[Media: ${cleanMedia}]\n${cleanStory}`;
+  if (cleanMedia) return `[Media: ${cleanMedia}]`;
+  return cleanStory;
+};
 
 const APPRECIATION_QUESTIONS_BY_FIELD: Record<
   PsvFieldType,
@@ -1073,6 +1130,136 @@ const APPRECIATION_QUESTIONS_BY_FIELD: Record<
       },
     ],
   },
+  "Seni Digital": {
+    tahap1: [
+      {
+        id: "sd-t1-1",
+        category: "Hal Benda",
+        prompt:
+          "Apakah gambar atau watak utama yang kamu lukis pada skrin dalam karya digital ini?",
+        starter: "Dalam karya digital ini, saya melukis gambar...",
+      },
+      {
+        id: "sd-t1-2",
+        category: "Media & Bahan",
+        prompt:
+          "Apakah peranti dan aplikasi digital yang kamu gunakan untuk menghasilkan karya ini?",
+        starter:
+          "Saya menggunakan peranti... dan aplikasi... untuk menghasilkan karya ini.",
+      },
+      {
+        id: "sd-t1-3",
+        category: "Teknik",
+        prompt:
+          "Apakah alat digital (seperti berus, bentuk asas, atau baldi warna) yang paling kamu suka gunakan?",
+        starter:
+          "Alat digital yang paling saya suka gunakan ialah... kerana...",
+      },
+      {
+        id: "sd-t1-4",
+        category: "Unsur Seni",
+        prompt:
+          "Apakah warna-warna terang atau garisan digital yang kamu pilih untuk mencantikkan karya ini?",
+        starter:
+          "Saya memilih warna... dan garisan... supaya karya kelihatan...",
+      },
+      {
+        id: "sd-t1-5",
+        category: "Prinsip Rekaan",
+        prompt:
+          "Bagaimanakah kamu menyusun gambar utama di tengah atau di ruang skrin supaya nampak kemas?",
+        starter: "Saya menyusun gambar utama di bahagian... supaya nampak...",
+      },
+      {
+        id: "sd-t1-6",
+        category: "Mesej",
+        prompt:
+          "Apakah cerita atau perasaan gembira yang ingin kamu sampaikan melalui karya digital ini?",
+        starter:
+          "Karya digital ini menceritakan tentang... dan membuatkan saya rasa...",
+      },
+      {
+        id: "sd-t1-7",
+        category: "Kreativiti",
+        prompt:
+          "Apakah bahagian yang paling menyeronokkan semasa kamu melukis menggunakan komputer atau tablet?",
+        starter: "Bahagian yang paling menyeronokkan ialah semasa saya...",
+      },
+      {
+        id: "sd-t1-8",
+        category: "Pengkritikan",
+        prompt:
+          "Jika kamu boleh menambah satu lagi kesan khas atau pelekat digital pada karya ini, apakah yang akan kamu tambah?",
+        starter: "Jika boleh ditambah, saya ingin menambah... supaya lebih...",
+      },
+    ],
+    tahap2: [
+      {
+        id: "sd-t2-1",
+        category: "Hal Benda",
+        prompt:
+          "Huraikan tema atau subjek utama karya seni digital ini serta sumber ilham kamu menghasilkannya.",
+        starter:
+          "Tema utama karya seni digital ini ialah... yang diilhamkan daripada...",
+      },
+      {
+        id: "sd-t2-2",
+        category: "Media & Bahan",
+        prompt:
+          "Nyatakan perisian, peranti input (tetikus, stylus, atau skrin sentuh), serta jenis berus digital yang diaplikasikan.",
+        starter:
+          "Karya ini dihasilkan menggunakan perisian... dengan peranti... dan pilihan berus...",
+      },
+      {
+        id: "sd-t2-3",
+        category: "Teknik",
+        prompt:
+          "Bagaimanakah kamu memanfaatkan fungsi lapisan (layers), alat bentuk, atau kesan tekstur digital semasa berkarya?",
+        starter:
+          "Saya mengaplikasikan teknik lapisan (layers) dan kesan digital dengan cara...",
+      },
+      {
+        id: "sd-t2-4",
+        category: "Unsur Seni",
+        prompt:
+          "Analisis penggunaan unsur warna, ton cahaya, dan jalinan digital yang menghidupkan suasana karya ini.",
+        starter:
+          "Dari segi unsur seni, gabungan warna... dan kesan cahaya digital berjaya...",
+      },
+      {
+        id: "sd-t2-5",
+        category: "Prinsip Rekaan",
+        prompt:
+          "Bagaimanakah prinsip penegasan, imbangan, dan kesatuan diwujudkan dalam susun atur grafik digital ini?",
+        starter:
+          "Prinsip penegasan dan imbangan jelas kelihatan melalui susunan...",
+      },
+      {
+        id: "sd-t2-6",
+        category: "Mesej",
+        prompt:
+          "Apakah mesej visual atau nilai murni yang ingin disampaikan kepada penonton melalui rekaan digital ini?",
+        starter:
+          "Mesej utama yang ingin disampaikan melalui karya digital ini ialah...",
+      },
+      {
+        id: "sd-t2-7",
+        category: "Kreativiti",
+        prompt:
+          "Apakah cabaran teknikal semasa mengawal alat digital dan bagaimana kamu menyelesaikannya secara kreatif?",
+        starter:
+          "Cabaran utama semasa berkarya secara digital ialah... dan saya mengatasinya dengan...",
+      },
+      {
+        id: "sd-t2-8",
+        category: "Pengkritikan",
+        prompt:
+          "Buat penilaian kendiri tentang kekuatan reka letak digital ini dan cadangkan satu penambahbaikan untuk karya seterusnya.",
+        starter:
+          "Kekuatan utama rekaan digital ini terletak pada... dan pada masa hadapan saya ingin menambah baik...",
+      },
+    ],
+  },
 };
 
 const getStageFromClass = (className?: string): "tahap1" | "tahap2" => {
@@ -1624,6 +1811,7 @@ export default function App() {
               className: String(item.className ?? "Tahun 1"),
               field: normalizePsvField(item.field),
               imageUrl: String(item.imageUrl ?? ""),
+              description: String(item.description ?? ""),
               likes: Array.isArray(item.likes) ? item.likes : [],
               comments: Array.isArray(item.comments)
                 ? item.comments.map((c: any) => ({
@@ -2088,6 +2276,7 @@ export default function App() {
     className: string;
     field: string;
     imageUrl: string;
+    description?: string;
   }) => {
     if (!editingArtwork || !loggedInStaff) return;
 
@@ -2102,6 +2291,7 @@ export default function App() {
       className: updatedData.className,
       field: normalizedField,
       imageUrl: cleanImageUrl,
+      description: (updatedData.description || "").trim(),
       updatedAt: Date.now(),
     };
 
@@ -2131,6 +2321,7 @@ export default function App() {
       className: updatedArt.className,
       field: updatedArt.field,
       imageUrl: updatedArt.imageUrl,
+      description: updatedArt.description,
     });
   };
 
@@ -6811,6 +7002,11 @@ function ArtworkCard({
   const comments = artwork.comments || [];
   const isLiked = activePassport ? likes.includes(activeUserKey) : false;
 
+  const { media, story } = useMemo(
+    () => parseMediaAndStory(artwork.description),
+    [artwork.description]
+  );
+
   const starGivers = useMemo(
     () => parseStarGivers(likes, comments, vipRegistry),
     [likes, comments, vipRegistry]
@@ -6856,7 +7052,7 @@ function ArtworkCard({
               "https://placehold.co/600x400/e2e8f0/475569?text=Gambar+Tidak+Dijumpai";
           }}
         />
-        <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
+        <div className="absolute top-3 left-3 right-3 flex flex-wrap gap-1.5">
           <span className="bg-yellow-400/95 backdrop-blur-sm text-blue-900 text-xs font-extrabold px-3 py-1 rounded-full shadow-sm">
             {artwork.className}
           </span>
@@ -6876,7 +7072,7 @@ function ArtworkCard({
         </div>
 
         {isStaffLoggedIn && (
-          <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5">
+          <div className="absolute bottom-3 right-3 z-10 flex items-center gap-1.5">
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -6907,13 +7103,32 @@ function ArtworkCard({
         </h4>
         <div
           title={artwork.studentName}
-          className="flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-700 mb-4 min-w-0"
+          className="flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-700 mb-3 min-w-0"
         >
           <span className="w-6 h-6 rounded-full bg-amber-100 border border-amber-300 flex items-center justify-center shrink-0">
             <User className="w-3.5 h-3.5 text-amber-700 stroke-[2.5]" />
           </span>
           <span className="truncate">{artwork.studentName}</span>
         </div>
+
+        {(media || story) && (
+          <div className="space-y-2 mb-3">
+            {media && (
+              <div
+                title={media}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-50 border border-indigo-200/80 text-indigo-800 text-[11px] font-extrabold max-w-full"
+              >
+                <Palette className="w-3.5 h-3.5 shrink-0 text-indigo-600" />
+                <span className="truncate">{media}</span>
+              </div>
+            )}
+            {story && (
+              <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed bg-sky-50/70 p-2.5 rounded-xl border border-blue-100">
+                "{story}"
+              </p>
+            )}
+          </div>
+        )}
 
         <div className="flex items-center justify-between pt-3 border-t border-slate-100 mt-auto">
           <div className="flex items-center gap-1.5">
@@ -6998,6 +7213,11 @@ function ArtworkLightboxModal({
 
   const stage = getStageFromClass(artwork.className);
   const artworkField = normalizePsvField(artwork.field);
+  const { media: artworkMedia, story: artworkStory } = useMemo(
+    () => parseMediaAndStory(artwork.description),
+    [artwork.description]
+  );
+
   const [isQuizOpen, setIsQuizOpen] = useState(
     Boolean(initialOpenQuiz && activePassport)
   );
@@ -7341,6 +7561,36 @@ function ArtworkLightboxModal({
               <span className="truncate">{artwork.studentName}</span>
             </div>
 
+            {/* PENERANGAN: MEDIA / BAHAN & TEKNIK + CERITA KARYA */}
+            {(artworkMedia || artworkStory) && (
+              <div className="mb-4 space-y-2.5">
+                {artworkMedia && (
+                  <div className="bg-indigo-50/90 border border-indigo-200 rounded-2xl p-3 flex items-start gap-2.5">
+                    <span className="w-7 h-7 rounded-xl bg-indigo-100 border border-indigo-200 flex items-center justify-center shrink-0 mt-0.5">
+                      <Palette className="w-4 h-4 text-indigo-700" />
+                    </span>
+                    <div className="min-w-0">
+                      <span className="block text-[10px] font-black uppercase tracking-wider text-indigo-800">
+                        Media &amp; Bahan
+                      </span>
+                      <span className="block text-xs sm:text-sm font-bold text-slate-800 mt-0.5">
+                        {artworkMedia}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {artworkStory && (
+                  <div className="bg-amber-50/85 border border-amber-200 rounded-2xl p-3.5 text-sm text-slate-700 leading-relaxed whitespace-pre-line">
+                    <span className="block text-[10px] font-black uppercase tracking-wider text-amber-800 mb-1">
+                      Cerita &amp; Keterangan Karya
+                    </span>
+                    {artworkStory}
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Baris Butang Bintang + Avatar (Kiri) & Bilangan Komen (Kanan) */}
             <div className="flex items-center justify-between gap-3 w-full pt-2.5 border-t border-slate-100">
               <div className="flex items-center gap-2.5 min-w-0">
@@ -7540,6 +7790,9 @@ function ArtworkFormModal({
   onClose: () => void;
   onSubmit: (data: any) => void;
 }) {
+  const initialField = normalizePsvField(initialData?.field) as PsvFieldType;
+  const parsedInitial = parseMediaAndStory(initialData?.description);
+
   const [title, setTitle] = useState(initialData?.title || "");
   const [studentName, setStudentName] = useState(
     initialData?.studentName || ""
@@ -7547,9 +7800,11 @@ function ArtworkFormModal({
   const [className, setClassName] = useState(
     initialData?.className || "Tahun 1"
   );
-  const [field, setField] = useState<PsvFieldType>(
-    normalizePsvField(initialData?.field)
+  const [field, setField] = useState<PsvFieldType>(initialField);
+  const [selectedMedia, setSelectedMedia] = useState<string>(
+    parsedInitial.media || (MEDIA_BY_FIELD[initialField]?.[0] ?? "")
   );
+  const [story, setStory] = useState(parsedInitial.story || "");
   const [imageUrl, setImageUrl] = useState(initialData?.imageUrl || "");
 
   const [uploadMethod, setUploadMethod] = useState<"file" | "url">(
@@ -7558,6 +7813,20 @@ function ArtworkFormModal({
       : "file"
   );
   const [isProcessingImage, setIsProcessingImage] = useState(false);
+
+  const availableMediaOptions = useMemo(() => {
+    const baseList = MEDIA_BY_FIELD[field] || [];
+    if (selectedMedia && !baseList.includes(selectedMedia)) {
+      return [selectedMedia, ...baseList];
+    }
+    return baseList;
+  }, [field, selectedMedia]);
+
+  const handleFieldChange = (newField: PsvFieldType) => {
+    setField(newField);
+    const nextMediaList = MEDIA_BY_FIELD[newField] || [];
+    setSelectedMedia(nextMediaList[0] || "");
+  };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -7613,12 +7882,14 @@ function ArtworkFormModal({
     e.preventDefault();
     if (!title.trim() || !studentName.trim() || !imageUrl.trim()) return;
     const finalImageUrl = formatDirectImageUrl(imageUrl.trim());
+    const combinedDescription = formatMediaAndStory(selectedMedia, story);
     onSubmit({
       title: title.trim(),
       studentName: studentName.trim(),
       className,
       field,
       imageUrl: finalImageUrl,
+      description: combinedDescription,
     });
   };
 
@@ -7708,7 +7979,9 @@ function ArtworkFormModal({
               </label>
               <select
                 value={field}
-                onChange={(e) => setField(e.target.value as PsvFieldType)}
+                onChange={(e) =>
+                  handleFieldChange(e.target.value as PsvFieldType)
+                }
                 required
                 className="w-full border-2 border-amber-300 bg-amber-50/70 text-blue-950 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 font-bold"
               >
@@ -7719,6 +7992,43 @@ function ArtworkFormModal({
                 ))}
               </select>
             </div>
+          </div>
+
+          {/* BARIS 3.5: MEDIA & BAHAN (DINAMIK MENGIKUT BIDANG) */}
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-1">
+              Media &amp; Bahan{" "}
+              <span className="text-red-500 text-base">*</span>
+            </label>
+            <select
+              value={selectedMedia}
+              onChange={(e) => setSelectedMedia(e.target.value)}
+              required
+              className="w-full border-2 border-indigo-200 bg-indigo-50/70 text-indigo-950 rounded-xl px-3.5 py-2.5 text-sm font-bold focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all"
+            >
+              {availableMediaOptions.map((item) => (
+                <option key={item} value={item}>
+                  {item}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* BARIS 3.6: CERITA / KETERANGAN KARYA (PILIHAN) */}
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-1">
+              Cerita / Keterangan Karya{" "}
+              <span className="text-xs font-normal text-slate-400">
+                (Pilihan)
+              </span>
+            </label>
+            <textarea
+              rows={2}
+              value={story}
+              onChange={(e) => setStory(e.target.value)}
+              placeholder="Ceritakan secara ringkas inspirasi atau maksud karya ini..."
+              className="w-full border-2 border-slate-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all resize-none"
+            />
           </div>
 
           {/* BARIS 4: MUAT NAIK GAMBAR KARYA */}
